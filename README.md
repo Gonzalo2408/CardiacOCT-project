@@ -18,7 +18,15 @@ Since manually labelling the dataset is a very time consuming task for annotator
 | Second dataset  | 76/12 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 89/13  | 1215/162 
 
 
-## Explain code + folders
+## Preprocessing
+
+The general preprocessing consisted of reshaping the images to a common size, which was (704, 704) and applying a circular mask to each slice. This is because each slice contains a watermark by Abbott with a small scale bar, and we do not our algorithm to learn from this information.
+
+### 2D approach
+
+For the 2D approach, the slices that did not contain any label were omitted. Thus, each slice for every pullback in the dataset was saved to a single NifTI file. In addition, each channel in the slice (RGB values) were saved separately as well, obtaining 3 files for each frame in the pullback. Similiary, each segmentation frame was saved in a different NifTI file. In this case, the segmentation is 1-dimensional, so there was no need to create a file for each dimension
+
+
 
 
 
