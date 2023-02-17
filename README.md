@@ -31,7 +31,7 @@ For the 2D approach, the slices that did not contain any label were omitted. Thu
 
 
 ## TODO:
- - Train data with second dataset included
+ - Train data with second dataset included (check case NLD-RADB-0030)
  - Build metrics Excel with both datasets results (including DICE results per region, plots, etc)
  - Solve NaN problem with 3d version of (first/second??) dataset --> impute -1 once preprocessing is done
  - Figure out post-processing techniques for lipid arc and cap thickness measurements (using dynammic programming + semantic segmentation of lipid, lumen, intima, etc). 
