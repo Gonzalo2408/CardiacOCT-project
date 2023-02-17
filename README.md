@@ -14,8 +14,8 @@ Since manually labelling the dataset is a very time consuming task for annotator
 
 | Dataset  | Nº of patients (train/test) | Nº of pullbacks (train/test) | Nº of annotated frames (train/test)
 | ------------- | ------------- | -------------  | -------------
-| First dataset  | 50/12 (1 EST-NEMC, 24 AMPH, 3 HMC, 24 ISALA, 10 RADB)  | 57/13  | 783/163
-| Second dataset  | 76/12 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 89/13  | 1215/162 
+| First dataset  | 49/13 (1 EST-NEMC, 24 AMPH, 3 HMC, 24 ISALA, 10 RADB)  | 56/14  | 783/163
+| Second dataset  | 75/13 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 88/14  | 1215/162 
 
 
 ## Preprocessing
@@ -24,9 +24,11 @@ The general preprocessing consisted of reshaping the images to a common size, wh
 
 ### 2D approach
 
-For the 2D approach, the slices that did not contain any label were omitted. Thus, each slice for every pullback in the dataset was saved to a single NifTI file. In addition, each channel in the slice (RGB values) were saved separately as well, obtaining 3 files for each frame in the pullback. Similiary, each segmentation frame was saved in a different NifTI file. In this case, the segmentation is 1-dimensional, so there was no need to create a file for each dimension
+For the 2D approach, the slices that did not contain any label were omitted. Thus, each slice for every pullback in the dataset was saved to a single NifTI file. In addition, each channel in the slice (RGB values) were saved separately as well, obtaining 3 files for each frame in the pullback. Similiary, each segmentation frame was saved in a different NifTI file. In this case, the segmentation is 1-dimensional, so there was no need to create a file for each dimension.
 
+### 3D approach
 
+For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotattions in each 3D volume. The frames that do not contain any label have a segmentation map that only contains -1, in order to the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model, in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
 
 
 
