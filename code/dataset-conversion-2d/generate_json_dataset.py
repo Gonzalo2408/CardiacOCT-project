@@ -62,10 +62,10 @@ def generate_dataset_json(output_file: str, imagesTr_dir: str, imagesTs_dir: str
 
 
 def main():
-    target_base = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task501_CardiacOCT'
-    target_imagesTr = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task501_CardiacOCT/imagesTr'
-    target_imagesTs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task501_CardiacOCT/imagesTs'
-    task_name = 'Task501_CardiacOCT'
+    target_base = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT'
+    target_imagesTr = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT/imagesTr'
+    target_imagesTs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT/imagesTs'
+    task_name = 'Task502_CardiacOCT'
     dataset_description = 'Semantic segmentation of intracoronary OCT pullbacks with 2D frames'
     modalities = ('Red', 'Green', 'Blue')
 
