@@ -20,7 +20,7 @@ Since manually labelling the dataset is a very time consuming task for annotator
 
 The ROIs for each OCT scan are (note that for each dataset, only the train set is shown):
 
-| ROIs  | Distribution first dataset (frames/pullbacks)(%) | Distribution second dataset (%) | Test set (%)
+| ROI  | Distribution first dataset (frames/pullbacks)(%) | Distribution second dataset (%) | Test set (%)
 | ------------- | ------------- | ------------- | -------------  
 | Lumen  | - | - | -
 | Guidewire  | - | - | -
@@ -34,6 +34,7 @@ The ROIs for each OCT scan are (note that for each dataset, only the train set i
 | White thrombus | 5.61 / 28.57 | 4.53 / 23.86 | 0 / 0
 | Dissection | 0.76 / 5.35 | 0.49 / 3.41 | 0 / 0
 | Plaque rupture | 7.02 / 25 | 5.59 / 21.59 | 3.08 / 14.28
+
 
 "-" indicates that the label is present in every pullback and in every frame of the dataset
 
@@ -53,8 +54,46 @@ For the 3D version of the nnUNet, a sparse trainer was used. In this case, the l
 
 ## Results
 
-We obtained a bunch of metrics (accuracy, recall, jaccard, etc) but we only diplay the DICE scores for each one of the regions segmented
+We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay the DICE scores for each one of the regions segmented.
 
+### Results of best cross-validation model
+
+
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 3D sparse model 2nd dataset 
+| ------------- | -------------- | -------------- | --------------  
+| Lumen  | 0.981
+| Guidewire  | 0.927
+| Wall | 0.892
+| Lipid | 0.341
+| Calcium | 0.162
+| Media | 0.716
+| Catheter | 0.985
+| Sidebranch | 0.105 
+| Red thrombus | 0.043 
+| White thrombus | 0.014  
+| Dissection | 0.0016 
+| Plaque rupture | 0.039 
+
+
+### Results on test set
+
+
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 3D sparse model 2nd dataset 
+| ------------- | -------------- | -------------- | --------------
+| Lumen  | 0.972
+| Guidewire  | 0.937
+| Wall | 0.882
+| Lipid | 0.339
+| Calcium | 0.11
+| Media | 0.771
+| Catheter | 0.99
+| Sidebranch | 0.073 
+| Red thrombus | 0 
+| White thrombus | 0  
+| Dissection | 0 
+| Plaque rupture | 0.024
+
+Note that for the test set, there are no frames with white thrombus or dissections, meaning that the actual DICE score for those would be NaN in the test set.
 
 
 ## TODO:
