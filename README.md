@@ -18,22 +18,22 @@ Since manually labelling the dataset is a very time consuming task for annotator
 | Second dataset  | 75/13 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 88/14  | 1215/162 
 
 
-The ROIs for each OCT scan are:
+The ROIs for each OCT scan are (note that for each dataset, only the train set is shown):
 
-| ROIs  | Distribution first dataset (train/test) | Distribution second dataset (train/test)
-| ------------- | ------------- | -------------  
-| Lumen  | - |
-| Guidewire  | - |
-| Wall | - |
-| Lipid | (check) |
-| Calcium | (check) |
-| Media | - |
-| Catheter | - |
-| Sidebranch | (check) |
-| Red thrombus | (check) |
-| White thrombus | (check) |
-| Dissection | (check) |
-| Plaque rupture | (check) |
+| ROIs  | Distribution first dataset (frames/pullbacks)(%) | Distribution second dataset (%) | Test set (%)
+| ------------- | ------------- | ------------- | -------------  
+| Lumen  | 100 / 100 | 100 / 100 | 100 / 100
+| Guidewire  | 100 / 100 | 100 / 100 | 100 / 100
+| Wall | 100 / 100 | 100 / 100 | 100 / 100
+| Lipid | 51 / 98 | 47 / 98 | 48 / 93
+| Calcium | 27.58 / 83.92 | 27.07 / 81.81 | 16.67 / 71.43
+| Media | 95.89 / 100 | 96.21 / 100 | 99.38 / 100
+| Catheter | 100 / 100 | 100 / 100 | 100 / 100
+| Sidebranch | 13.79 / 6.89 | 14.97 / 89.77 | 16.67 / 71.42
+| Red thrombus | 6.89 / 26.78 | 5.67 / 23.86 | 0.61 / 7.14
+| White thrombus | 5.61 / 28.57 | 4.53 / 23.86 | 0 / 0
+| Dissection | 0.76 / 5.35 | 0.49 / 3.41 | 0 / 0
+| Plaque rupture | 7.02 / 25 | 5.59 / 21.59 | 3.08 / 14.28
 
 
 ## Preprocessing
