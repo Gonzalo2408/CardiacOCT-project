@@ -20,7 +20,7 @@ Since manually labelling the dataset is a very time consuming task for annotator
 
 The ROIs for each OCT scan are:
 
-| ROIs  | Distribution first dataset | Distribution second dataset
+| ROIs  | Distribution first dataset (train/test) | Distribution second dataset (train/test)
 | ------------- | ------------- | -------------  
 | Lumen  | - |
 | Guidewire  | - |
