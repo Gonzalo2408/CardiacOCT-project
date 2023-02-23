@@ -6,6 +6,13 @@ Acute myocardial infarction (MI) remains as one of the leading causes of mortali
 
 In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a nnUNet (no-new-UNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
 
+
+![image](https://user-images.githubusercontent.com/37450737/220990629-a658d95a-8c3b-4fb9-9289-d44a6c1d26d3.png) 
+![image](https://user-images.githubusercontent.com/37450737/220990554-bb602dce-e69f-4a0e-ad8e-163e607415e6.png) 
+
+              Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right) 
+
+
 ## Dataset
 
 The intracoronary OCT dataset used in this study is a collection of OCT scans from different centers, including (write it better later) RadboudUMC, EST-NEMC, AMPH, HMC, ISALA.
