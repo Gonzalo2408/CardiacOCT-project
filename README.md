@@ -18,6 +18,24 @@ Since manually labelling the dataset is a very time consuming task for annotator
 | Second dataset  | 75/13 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 88/14  | 1215/162 
 
 
+The ROIs for each OCT scan are:
+
+| ROIs  | Distribution first dataset | Distribution second dataset
+| ------------- | ------------- | -------------  
+| Lumen  | - |
+| Guidewire  | - |
+| Wall | - |
+| Lipid | (check) |
+| Calcium | (check) |
+| Media | - |
+| Catheter | - |
+| Sidebranch | (check) |
+| Red thrombus | (check) |
+| White thrombus | (check) |
+| Dissection | (check) |
+| Plaque rupture | (check) |
+
+
 ## Preprocessing
 
 The general preprocessing consisted of reshaping the images to a common size, which was (704, 704) and applying a circular mask to each slice. This is because each slice contains a watermark by Abbott with a small scale bar, and we do not our algorithm to learn from this information.
@@ -29,6 +47,11 @@ For the 2D approach, the slices that did not contain any label were omitted. Thu
 ### 3D approach
 
 For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotattions in each 3D volume. The frames that do not contain any label have a segmentation map that only contains -1, in order to the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model, in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
+
+
+## Results
+
+We obtained a bunch of metrics (accuracy, recall, jaccard, etc) but we only diplay the DICE scores for each one of the regions segmented
 
 
 
