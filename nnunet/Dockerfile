@@ -20,9 +20,16 @@ RUN git config --global advice.detachedHead false && \
         carbontracker && \
     rm -rf ~/.cache/pip
 
-# Configure entrypoint
-WORKDIR /home/user
-USER root
+
+COPY shutil_sol.py /tmp/shutil_sol.py
+RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
+    mkdir -p "$SITE_PKG/shutil_sol" && \
+    mv /tmp/shutil_sol.py "$SITE_PKG/shutil_sol/__init__.py" && \
+    find "$SITE_PKG/nnunet" -type f -name "*.py" \
+        -exec sed -i.bak \
+            -e "s|import shutil|import shutil, shutil_sol|g" \
+            -e "s|shutil.copy(|shutil_sol.copyfile(|g" \
+            -e "s|shutil.copytree(|shutil_sol.copytree(|g" {} +
 
 COPY --chown=user nnunet_wrapper.py /home/user/nnunet_wrapper.py
 RUN chmod +x /home/user/nnunet_wrapper.py && \
@@ -30,6 +37,6 @@ RUN chmod +x /home/user/nnunet_wrapper.py && \
 
 #ENTRYPOINT ["python3", "-u", "nnunet_wrapper.py"]
 
-ENTRYPOINT ["/bin/bash"]
+#ENTRYPOINT ["/bin/bash"]
 
 
