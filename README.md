@@ -6,6 +6,13 @@ Acute myocardial infarction (MI) remains as one of the leading causes of mortali
 
 In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a nnUNet (no-new-UNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
 
+
+![image](https://user-images.githubusercontent.com/37450737/220990629-a658d95a-8c3b-4fb9-9289-d44a6c1d26d3.png) 
+![image](https://user-images.githubusercontent.com/37450737/220990554-bb602dce-e69f-4a0e-ad8e-163e607415e6.png) 
+
+              Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right) 
+
+
 ## Dataset
 
 The intracoronary OCT dataset used in this study is a collection of OCT scans from different centers, including (write it better later) RadboudUMC, EST-NEMC, AMPH, HMC, ISALA.
@@ -16,6 +23,27 @@ Since manually labelling the dataset is a very time consuming task for annotator
 | ------------- | ------------- | -------------  | -------------
 | First dataset  | 49/13 (1 EST-NEMC, 24 AMPH, 3 HMC, 24 ISALA, 10 RADB)  | 56/14  | 783/163
 | Second dataset  | 75/13 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 88/14  | 1215/162 
+
+
+The ROIs for each OCT scan are (note that for each dataset, only the train set is shown):
+
+| ROI  | Distribution first dataset (frames/pullbacks)(%) | Distribution second dataset (%) | Test set (%)
+| ------------- | ------------- | ------------- | -------------  
+| Lumen  | - | - | -
+| Guidewire  | - | - | -
+| Wall | - | - | -
+| Lipid | 51 / 98 | 47 / 98 | 48 / 93
+| Calcium | 27.58 / 83.92 | 27.07 / 81.81 | 16.67 / 71.43
+| Media | 95.89 / 100 | 96.21 / 100 | 99.38 / 100
+| Catheter | - | - | -
+| Sidebranch | 13.79 / 6.89 | 14.97 / 89.77 | 16.67 / 71.42
+| Red thrombus | 6.89 / 26.78 | 5.67 / 23.86 | 0.61 / 7.14
+| White thrombus | 5.61 / 28.57 | 4.53 / 23.86 | 0 / 0
+| Dissection | 0.76 / 5.35 | 0.49 / 3.41 | 0 / 0
+| Plaque rupture | 7.02 / 25 | 5.59 / 21.59 | 3.08 / 14.28
+
+
+"-" indicates that the label is present in every pullback and in every frame of the dataset
 
 
 ## Preprocessing
@@ -30,6 +58,49 @@ For the 2D approach, the slices that did not contain any label were omitted. Thu
 
 For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotattions in each 3D volume. The frames that do not contain any label have a segmentation map that only contains -1, in order to the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model, in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
 
+
+## Results
+
+We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay the DICE scores for each one of the regions segmented.
+
+### Results of best cross-validation model
+
+
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 3D sparse model 2nd dataset 
+| ------------- | -------------- | -------------- | --------------  
+| Lumen  | 0.981
+| Guidewire  | 0.927
+| Wall | 0.892
+| Lipid | 0.341
+| Calcium | 0.162
+| Media | 0.716
+| Catheter | 0.985
+| Sidebranch | 0.105 
+| Red thrombus | 0.043 
+| White thrombus | 0.014  
+| Dissection | 0.0016 
+| Plaque rupture | 0.039 
+
+
+### Results on test set
+
+
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 3D sparse model 2nd dataset 
+| ------------- | -------------- | -------------- | --------------
+| Lumen  | 0.972
+| Guidewire  | 0.937
+| Wall | 0.882
+| Lipid | 0.339
+| Calcium | 0.11
+| Media | 0.771
+| Catheter | 0.99
+| Sidebranch | 0.073 
+| Red thrombus | 0 
+| White thrombus | 0  
+| Dissection | 0 
+| Plaque rupture | 0.024
+
+Note that for the test set, there are no frames with white thrombus or dissections, meaning that the actual DICE score for those would be NaN in the test set.
 
 
 ## TODO:
