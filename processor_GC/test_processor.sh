@@ -1,0 +1,1 @@
+~/c-submit --input-dir /mnt/netcache/diag/silvan/Projects/CardiacOCT_nnunet/processor_test/input --output-dir /mnt/netcache/diag/silvan/Projects/CardiacOCT_nnunet/processor_test/output/ --gpu-count 1 --require-gpu-mem 11G --require-mem 24g --require-cpus 4  grodriguez 7857 10 --priority high  doduo1.umcn.nl/nnunet/processor-task502-cardiacoct:latest

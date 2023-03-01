@@ -1,0 +1,14 @@
+{
+  "task_id": 8,
+  "task_name": "HepaticVessel",
+  "model": "3d_fullres",
+  "use_test_time_augmentations": false,
+  "use_overlap": true,
+  "folds": null,
+  "overlay_destination": "images",
+  "num_threads_preprocessing": 1,
+  "num_threads_nifti_save": 1,
+  "allowed_extensions": ["mha", "mhd", "nii.gz", "nrrd"],
+  "write_json": false,
+  "chunk_size": 500
+}

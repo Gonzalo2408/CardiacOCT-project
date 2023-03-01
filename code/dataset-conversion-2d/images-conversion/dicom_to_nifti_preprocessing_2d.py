@@ -18,6 +18,31 @@ def create_circular_mask(h, w, center=None, radius=None):
     mask = np.expand_dims(mask,0)
     return mask
 
+def resize_image(raw_frame):
+
+    if raw_frame.shape == (704, 704):
+
+        resampled_seg_frame = raw_frame
+
+    else:
+
+        frame_image = sitk.GetImageFromArray(raw_frame)
+
+        new_shape = (704, 704)
+        new_spacing = (frame_image.GetSpacing()[0]*sitk.GetArrayFromImage(frame_image).shape[1]/704,
+                            frame_image.GetSpacing()[1]*sitk.GetArrayFromImage(frame_image).shape[1]/704)
+
+        resampler = sitk.ResampleImageFilter()
+
+        resampler.SetSize(new_shape)
+        resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        resampler.SetOutputSpacing(new_spacing)
+
+        resampled_seg = resampler.Execute(frame_image)
+        resampled_seg_frame = sitk.GetArrayFromImage(resampled_seg)
+
+    return resampled_seg_frame
+
 def main(argv):
     """Callable entry point.
     """
@@ -30,11 +55,19 @@ def main(argv):
 
 
     ##### Paths for second dataset (cluster and my PC) #####
-    parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/extra scans DICOM'
-    annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+    #parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/extra scans DICOM'
+    #annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
 
     #parent_path = r'Z:\grodriguez\CardiacOCT\data-original\extra scans DICOM'
     #annots = pd.read_excel(r'Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+
+
+    ##### Paths for third dataset (cluster and my PC)
+    #parent_path = r'Z:\grodriguez\CardiacOCT\data-original\scans DICOM'
+    #annots = pd.read_excel(r'Z:/grodriguez/CardiacOCT/data-original/train_test_split_final.xlsx')
+
+    parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/scans DICOM'
+    annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/train_test_split_final.xlsx')
 
     files = os.listdir(parent_path)
 
@@ -46,12 +79,12 @@ def main(argv):
 
         if belonging_set == 'Testing':
 
-            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT/imagesTs'
-            output_file_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT/imagesTs'
+            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs'
+            output_file_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs'
 
         else:
-            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT/imagesTr'
-            output_file_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT/imagesTr'
+            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTr'
+            output_file_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTr'
 
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
         pullback_name = file.split('.')[0]
@@ -63,66 +96,43 @@ def main(argv):
         series = sitk.ReadImage(parent_path +'/'+file)
         series_pixel_data = sitk.GetArrayFromImage(series)
 
-        for i in range(3):
+        frames_with_annot = annots.loc[annots['Pullback'] == pullback_name]['Frames']
+        frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
 
-            print('Channel ', i+1)
+        for n_channel in range(3):
 
-            #Check if resized is needed (all images should be (704, 704))
-            if series_pixel_data[0,:,:].shape == (704, 704):
-                print('Shape is {}. No resized needed'.format(series_pixel_data.shape))
-                resized_image = series
+            print('Channel ', n_channel+1)
 
-            else:
-                print('Reshaping image...')
-                new_shape = (704, 704, series_pixel_data.shape[0])
-                new_spacing = (series.GetSpacing()[0]*sitk.GetArrayFromImage(series).shape[1]/704,
-                                series.GetSpacing()[1]*sitk.GetArrayFromImage(series).shape[1]/704,
-                                series.GetSpacing()[2])
-
-                resampler = sitk.ResampleImageFilter()
-
-                resampler.SetSize(new_shape)
-                resampler.SetInterpolator(sitk.sitkLinear)
-                resampler.SetOutputSpacing(new_spacing)
-
-                resized_image = resampler.Execute(series)
-
-            resized_image_pixel_data = sitk.GetArrayFromImage(resized_image)
-
-            #Circular mask as preprocessing (remove Abbott watermark)
-            print('Creating circular mask...')
-            mask_channel = np.zeros((resized_image_pixel_data.shape[1], resized_image_pixel_data.shape[2]))
-            circular_mask = create_circular_mask(mask_channel.shape[0], mask_channel.shape[1], radius=340)
-
-            frames_with_annot = annots.loc[annots['Pullback'] == pullback_name]['Frames']
-
-            frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
-            print(frames_list)
-
-            for frame in range(len(mask_channel)):
+            for frame in range(len(series_pixel_data)):
 
                 if frame in frames_list:
 
-                    if os.path.exists(output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, i)):
+                    if os.path.exists(output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, n_channel)):
                         print('File already exists')
                         continue
 
-                    mask_channel = np.invert(circular_mask) * resized_image_pixel_data[frame,:,:,i]
+                    raw_frame = series_pixel_data[frame,:,:,n_channel]
+
+                    #Resize image to (704, 704)
+                    resampled_dcm_frame = resize_image(raw_frame)
+
+                    #Apply circular mask
+                    circular_mask = create_circular_mask(resampled_dcm_frame.shape[0], resampled_dcm_frame.shape[1], radius=346)
+                    mask_channel = np.invert(circular_mask) * resampled_dcm_frame
 
                     #Check if there are Nan values
                     if np.isnan(mask_channel).any():
                         raise ValueError('NaN detected')
 
-                    print('Writing NIFTI file...')
+
                     final_image = sitk.GetImageFromArray(mask_channel)
-                    final_image.SetSpacing((1.0, 1.0, 1.0))
+                    final_image.SetSpacing((999.0, 1.0, 1.0))
                     final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
 
-                    sitk.WriteImage(final_image, output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, i))
+                    sitk.WriteImage(final_image, output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, n_channel))
 
-        print('Done\n')
+        print('Done. Saved {} frames from pullback {} \n'.format(len(frames_list), pullback_name))
         print('###########################################\n')
-
 if __name__ == '__main__':
     r = main(sys.argv)
     if r is not None:

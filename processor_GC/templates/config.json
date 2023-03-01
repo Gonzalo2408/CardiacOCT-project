@@ -1,0 +1,13 @@
+{
+  "task_id": 4,
+  "task_name": "Hippocampus",
+  "model": "3d_fullres",
+  "use_test_time_augmentations": false,
+  "use_overlap": true,
+  "folds": null,
+  "overlay_destination": "images",
+  "num_threads_preprocessing": 1,
+  "num_threads_nifti_save": 1,
+  "allowed_extensions": ["mha", "mhd", "nii.gz"],
+  "write_json": false
+}

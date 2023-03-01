@@ -1,0 +1,15 @@
+{
+  "task_id": 3,
+  "task_name": "Liver",
+  "model": "3d_fullres",
+  "use_test_time_augmentations": false,
+  "use_overlap": true,
+  "folds": null,
+  "input_dir": "/input/images/ct",
+  "overlay_destination": "images/liver",
+  "num_threads_preprocessing": 1,
+  "num_threads_nifti_save": 1,
+  "allowed_extensions": ["mha", "mhd", "nii.gz", "nrrd"],
+  "write_json": false,
+  "chunk_size": 500
+}
