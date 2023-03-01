@@ -6,15 +6,14 @@ Acute myocardial infarction (MI) remains as one of the leading causes of mortali
 
 In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a nnUNet (no-new-UNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
 
+
 <p float="left" align="center">
 <img src="https://user-images.githubusercontent.com/37450737/220990629-a658d95a-8c3b-4fb9-9289-d44a6c1d26d3.png" width=35% height=35%>
 <img src="https://user-images.githubusercontent.com/37450737/220990554-bb602dce-e69f-4a0e-ad8e-163e607415e6.png" width=35% height=35%>
 <figcaption> Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right) </figcaption>
 <p>
 
-               
-
-
+           
 ## Dataset
 
 The intracoronary OCT dataset used in this study is a collection of OCT scans from different centers, including (write it better later) RadboudUMC, EST-NEMC, AMPH, HMC, ISALA.
@@ -50,15 +49,20 @@ The ROIs for each OCT scan are (note that for each dataset, only the train set i
 
 ## Preprocessing
 
-The general preprocessing consisted of reshaping the images to a common size, which was (704, 704) and applying a circular mask to each slice. This is because each slice contains a watermark by Abbott with a small scale bar, and we do not our algorithm to learn from this information.
+The general preprocessing consisted of reshaping the images to a common size, which was (704, 704) and applying a circular mask to each slice. This is because each slice contains a watermark by Abbott with a small scale bar, and we do not want our algorithm to learn from this information.
 
 ### 2D approach
 
 For the 2D approach, the slices that did not contain any label were omitted. Thus, each slice for every pullback in the dataset was saved to a single NifTI file. In addition, each channel in the slice (RGB values) were saved separately as well, obtaining 3 files for each frame in the pullback. Similiary, each segmentation frame was saved in a different NifTI file. In this case, the segmentation is 1-dimensional, so there was no need to create a file for each dimension.
 
+For the first and second training, a linear interpolation resampler was used for both segmentations and images. In the case of the images, a circular mask with radius 340 was applied. Next, Each 2D frame was converted to a pseudo 3D scan by including and extra dimension of shape 1, having a final shape of (1, 704, 704). Finally, the spacing and direction of the frame was set to (1.0, 1.0, 1.0) and (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), respectively.
+
+For the third training, a nearest neighbor interpolation sampler was used, since the liner interpolator introduces more artifacts in the frame. After this step, a circular mask with radius 346 (this was increased due to problems with mission regions that are on the edge of the frame) was applied to both images and segmentation, so the overlap between them is now perfect. Again, the frames were converted to pseudo 3d scans. However, the spacing of the frame was changed to (2.0, 1.0, 1.0), to be more exact with the input format (although (1.0, 1.0, 1.0) was founf to be also good).
+
 ### 3D approach
 
 For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotattions in each 3D volume. The frames that do not contain any label have a segmentation map that only contains -1, in order to the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model, in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
+
 
 
 ## Results
