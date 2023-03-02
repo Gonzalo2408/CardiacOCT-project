@@ -30,7 +30,7 @@ Since manually labelling the dataset is a very time consuming task for annotator
 The ROIs for each OCT scan are (note that for each dataset, only the train set is shown):
 
 | ROI  | First dataset (frames/pullbacks)(%) | Second dataset (frames/pullbacks) (%) | Third dataset (frames/pullbacks)(%) | Test set (frames/pullbacks)(%)
-| ------------- | ------------- | ------------- | -------------  
+| ------------- | ------------- | ------------- | ------------- | -------------
 | Lumen  | - | - | - | -
 | Guidewire  | - | - | - | -
 | Wall | - | - | - | -
