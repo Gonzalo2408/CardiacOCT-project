@@ -8,7 +8,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def count_pullback_excel(path, segs_folder, excel_name):
 
-    counts_per_pullback = pd.DataFrame(columns = ['pullback', 'set', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
+    counts_per_pullback = pd.DataFrame(columns = ['pullback', 'dataset', 'set', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
                                     'media', 'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
                                     'rupture'])
 
@@ -24,6 +24,7 @@ def count_pullback_excel(path, segs_folder, excel_name):
         frames_with_annot = annots.loc[annots['Pullback'] == pullback_name]['Frames']
         frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
+        dataset = annots.loc[annots['Patient'] == patient_name]['Dataset'].values[0]
 
         one_hot = np.zeros(num_classes)
 
@@ -40,9 +41,11 @@ def count_pullback_excel(path, segs_folder, excel_name):
 
         one_hot_list = one_hot.tolist()
         one_hot_list.insert(0, pullback_name)
-        one_hot_list.insert(1, belonging_set)
+        one_hot_list.insert(1, dataset)
+        one_hot_list.insert(2, belonging_set)
 
         counts_per_pullback = counts_per_pullback.append(pd.Series(one_hot_list, index=counts_per_pullback.columns[:len(one_hot_list)]), ignore_index=True)
+
     counts_per_pullback.to_excel('./{}.xlsx'.format(excel_name))
 
 
@@ -97,13 +100,16 @@ if __name__ == "__main__":
 
     path_first = 'Z:/grodriguez/CardiacOCT/data-original/segmentations ORIGINALS'
     path_sec = 'Z:/grodriguez/CardiacOCT/data-original/extra segmentations ORIGINALS'
-    excel_name = ''
+    path_third = 'Z:/grodriguez/CardiacOCT/data-original/extra segmentations ORIGINALS 2'
+    excel_name1 = 'third_dataset_counts_frames'
+    excel_name2 = 'third_dataset_counts_pullbacks'
 
     seg_files_1 = os.listdir(path_first)
     seg_files_2 = os.listdir(path_sec)
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+    seg_files_3 = os.listdir(path_third)
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
-    #count_frames_excel(path_sec, seg_files_2, excel_name)
-    #count_pullback_excel(path_sec, seg_files_2, excel_name)
+    #count_frames_excel(path_third, seg_files_3, excel_name1)
+    count_pullback_excel(path_third, seg_files_3, excel_name2)
 
     

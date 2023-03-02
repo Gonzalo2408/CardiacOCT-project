@@ -66,8 +66,8 @@ def main(argv):
     #parent_path = r'Z:\grodriguez\CardiacOCT\data-original\scans DICOM'
     #annots = pd.read_excel(r'Z:/grodriguez/CardiacOCT/data-original/train_test_split_final.xlsx')
 
-    parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/scans DICOM'
-    annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/train_test_split_final.xlsx')
+    parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/extra scans DICOM 2'
+    annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
     files = os.listdir(parent_path)
 
@@ -126,7 +126,7 @@ def main(argv):
 
 
                     final_image = sitk.GetImageFromArray(mask_channel)
-                    final_image.SetSpacing((999.0, 1.0, 1.0))
+                    final_image.SetSpacing((1.0, 1.0, 999.0))
                     final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
 
                     sitk.WriteImage(final_image, output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, n_channel))

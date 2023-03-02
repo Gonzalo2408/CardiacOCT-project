@@ -2,14 +2,13 @@ import SimpleITK as sitk
 import os
 import numpy as np
 import pandas as pd
-from skimage.transform import resize
 
 #path_segs = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/segmentations ORIGINALS'
 #new_path_segs = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/nnUNet_raw_data/Task502_CardiacOCT/labelsTr'
 #annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/oct_annotations_filtered.xlsx')
 
 path_segs = 'Z:/grodriguez/CardiacOCT/data-original/extra segmentations ORIGINALS 2'
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split_final.xlsx')
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
 
@@ -123,6 +122,6 @@ for filename in os.listdir(path_segs):
             final_array[0,:,:] = masked_resampled_frame
 
             final_frame = sitk.GetImageFromArray(final_array.astype(np.uint32))
-            final_frame.SetSpacing((999.0, 1.0, 1.0))
+            final_frame.SetSpacing((1.0, 1.0, 999.0))
             final_frame.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
             sitk.WriteImage(final_frame, new_path_segs + '/' + patient_name.replace('-', '') + '_{}_frame{}_{}.nii.gz'.format(n_pullback, frame, "%03d" % id))

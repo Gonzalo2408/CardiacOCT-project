@@ -23,25 +23,26 @@ Since manually labelling the dataset is a very time consuming task for annotator
 | Dataset  | Nº of patients (train/test) | Nº of pullbacks (train/test) | Nº of annotated frames (train/test)
 | ------------- | ------------- | -------------  | -------------
 | First dataset  | 49/13 (1 EST-NEMC, 24 AMPH, 3 HMC, 24 ISALA, 10 RADB)  | 56/14  | 783/163
-| Second dataset  | 75/13 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 88/14  | 1215/162 
+| Second dataset  | 75/13 (1 EST-NEMC, 27 AMPH, 3 HMC, 24 ISALA, 33 RADB)  | 88/14  | 1215/162
+| Third dataset  | 100/13 (1 EST-NEMC, 33 AMPH, 3 HMC, 24 ISALA, 52 RADB)  | 118/14  | 1649/162 
 
 
 The ROIs for each OCT scan are (note that for each dataset, only the train set is shown):
 
-| ROI  | Distribution first dataset (frames/pullbacks)(%) | Distribution second dataset (%) | Test set (%)
+| ROI  | First dataset (frames/pullbacks)(%) | Second dataset (frames/pullbacks) (%) | Third dataset (frames/pullbacks)(%) | Test set (frames/pullbacks)(%)
 | ------------- | ------------- | ------------- | -------------  
-| Lumen  | - | - | -
-| Guidewire  | - | - | -
-| Wall | - | - | -
-| Lipid | 51 / 98 | 47 / 98 | 48 / 93
-| Calcium | 27.58 / 83.92 | 27.07 / 81.81 | 16.67 / 71.43
-| Media | 95.89 / 100 | 96.21 / 100 | 99.38 / 100
-| Catheter | - | - | -
-| Sidebranch | 13.79 / 6.89 | 14.97 / 89.77 | 16.67 / 71.42
-| Red thrombus | 6.89 / 26.78 | 5.67 / 23.86 | 0.61 / 7.14
-| White thrombus | 5.61 / 28.57 | 4.53 / 23.86 | 0 / 0
-| Dissection | 0.76 / 5.35 | 0.49 / 3.41 | 0 / 0
-| Plaque rupture | 7.02 / 25 | 5.59 / 21.59 | 3.08 / 14.28
+| Lumen  | - | - | - | -
+| Guidewire  | - | - | - | -
+| Wall | - | - | - | -
+| Lipid | 51.08 / 98.21 | 46.74 / 97.72 | 47.96 / 96.61 | 48.14 / 92.85 
+| Calcium | 27.58 / 83.92 | 27.07 / 81.81 | 31.59 / 83.05 | 16.66 / 71.42
+| Media | 94.89 / 100 | 96.21 / 100 | 94.9 / 100 | 99.38 / 100
+| Catheter | - | - | - | - | -
+| Sidebranch | 13.79 / 85.71 | 14.97 / 89.77 | 15.46 / 89.83 | 16.67 / 71.42 
+| Red thrombus | 6.89 / 26.78 | 5.67 / 23.86 | 6.67 / 24.57 | 0.61 / 7.14
+| White thrombus | 5.61 / 28.57 | 4.53 / 23.86 | 5.45 / 27.96 | 0 / 0
+| Dissection | 0.76 / 5.35 | 0.49 / 3.41 | 0.36 / 2.54 | 0 / 0
+| Plaque rupture | 7.02 / 25 | 5.59 / 21.59 | 7.09 / 20.33 | 3.08 / 14.28
 
 
 "-" indicates that the label is present in every pullback and in every frame of the dataset

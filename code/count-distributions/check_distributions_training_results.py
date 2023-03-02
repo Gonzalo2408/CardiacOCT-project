@@ -337,14 +337,13 @@ def merge_frames_into_pullbacks(path_predicted):
         pullbacks_dict[pullbacks_origs_set[i]] = frames_from_pullback
 
     #Remove last 3 key-value pairs (they are not frames)
-    keys = list(pullbacks_dict.keys())[-3:]
+    keys = list(pullbacks_dict.keys())[-1:]
     for key in keys:
         pullbacks_dict[key].pop()
         if not pullbacks_dict[key]:
             pullbacks_dict.pop(key)
 
     return pullbacks_dict
-
 
 
 #Count among frames
@@ -376,9 +375,6 @@ def build_excel_frames(path_dir, segs_dir, excel_name):
         #Obtain nº frame
         n_frame = file.split('_')[2][5:]
 
-        #frames_with_annot = annots.loc[annots['Pullback'] == pullback_name]['Frames']
-        #frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
-
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
 
         one_hot = np.zeros(num_classes)
@@ -409,11 +405,51 @@ def build_excel_frames(path_dir, segs_dir, excel_name):
     
 
 #Count among pullbacks
-def build_excel_pullbacks(path_dir, segs_dir, excel_name):
+def build_excel_pullbacks(path_dir, excel_name):
 
-    counts_per_pullback = pd.DataFrame(columns = ['pullback','background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
+    counts_per_pullback = pd.DataFrame(columns = ['pullback', 'set', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
                                 'media', 'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
-                                'rupture', 'set'])
+                                'rupture'])
+    
+    pullbacks_dict = merge_frames_into_pullbacks(path_dir)
+
+    
+    for pullback in pullbacks_dict.keys():
+
+        print('Checking pullback ', pullback)
+
+        #Undo filename (add hyphens)
+        filename = pullback.split('_')[0]
+        first_part = filename[:3]
+        second_part = filename[3:-4]
+        third_part = filename[-4:]  
+        patient_name = '{}-{}-{}'.format(first_part, second_part, third_part)
+
+        #Get specific pullback we are viewing
+        n_pullback = pullback.split('_')[1]
+        pullback_name = annots[(annots['Nº pullback'] == int(n_pullback)) & (annots['Patient'] == patient_name)]['Pullback'].values[0]
+
+        belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
+
+        one_hot = np.zeros(num_classes)
+
+        for file in pullbacks_dict[pullback]:
+
+            seg_map = sitk.ReadImage(path_dir + '/' + file)
+            seg_map_data = sitk.GetArrayFromImage(seg_map)
+
+            unique, _ = np.unique(seg_map_data, return_counts=True)  
+            unique = unique.astype(int)
+
+            one_hot[[unique[i] for i in range(len(unique))]] += 1
+
+        one_hot_list = one_hot.tolist()
+        one_hot_list.insert(0, pullback_name)
+        one_hot_list.insert(1, belonging_set)
+
+        counts_per_pullback = counts_per_pullback.append(pd.Series(one_hot_list, index=counts_per_pullback.columns[:len(one_hot_list)]), ignore_index=True)
+
+    counts_per_pullback.to_excel('./{}.xlsx'.format(excel_name))
 
     
 if __name__ == "__main__":
@@ -431,15 +467,16 @@ if __name__ == "__main__":
 
     #Model 2 2D
     #For train cases
-    #path_train_res_sec = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task502_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed'
+    path_train_res_sec = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task502_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed'
     #seg_files_res_train_2 = sorted(os.listdir(path_train_res_sec))
     #seg_files_res_train_2.pop()
 
     #For test cases
-    path_test_res_sec = 'Z:/grodriguez/CardiacOCT/predicted_results_model2_2d'
-    seg_files_res_test_2 = sorted(os.listdir(path_test_res_sec))[:-3]
+    #path_test_res_sec = 'Z:/grodriguez/CardiacOCT/predicted_results_model2_2d'
+    #seg_files_res_test_2 = sorted(os.listdir(path_test_res_sec))[:-3]
 
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
     #build_excel_frames(path_test_res_sec, seg_files_res_test_2, 'new_counts_test_sec')
-    build_excel_pullbacks()
+    build_excel_pullbacks(path_train_res_sec, 'train_model2_pullback_count')
