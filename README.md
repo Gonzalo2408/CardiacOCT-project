@@ -27,7 +27,7 @@ Since manually labelling the dataset is a very time consuming task for annotator
 | Third dataset  | 100/13 (1 EST-NEMC, 33 AMPH, 3 HMC, 24 ISALA, 52 RADB)  | 118/14  | 1649/162 
 
 
-The ROIs for each OCT scan are (note that for each dataset, only the train set is shown):
+We show the regions of interest (ROIs) that the algorithm segments. With the aim to understand better the dataset, we obtained the distribution for each ROI among the three datasets that were used in the study. These values can be seen in the following table. 
 
 | ROI  | First dataset (frames/pullbacks)(%) | Second dataset (frames/pullbacks) (%) | Third dataset (frames/pullbacks)(%) | Test set (frames/pullbacks)(%)
 | ------------- | ------------- | ------------- | ------------- | -------------
@@ -56,7 +56,7 @@ The general preprocessing consisted of reshaping the images to a common size, wh
 
 For the 2D approach, the slices that did not contain any label were omitted. Thus, each slice for every pullback in the dataset was saved to a single NifTI file. In addition, each channel in the slice (RGB values) were saved separately as well, obtaining 3 files for each frame in the pullback. Similiary, each segmentation frame was saved in a different NifTI file. In this case, the segmentation is 1-dimensional, so there was no need to create a file for each dimension.
 
-For the first and second training, a linear interpolation resampler was used for both segmentations and images. In the case of the images, a circular mask with radius 340 was applied. Next, Each 2D frame was converted to a pseudo 3D scan by including and extra dimension of shape 1, having a final shape of (1, 704, 704). Finally, the spacing and direction of the frame was set to (1.0, 1.0, 1.0) and (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), respectively.
+For the first and second training, a linear interpolation resampler was used for both segmentations and images. In the case of the images, a circular mask with radius 340 was applied. Next, each 2D frame was converted to a pseudo 3D scan by including and extra dimension of shape 1, having a final shape of (1, 704, 704). Finally, the spacing and direction of the frame was set to (1.0, 1.0, 1.0) and (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), respectively.
 
 For the third training, a nearest neighbor interpolation sampler was used, since the liner interpolator introduces more artifacts in the frame. After this step, a circular mask with radius 346 (this was increased due to problems with mission regions that are on the edge of the frame) was applied to both images and segmentation, so the overlap between them is now perfect. Again, the frames were converted to pseudo 3d scans. However, the spacing of the frame was changed to (2.0, 1.0, 1.0), to be more exact with the input format (although (1.0, 1.0, 1.0) was founf to be also good).
 
@@ -111,9 +111,9 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 
 
 ## TODO:
- - Train data with second dataset included (check case NLD-RADB-0030)
- - Build metrics Excel with both datasets results (including DICE results per region, plots, etc)
- - Solve NaN problem with 3d version of (first/second??) dataset --> impute -1 once preprocessing is done
+ - Train data with third dataset
+ - Continue building metrics and Excel files with distributions (also make them fancier)
+ - Solve NaN problem with 3d version on third dataset --> impute -1 once preprocessing is done, check again with new resampling
  - Figure out post-processing techniques for lipid arc and cap thickness measurements (using dynammic programming + semantic segmentation of lipid, lumen, intima, etc). 
  For this, check [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1) and [Wang et al. (2012)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3370980/)
 
