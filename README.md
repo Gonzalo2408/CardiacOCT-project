@@ -16,9 +16,9 @@ In this project, an automatic segmentation model will be designed for intracoron
            
 ## Dataset
 
-The intracoronary OCT dataset used in this study is a collection of OCT scans from different centers, including (write it better later) RadboudUMC, EST-NEMC, AMPH, HMC, ISALA.
+The intracoronary OCT dataset used in this study is a collection of OCT scans from 5 different medical centers: Isala Zwole (ISALA), Amphia Hospital (AMPH), ?? (NEMC), Hague Medical Centrum (HMC) and RadboudUMC (RADB).
 
-Since manually labelling the dataset is a very time consuming task for annotators, not all scans were included for the training. In particular, the methodology is to label each 40th frame in the scan, unless there are some regions in other frames that are necessarily to label. Thus, frames that contain some degree of labelling were included for the training. 
+Since the manually labelling of OCT frames is a very time consuming task for annotators, not all scans were included for the training. In particular, the standard methodology is to label each 40th frame in the scan, unless there are some regions in other frames that are necessarily to label. Thus, frames that contain some degree of labelling were included for the training. 
 
 | Dataset  | Nº of patients (train/test) | Nº of pullbacks (train/test) | Nº of annotated frames (train/test)
 | ------------- | ------------- | -------------  | -------------
@@ -45,7 +45,7 @@ We show the regions of interest (ROIs) that the algorithm segments. With the aim
 | Plaque rupture | 7.02 / 25 | 5.59 / 21.59 | 7.09 / 20.33 | 3.08 / 14.28
 
 
-"-" indicates that the label is present in every pullback and in every frame of the dataset
+Note that the lumen, guidewire, wall and catheter are present in every frame of the datatset.
 
 
 ## Preprocessing
@@ -58,11 +58,13 @@ For the 2D approach, the slices that did not contain any label were omitted. Thu
 
 For the first and second training, a linear interpolation resampler was used for both segmentations and images. In the case of the images, a circular mask with radius 340 was applied. Next, each 2D frame was converted to a pseudo 3D scan by including and extra dimension of shape 1, having a final shape of (1, 704, 704). Finally, the spacing and direction of the frame was set to (1.0, 1.0, 1.0) and (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), respectively.
 
-For the third training, a nearest neighbor interpolation sampler was used, since the liner interpolator introduces more artifacts in the frame. After this step, a circular mask with radius 346 (this was increased due to problems with mission regions that are on the edge of the frame) was applied to both images and segmentation, so the overlap between them is now perfect. Again, the frames were converted to pseudo 3d scans. However, the spacing of the frame was changed to (2.0, 1.0, 1.0), to be more exact with the input format (although (1.0, 1.0, 1.0) was founf to be also good).
+For the third training, a nearest neighbor interpolation sampler was used, since the liner interpolator introduces more artifacts in the frame. After this step, due to missing segmentations on the edge of the frame, a circular mask with radius 346 was applied to both images and segmentation, so the overlap between them is now perfect. Again, the frames were converted to pseudo 3d scans. However, the spacing of the frame was changed to (1.0, 1.0, 999.0), to avoid possible conflicts with calculating the transpose of the image.
 
 ### 3D approach
 
-For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotattions in each 3D volume. The frames that do not contain any label have a segmentation map that only contains -1, in order to the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model, in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
+For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotations in each 3D volume. The frames that do not contain any label have a segmentation map that only contains -1, in order to the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model (third training), in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
+
+(Expand more when training)
 
 
 
@@ -73,8 +75,8 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 ### Results of best cross-validation model
 
 
-| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 3D sparse model 2nd dataset 
-| ------------- | -------------- | -------------- | --------------  
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 3D sparse model
+| ------------- | -------------- | -------------- | -------------- | -------------- 
 | Lumen  | 0.981
 | Guidewire  | 0.927
 | Wall | 0.892
@@ -94,20 +96,20 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 
 | ROI  | 2D model 1st dataset | 2D model 2nd dataset | 3D sparse model 2nd dataset 
 | ------------- | -------------- | -------------- | --------------
-| Lumen  | 0.972
-| Guidewire  | 0.937
-| Wall | 0.882
-| Lipid | 0.339
-| Calcium | 0.11
-| Media | 0.771
-| Catheter | 0.99
-| Sidebranch | 0.073 
-| Red thrombus | 0 
-| White thrombus | 0  
-| Dissection | 0 
-| Plaque rupture | 0.024
+| Lumen  | 0.973 | 0.974
+| Guidewire  | 0.928 | 0.93
+| Wall | 0.872 | 0.889
+| Lipid | 0.415 | 0.465
+| Calcium | 0.258 | 0.258
+| Media | 0.736 | 0.746
+| Catheter | 0.987 | 0.988
+| Sidebranch | 0.521  | 0.554
+| Red thrombus | 0 | 0.032
+| White thrombus | 0 | 0 
+| Dissection | 0 | 0
+| Plaque rupture | 0.321 | 0.368
 
-Note that for the test set, there are no frames with white thrombus or dissections, meaning that the actual DICE score for those would be NaN in the test set.
+Note that for the test set, there are no frames with white thrombus or dissections, meaning that the best prediction for these regions would be NaN (i.e no false positives with white thrombus or dissection)
 
 
 ## TODO:
