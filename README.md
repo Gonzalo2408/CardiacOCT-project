@@ -96,7 +96,7 @@ In this case, we see a noticeable increase in the last 2D model, specially for c
 
 
 | ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset
-| ------------- | -------------- | -------------- 
+| ------------- | -------------- | -------------- | -------------- 
 | Lumen  | 0.973 | 0.974 | 0.981
 | Guidewire  | 0.928 | 0.93 | 0.941
 | Wall | 0.872 | 0.889 | 0.893
@@ -116,7 +116,7 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 ### Results on test set (pullback-level)
 
 | ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset
-| ------------- | -------------- | -------------- 
+| ------------- | -------------- | -------------- | -------------- 
 | Lumen  | 0.981 | 0.981 | 
 | Guidewire  | 0.929 | 0.931 | 
 | Wall | 0.885 | 0.9 | 
