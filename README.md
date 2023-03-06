@@ -150,9 +150,9 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 | Plaque rupture | 0.316 | 0.37 | 0.378 
 
 ## TODO:
- - Train data with third dataset
- - Continue building metrics and Excel files with distributions (also make them fancier)
+ - Keep adding metrics to Excel files
  - Solve NaN problem with 3d version on third dataset --> impute -1 once preprocessing is done, check again with new resampling
+ - Do 3D training
  - Figure out post-processing techniques for lipid arc and cap thickness measurements (using dynammic programming + semantic segmentation of lipid, lumen, intima, etc). 
  For this, check [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1) and [Wang et al. (2012)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3370980/)
 
