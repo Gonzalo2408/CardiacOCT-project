@@ -4,7 +4,7 @@
 
 Acute myocardial infarction (MI) remains as one of the leading causes of mortality in the developed world. Despite huge advances in treating this condition such as the use of angiograms to locate the occluded artery or coronary angioplasty, there is still a debate on whether to treat certain lesions found during coronary angiography or not, since it is difficult to predict which plaques would have a worse outcome for the patient’s health. Imaging modalities such as intracoronary optical coherence tomography (OCT) provide a better comprehension of plaque characteristics and it can help surgeons to better asses these lesions, improving patient’s outcome.
 
-In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a nnUNet (no-new-UNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
+In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a no-new UNet (nnUNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
 
 
 <p float="left" align="center">
@@ -67,6 +67,25 @@ For the 3D version of the nnUNet, a sparse trainer was used. In this case, the l
 (Expand more when training)
 
 
+## Training
+
+### nn-UNet
+
+The no-new UNet (nnUNet) is based on the well-known UNet architecture. In this model, an encoder part downsizes the input and increases the number of feature channels, followed by a decoder that takes upsamples the feature maps and reconstructs the original size of the input image. These enconder and decoder networks are also connected by skip connections that allow the decoder to use high-resolution features from the encoder.
+
+The problem with this model is that it needs a very specific input settings and preprocessing the data can be a tedious task. That is why not only the nnUNet uses the U-Net architecture, but also it automatically configures itself, including the preprocessing, network architecture, training and post-processing for any task and data. Hence, while achieving state-of-the-art performances in different tasks, nnUNet adds a systematic framework that can overcome problems and limitations during manual configurations. 
+
+(Explain nnUNet architecture, maybe plot or smth like that. Also layers)
+
+
+## Post-processing
+
+For the post-processing techniques, an algorithm that automatically measures the fibrous cap thickness and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a fibrous cap thickness < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient, so two algorithms were proposed to automatically measure these values.
+
+(Explain Silvan approach)
+
+(Explain dynammic programming approach)
+
 ## Results
 
 We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay the DICE scores for each one of the regions segmented. For the 2D models, the DICE scores computed per frame are showed. In order to accurately compare the 2D models and the 3D model, the DICE scores for the 2D models were computed pullback-wise (i.e the values of the confusion matrix are computed using every pixel in the pullback, rather than for every frame independently). 
@@ -115,20 +134,20 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 
 ### Results on test set (pullback-level)
 
-| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset
-| ------------- | -------------- | -------------- | -------------- 
-| Lumen  | 0.981 | 0.981 | 
-| Guidewire  | 0.929 | 0.931 | 
-| Wall | 0.885 | 0.9 | 
-| Lipid | 0.649 | 0.67 | 
-| Calcium | 0.43 | 0.498 | 
-| Media | 0.77 | 0.779 | 
-| Catheter | 0.987 | 0.988 |
-| Sidebranch | 0.586 | 0.646 |
-| Red thrombus | 0 | 0.122 | 
-| White thrombus | 0 | NaN | 
-| Dissection | 0 | NaN |
-| Plaque rupture | 0.316 | 0.37 | 
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 2D model sparse
+| ------------- | -------------- | -------------- | -------------- | --------------
+| Lumen  | 0.981 | 0.981 | 0.986
+| Guidewire  | 0.929 | 0.931 | 0.942
+| Wall | 0.885 | 0.9 | 0.903
+| Lipid | 0.649 | 0.67 | 0.655
+| Calcium | 0.43 | 0.498 | 0.598
+| Media | 0.77 | 0.779 | 0.799
+| Catheter | 0.987 | 0.988 | 0.990
+| Sidebranch | 0.586 | 0.646 | 0.708
+| Red thrombus | 0 | 0.122 | 0.094
+| White thrombus | 0 | NaN | 0
+| Dissection | 0 | NaN | NaN
+| Plaque rupture | 0.316 | 0.37 | 0.378 
 
 ## TODO:
  - Train data with third dataset
