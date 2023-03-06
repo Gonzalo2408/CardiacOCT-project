@@ -61,7 +61,7 @@ def main(argv):
     parser.add_argument('--new_json_file', type=str)
     args, unknown = parser.parse_known_args(argv)
 
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
     
     json_results_file = args.results_folder+'/summary.json'
 
@@ -86,10 +86,8 @@ def main(argv):
                 for sub_dict in summary['results']['all']:
 
                     #Select between these according to the folder you are in!!
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task501_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
-                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task502_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results_model2_2d/{}'.format(frame):
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results/{}'.format(frame):
+                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task503_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
+                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results_model3_2d/{}'.format(frame):
                         list_dicts_pullback.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
 
                     else:

@@ -7,6 +7,6 @@
 #new_json_file model 1 2D cv: "Z:/grodriguez/CardiacOCT/metrics_build/new_pullback_metrics_model1_cv.json"
 
 python build_results.py \
-    --results_folder "Z:/grodriguez/CardiacOCT/predicted_results_model1_2d" \
+    --results_folder "Z:/grodriguez/CardiacOCT/predicted_results_model3_2d" \
     --mode "pullback" \
-    --new_json_file "Z:/grodriguez/CardiacOCT/metrics_build/new_pullback_recall_model1_test.json"
+    --new_json_file "Z:/grodriguez/CardiacOCT/metrics_build/pullback_model_3_test.json"

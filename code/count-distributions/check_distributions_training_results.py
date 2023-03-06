@@ -337,7 +337,7 @@ def merge_frames_into_pullbacks(path_predicted):
         pullbacks_dict[pullbacks_origs_set[i]] = frames_from_pullback
 
     #Remove last 3 key-value pairs (they are not frames)
-    keys = list(pullbacks_dict.keys())[-1:]
+    keys = list(pullbacks_dict.keys())[-3:]
     for key in keys:
         pullbacks_dict[key].pop()
         if not pullbacks_dict[key]:
@@ -455,6 +455,11 @@ def build_excel_pullbacks(path_dir, excel_name):
 if __name__ == "__main__":
 
     num_classes = 13
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+    path_preds = 'Z:/grodriguez/CardiacOCT/predicted_results_model3_2d'
+    preds_list = sorted(os.listdir(path_preds))[:-3]
+    name_excel = 'test_model3_frame_count'
+
     #Model 1 2D
     #For train cases
     #path_train_res_first = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task501_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed'
@@ -462,21 +467,8 @@ if __name__ == "__main__":
     #seg_files_res_train_1.pop()
 
     #For test cases
-    #path_test_res_first = 'Z:/grodriguez/CardiacOCT/predicted_results_model1_2d'
+    #path_test_res_sec = 'Z:/grodriguez/CardiacOCT/predicted_results_model1_2d'
     #seg_files_res_test_1 = sorted(os.listdir(path_test_res_first))[:-3]
 
-    #Model 2 2D
-    #For train cases
-    path_train_res_sec = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task502_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed'
-    #seg_files_res_train_2 = sorted(os.listdir(path_train_res_sec))
-    #seg_files_res_train_2.pop()
-
-    #For test cases
-    #path_test_res_sec = 'Z:/grodriguez/CardiacOCT/predicted_results_model2_2d'
-    #seg_files_res_test_2 = sorted(os.listdir(path_test_res_sec))[:-3]
-
-
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-
-    #build_excel_frames(path_test_res_sec, seg_files_res_test_2, 'new_counts_test_sec')
-    build_excel_pullbacks(path_train_res_sec, 'train_model2_pullback_count')
+    build_excel_frames(path_preds, preds_list, name_excel)
+    #build_excel_pullbacks(path_preds, name_excel)

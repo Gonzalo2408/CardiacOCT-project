@@ -2,5 +2,5 @@
         gonzalorodriguez 10157 24 doduo1.umcn.nl/nnunet/sol \
         nnunet predict Task503_CardiacOCT \
         --results /mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results \
-        --input /mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task502_CardiacOCT/imagesTs \
-        --output /mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results_model2_2d --network 2d --disable_augmentation
+        --input /mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs \
+        --output /mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results_model3_2d --network 2d --disable_augmentation
