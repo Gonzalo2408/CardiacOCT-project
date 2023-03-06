@@ -67,50 +67,68 @@ For the 3D version of the nnUNet, a sparse trainer was used. In this case, the l
 (Expand more when training)
 
 
-
 ## Results
 
-We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay the DICE scores for each one of the regions segmented.
+We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay the DICE scores for each one of the regions segmented. For the 2D models, the DICE scores computed per frame are showed. In order to accurately compare the 2D models and the 3D model, the DICE scores for the 2D models were computed pullback-wise (i.e the values of the confusion matrix are computed using every pixel in the pullback, rather than for every frame independently). 
 
 ### Results of best cross-validation model
 
-
 | ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 3D sparse model
 | ------------- | -------------- | -------------- | -------------- | -------------- 
-| Lumen  | 0.981
-| Guidewire  | 0.927
-| Wall | 0.892
-| Lipid | 0.341
-| Calcium | 0.162
-| Media | 0.716
-| Catheter | 0.985
-| Sidebranch | 0.105 
-| Red thrombus | 0.043 
-| White thrombus | 0.014  
-| Dissection | 0.0016 
-| Plaque rupture | 0.039 
+| Lumen  | 0.975 | 0.979 | 0.987
+| Guidewire  | 0.917 | 0.923 | 0.946
+| Wall | 0.879 | 0.89 | 0.899
+| Lipid | 0.467 | 0.485 | 0.519
+| Calcium | 0.389 | 0.42 | 0.51
+| Media | 0.74 | 0.758 | 0.767
+| Catheter | 0.979 | 0.982 | 0.992
+| Sidebranch | 0.414 | 0.449 | 0.536
+| Red thrombus | 0.3 | 0.301 | 0.373
+| White thrombus | 0.231 | 0.211 | 0.233
+| Dissection | 0.017 | 0.00002 | 0
+| Plaque rupture | 0.33 | 0.256 | 0.32
 
 
-### Results on test set
+In this case, we see a noticeable increase in the last 2D model, specially for calcium. (...)
 
 
-| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 3D sparse model 2nd dataset 
-| ------------- | -------------- | -------------- | --------------
-| Lumen  | 0.973 | 0.974
-| Guidewire  | 0.928 | 0.93
-| Wall | 0.872 | 0.889
-| Lipid | 0.415 | 0.465
-| Calcium | 0.258 | 0.258
-| Media | 0.736 | 0.746
-| Catheter | 0.987 | 0.988
-| Sidebranch | 0.521  | 0.554
-| Red thrombus | 0 | 0.032
-| White thrombus | 0 | 0 
-| Dissection | 0 | 0
-| Plaque rupture | 0.321 | 0.368
+### Results on test set (frame-level)
 
-Note that for the test set, there are no frames with white thrombus or dissections, meaning that the best prediction for these regions would be NaN (i.e no false positives with white thrombus or dissection)
 
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset
+| ------------- | -------------- | -------------- 
+| Lumen  | 0.973 | 0.974 | 0.981
+| Guidewire  | 0.928 | 0.93 | 0.941
+| Wall | 0.872 | 0.889 | 0.893
+| Lipid | 0.415 | 0.465 | 0.553
+| Calcium | 0.258 | 0.258 | 0.507
+| Media | 0.736 | 0.746 | 0.773
+| Catheter | 0.987 | 0.988 | 0.99
+| Sidebranch | 0.521 | 0.554 | 0.599
+| Red thrombus | 0 | 0.032 | 0.093
+| White thrombus | 0 | 0 | 0
+| Dissection | 0 | 0 | NaN
+| Plaque rupture | 0.321 | 0.368 | 0.377
+
+Note that for the test set, there are no frames with white thrombus or dissections, meaning that the best prediction for these regions would be NaN (i.e no false positives with white thrombus or dissection). Again, we see a great increase in lipid and calcium from the second dataset to the third dataset. We think that the different pre-processing techniques may have played an important role in the outcome of the third model
+
+
+### Results on test set (pullback-level)
+
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset
+| ------------- | -------------- | -------------- 
+| Lumen  | 0.981 | 0.981 | 
+| Guidewire  | 0.929 | 0.931 | 
+| Wall | 0.885 | 0.9 | 
+| Lipid | 0.649 | 0.67 | 
+| Calcium | 0.43 | 0.498 | 
+| Media | 0.77 | 0.779 | 
+| Catheter | 0.987 | 0.988 |
+| Sidebranch | 0.586 | 0.646 |
+| Red thrombus | 0 | 0.122 | 
+| White thrombus | 0 | NaN | 
+| Dissection | 0 | NaN |
+| Plaque rupture | 0.316 | 0.37 | 
 
 ## TODO:
  - Train data with third dataset
