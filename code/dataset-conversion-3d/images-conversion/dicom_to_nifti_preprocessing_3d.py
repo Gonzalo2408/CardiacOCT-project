@@ -1,14 +1,13 @@
 import sys
 import os
 import numpy as np
-from skimage.transform import resize
 import SimpleITK as sitk
 import pandas as pd
 
 #parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/scans DICOM'
 
 parent_path = r'Z:\grodriguez\CardiacOCT\data-original\scans DICOM'
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
 
@@ -24,12 +23,39 @@ def create_circular_mask(h, w, center=None, radius=None):
     mask = np.expand_dims(mask,0)
     return mask
 
+def resize_image(raw_frame):
+
+    if raw_frame.shape == (704, 704):
+
+        resampled_seg_frame = raw_frame
+
+    else:
+
+        frame_image = sitk.GetImageFromArray(raw_frame)
+
+        new_shape = (704, 704)
+        new_spacing = (frame_image.GetSpacing()[0]*sitk.GetArrayFromImage(frame_image).shape[1]/704,
+                            frame_image.GetSpacing()[1]*sitk.GetArrayFromImage(frame_image).shape[1]/704)
+
+        resampler = sitk.ResampleImageFilter()
+
+        resampler.SetSize(new_shape)
+        resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        resampler.SetOutputSpacing(new_spacing)
+
+        resampled_seg = resampler.Execute(frame_image)
+        resampled_seg_frame = sitk.GetArrayFromImage(resampled_seg)
+
+    return resampled_seg_frame
+
 
 def main(argv):
     """Callable entry point.
     """
 
     files = os.listdir(parent_path)
+
+    i = 0
 
     for filename in files:
 
@@ -38,11 +64,11 @@ def main(argv):
 
         if belonging_set == 'Testing':
             #new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs'
-            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task503_CardiacOCT\imagesTs'
+            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task504_CardiacOCT\imagesTs'
 
         else:
             #new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task503_CardiacOCT/imagesTr'
-            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task503_CardiacOCT\imagesTr'
+            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task504_CardiacOCT\imagesTr'
 
         pullback_name = filename.split('.')[0]
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
@@ -76,50 +102,35 @@ def main(argv):
 
                 else:
 
-                    print('Channel ', i+1)
+                    channel_pixel_data = np.zeros((series_pixel_data.shape[0], 704, 704))
+                    print('Processing channel ', i+1)     
 
-                    #Check if resized is needed (all images should be (704, 704))
-                    if series_pixel_data[0,:,:].shape == (704, 704):
-                        print('Shape is {}. No resized needed'.format(series_pixel_data.shape))
-                        resized_image = series
+                    for frame in range(len(series_pixel_data)):     
 
-                    else:
-                        print('Reshaping image...')
-                        new_shape = (704, 704, series_pixel_data.shape[0])
-                        new_spacing = (series.GetSpacing()[0]*sitk.GetArrayFromImage(series).shape[1]/704,
-                                        series.GetSpacing()[1]*sitk.GetArrayFromImage(series).shape[1]/704,
-                                        series.GetSpacing()[2])
+                        resized_image_pixel_data = resize_image(series_pixel_data[frame,:,:,i])
+                        
+                        #Circular mask as preprocessing (remove Abbott watermark)
+                        circular_mask = create_circular_mask(resized_image_pixel_data.shape[0], resized_image_pixel_data.shape[1], radius=346)
 
-                        resampler = sitk.ResampleImageFilter()
-
-                        resampler.SetSize(new_shape)
-                        resampler.SetInterpolator(sitk.sitkLinear)
-                        resampler.SetOutputSpacing(new_spacing)
-
-                        resized_image = resampler.Execute(series)
-
-                    resized_image_pixel_data = sitk.GetArrayFromImage(resized_image)
-                    
-                    #Circular mask as preprocessing (remove Abbott watermark)
-                    print('Creating circular mask...')
-                    mask_channel = np.zeros((resized_image_pixel_data.shape[0], resized_image_pixel_data.shape[1], resized_image_pixel_data.shape[2]))
-                    circular_mask = create_circular_mask(mask_channel.shape[1], mask_channel.shape[2], radius=340)
-
-                    for frame in range(len(mask_channel)):
-
-                        mask_channel[frame,:,:] = np.invert(circular_mask) * resized_image_pixel_data[frame,:,:,i]
+                        channel_pixel_data[frame,:,:] = np.invert(circular_mask) * resized_image_pixel_data
 
                         #Check if there are Nan values
-                        if np.isnan(mask_channel[frame, :, :]).any():
+                        if np.isnan(channel_pixel_data[frame,:,:]).any():
                             raise ValueError('NaN detected')
 
                     print('Writing NIFTI file...')
-                    final_image = sitk.GetImageFromArray(mask_channel)
+                    channel_pixel_data_T = np.transpose(channel_pixel_data, (1, 2, 0))
+                    final_image = sitk.GetImageFromArray(channel_pixel_data_T.astype(np.uint8))
                     final_image.SetSpacing((1.0, 1.0, 1.0))
                     final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-
                     sitk.WriteImage(final_image, filename_path)
-                    print('Done')
+                    
+            print('Done\n')
+            print('###########################################\n')
+            i += 1
+
+            if i == 2:
+                break
 
 if __name__ == '__main__':
     r = main(sys.argv)

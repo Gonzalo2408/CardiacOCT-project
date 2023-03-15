@@ -3,39 +3,81 @@ import pandas as pd
 import SimpleITK as sitk
 import os
 
-files_path_backup = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNetData_plans_v2.1_stage1'
-files_path = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_preprocessed/Task503_CardiacOCT/nnUNetData_plans_v2.1_stage1'
+new_npz_path = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNetData_plans_v2.1_stage1'
+npz_path = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_preprocessed/Task504_CardiacOCT/nnUNetData_plans_v2.1_stage1'
 
-files = os.listdir(files_path)
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+new_cropped_npz_path = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNetData_plans_v2.1_stage1_cropped'
+cropped_npz_path = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_cropped_data/Task504_CardiacOCT'
 
-for file in files:
+new_gt_segs_path = 'Z:/grodriguez/CardiacOCT/data-3d/gt_segmentations'
+gt_segs_path = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_preprocessed/Task504_CardiacOCT/gt_segmentations'
 
-    if file.split('.')[1] == 'pkl':
+
+files_npz = os.listdir(npz_path)
+files_npz_cropped = os.listdir(cropped_npz_path)
+files_gt = os.listdir(gt_segs_path)
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+
+print('Changing npz files')
+for file in files_npz:
+
+    filename = file.split('.')
+
+    if len(filename) == 1:
         continue
 
     else:
-        print('Processing', file)
-        n_pullback = file.split('_')[1]
-        preprocessed_img = dict(np.load(files_path + '/' + file))
-        img_pixel_data = preprocessed_img['data']
+        if file.split('.')[1] == 'npz':
 
-        seg_map = img_pixel_data[3,:,:,:]
+            print('Processing', file)
+            n_pullback = file.split('_')[1]
+            patient_name = file.split('_')[0]
+            preprocessed_img = dict(np.load(npz_path + '/' + file))
+            img_pixel_data = preprocessed_img['data']
 
-        frames_with_annot = annots[(annots['Nº pullback'] == int(n_pullback)) & (annots['Patient'] == files[0].split('_')[0])]['Frames']
-        frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
-        print(frames_list)
+            seg_map = np.zeros((img_pixel_data.shape[1], img_pixel_data.shape[2], img_pixel_data.shape[3]))
 
-        for frame in range(len(seg_map)):
+            frames_with_annot = annots[(annots['Nº pullback'] == int(n_pullback)) & (annots['Patient'] == patient_name)]['Frames']
+            frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
+            print(frames_list)
 
-            if frame in frames_list:
-                continue
-        
-            else:
-                seg_map[frame,:,:] = -1
+            for frame in range(img_pixel_data.shape[3]):
 
-        img_pixel_data[3,:,:,:] = seg_map
+                if frame in frames_list:
+                    seg_map[:,:,frame] = img_pixel_data[3,:,:,frame]
+            
+                else:
+                    seg_map[:,:,frame] = -1
 
-        preprocessed_img['data'] = img_pixel_data
+            img_pixel_data[3,:,:,:] = seg_map
 
-        np.savez_compressed(files_path_backup + '/' + file, **preprocessed_img)
+            preprocessed_img['data'] = img_pixel_data
+
+            np.savez_compressed(new_npz_path + '/' + file, **preprocessed_img)
+
+        else:
+            continue
+
+
+# print('Changing gt segmentations files')
+# for file in files_gt:
+
+#     print('Checking ', file)
+
+#     gt_seg = sitk.ReadImage(gt_segs_path + '/' + file)
+#     gt_seg_data = sitk.GetArrayFromImage(gt_seg)
+
+#     for frame in range(len(gt_seg_data)):
+
+#         if np.all(gt_seg_data[frame,:,:] == 0):
+#             gt_seg_data[frame,:,:] = -1*np.ones((704, 704))
+
+#         else:
+#             continue
+
+    
+#     new_gt_seg = sitk.GetImageFromArray(gt_seg_data.astype(np.int32))
+#     new_gt_seg.SetSpacing((1.0, 1.0, 1.0))
+#     new_gt_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
+#     sitk.WriteImage(new_gt_seg, new_gt_segs_path + '/' + file)
+

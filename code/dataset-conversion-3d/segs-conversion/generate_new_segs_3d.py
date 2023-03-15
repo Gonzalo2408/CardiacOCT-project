@@ -9,7 +9,7 @@ import sys
 #annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/oct_annotations_filtered.xlsx')
 
 path_segs = 'Z:/grodriguez/CardiacOCT/data-original/segmentations ORIGINALS'
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
 
@@ -25,6 +25,46 @@ def create_circular_mask(h, w, center=None, radius=None):
     mask = np.expand_dims(mask,0)
     return mask
 
+def resize_image(raw_frame):
+    
+    if raw_frame.shape == (704, 704):
+
+        resampled_seg_frame = raw_frame
+
+    else:
+
+        frame_image = sitk.GetImageFromArray(raw_frame)
+
+        new_shape = (704, 704)
+        new_spacing = (frame_image.GetSpacing()[0]*sitk.GetArrayFromImage(frame_image).shape[1]/704,
+                            frame_image.GetSpacing()[1]*sitk.GetArrayFromImage(frame_image).shape[1]/704)
+
+        resampler = sitk.ResampleImageFilter()
+
+        resampler.SetSize(new_shape)
+        resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        resampler.SetOutputSpacing(new_spacing)
+
+        resampled_seg = resampler.Execute(frame_image)
+        resampled_seg_frame = sitk.GetArrayFromImage(resampled_seg)
+
+    return resampled_seg_frame
+
+
+def check_uniques(raw_unique, new_unique, frame):
+    if len(raw_unique) != len(new_unique):
+        print(raw_unique, new_unique)
+        print('Warning! There are noisy pixel values in the frame {}. Check resampling technique or image generated'.format(frame))
+        return False
+    
+    for i in range(len(raw_unique)):
+        if raw_unique[i] != new_unique[i]:
+            print(raw_unique, new_unique)
+            print('Warning! There are noisy pixel values in the frame {}. Check resampling technique or image generated'.format(frame))
+            return False
+        
+    return True
+
 def main(argv):
 
     for filename in os.listdir(path_segs):
@@ -34,15 +74,19 @@ def main(argv):
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
 
         if belonging_set == 'Testing':
-            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task503_CardiacOCT/labelsTs'
+            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/labelsTs'
 
         else:
-            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task503_CardiacOCT/labelsTr'
+            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/labelsTr'
 
         pullback_name = filename.split('.')[0]
         print(pullback_name)
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
         n_pullback = int(annots.loc[annots['Pullback'] == pullback_name]['Nº pullback'].values[0])
+
+        frames_with_annot = annots.loc[annots['Pullback'] == pullback_name]['Frames']
+        frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
+
 
         #Check that seg already exists
         if os.path.exists(new_path_segs + '/' + patient_name + '_{}_{}.nii.gz'.format(n_pullback, "%03d" % id)):
@@ -53,56 +97,46 @@ def main(argv):
             orig_seg = sitk.ReadImage(path_segs + '/' + filename)
             orig_seg_pixel_array = sitk.GetArrayFromImage(orig_seg)
 
-            #Check if resize or not resize image (shape should be (704, 704))
-            if orig_seg_pixel_array[0,:,:].shape == (704, 704):
-                resampled_seg = orig_seg
+            frame_data = np.zeros((orig_seg_pixel_array.shape[0], 704, 704))
 
-            else:
+            count_minus_ones = 0
+            count_zeros = 0
 
-                new_shape = (704, 704, orig_seg_pixel_array.shape[0])
-                new_spacing = (orig_seg.GetSpacing()[0]*sitk.GetArrayFromImage(orig_seg).shape[1]/704,
-                                orig_seg.GetSpacing()[1]*sitk.GetArrayFromImage(orig_seg).shape[1]/704,
-                                orig_seg.GetSpacing()[2])
+            for frame in range(len(frame_data)):
 
-                resampler = sitk.ResampleImageFilter()
+                if frame in frames_list:
 
-                resampler.SetSize(new_shape)
-                resampler.SetInterpolator(sitk.sitkLinear)
-                resampler.SetOutputSpacing(new_spacing)
+                    resampled_pixel_data = resize_image(orig_seg_pixel_array[frame,:,:])
+                    circular_mask = create_circular_mask(resampled_pixel_data.shape[0], resampled_pixel_data.shape[1], radius=346)
+                    mask_frame = np.invert(circular_mask) * resampled_pixel_data
 
-                resampled_seg = resampler.Execute(orig_seg)
+                    unique_raw = np.unique(orig_seg_pixel_array[frame,:,:])
+                    unique_new = np.unique(mask_frame)
+                    check_uniques(unique_raw, unique_new, frame)
 
-            resampled_pixel_data = sitk.GetArrayFromImage(resampled_seg).astype(np.uint8)
+                else:
 
-            # Find the frames with annotations
-            frames_with_annot = annots.loc[annots['Pullback'] == pullback_name]['Frames']
+                    thresh = 0.3
+                    random_number = np.random.rand()
 
-            frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
-            print(frames_list)
+                    if random_number > thresh:
 
-            #If frame has manual annotations continue, else convert that frame to -1 (unlabeled data)
-            # for frame in range(len(resampled_pixel_data)):
-            #     if frame in frames_list:
-            #         continue
-            #     else:
-            #         resampled_pixel_data[frame, :, :] = -1
+                        mask_frame = -1*np.ones((704, 704))
+                        count_minus_ones += 1
 
-            mask = np.zeros((resampled_pixel_data.shape[0], resampled_pixel_data.shape[1], resampled_pixel_data.shape[2]))
-            circular_mask = create_circular_mask(mask.shape[1], mask.shape[2], radius=340)
+                    else:
+                        mask_frame = np.zeros((704, 704))
+                        count_zeros += 1
 
-            #Check if there are nans or empty frames (all labels 0)
-            for frame in range(len(mask)):
-
-                mask[frame,:,:] = np.invert(circular_mask) * resampled_pixel_data[frame,:,:]
-
-                if np.isnan(mask[frame, :, :]).any():
+                if np.isnan(mask_frame).any():
                     raise ValueError('NaN detected')
-
-                # if np.all((resampled_pixel_data[frame,:,:] == 0)):
-                #     raise ValueError('Labels disappeared. There are empty frames')
-
+                    
+                frame_data[frame,:,:] = mask_frame
+            
+            print('In the current pullback, there are {} frames with all -1 and {} with all zeros'. format(count_minus_ones, count_zeros))
             #Fix spacing and direction
-            final_seg = sitk.GetImageFromArray(mask)
+            frame_data_T = np.transpose(frame_data, (1, 2, 0)) 
+            final_seg = sitk.GetImageFromArray(frame_data_T.astype(np.int32))
             final_seg.SetSpacing((1.0, 1.0, 1.0))
             final_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
 
