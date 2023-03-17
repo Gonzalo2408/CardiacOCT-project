@@ -82,10 +82,6 @@ The problem with this model is that it needs a very specific input settings and 
 
 For the post-processing techniques, an algorithm that automatically measures the fibrous cap thickness and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a fibrous cap thickness < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient, so two algorithms were proposed to automatically measure these values.
 
-(Explain Silvan approach)
-
-(Explain dynammic programming approach)
-
 ## Results
 
 We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay the DICE scores for each one of the regions segmented. For the 2D models, the DICE scores computed per frame are showed. In order to accurately compare the 2D models and the 3D model, the DICE scores for the 2D models were computed pullback-wise (i.e the values of the confusion matrix are computed using every pixel in the pullback, rather than for every frame independently). 
