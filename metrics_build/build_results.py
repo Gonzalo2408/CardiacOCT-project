@@ -62,10 +62,10 @@ def main(argv):
     args, unknown = parser.parse_known_args(argv)
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    
+
     json_results_file = args.results_folder+'/summary.json'
 
-    #Load raw 
+    #Load raw
     with open(json_results_file) as f:
         summary = json.load(f)
 
@@ -92,7 +92,7 @@ def main(argv):
 
                     else:
                         continue
-            
+
             mean_result = mean_metrics(list_dicts_pullback)
             final_dict[pullback] = mean_result
 
@@ -103,13 +103,13 @@ def main(argv):
             key_patient = key.split('_')[0]
             first_part = key_patient[:3]
             second_part = key_patient[3:-4]
-            third_part = key_patient[-4:]  
+            third_part = key_patient[-4:]
             patient_name = '{}-{}-{}'.format(first_part, second_part, third_part)
 
             #Take pullback name
             n_pullback = key.split('_')[1]
             pullback_name = annots[(annots['Nº pullback'] == int(n_pullback)) & (annots['Patient'] == patient_name)]['Pullback'].values[0]
-            
+
             final_dict[pullback_name] = final_dict.pop(key)
 
         #Write final dict in a json file

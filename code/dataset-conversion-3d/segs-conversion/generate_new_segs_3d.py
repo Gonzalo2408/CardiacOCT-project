@@ -8,7 +8,7 @@ import sys
 #path_segs = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/segmentations ORIGINALS'
 #annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/oct_annotations_filtered.xlsx')
 
-path_segs = 'Z:/grodriguez/CardiacOCT/data-original/segmentations ORIGINALS'
+path_segs = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 2'
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
@@ -26,7 +26,7 @@ def create_circular_mask(h, w, center=None, radius=None):
     return mask
 
 def resize_image(raw_frame):
-    
+
     if raw_frame.shape == (704, 704):
 
         resampled_seg_frame = raw_frame
@@ -56,13 +56,13 @@ def check_uniques(raw_unique, new_unique, frame):
         print(raw_unique, new_unique)
         print('Warning! There are noisy pixel values in the frame {}. Check resampling technique or image generated'.format(frame))
         return False
-    
+
     for i in range(len(raw_unique)):
         if raw_unique[i] != new_unique[i]:
             print(raw_unique, new_unique)
             print('Warning! There are noisy pixel values in the frame {}. Check resampling technique or image generated'.format(frame))
             return False
-        
+
     return True
 
 def main(argv):
@@ -116,26 +116,28 @@ def main(argv):
 
                 else:
 
-                    thresh = 0.3
-                    random_number = np.random.rand()
+                    # thresh = 0.3
+                    # random_number = np.random.rand()
 
-                    if random_number > thresh:
+                    # if random_number > thresh:
 
-                        mask_frame = -1*np.ones((704, 704))
-                        count_minus_ones += 1
+                    #     mask_frame = -1*np.ones((704, 704))
+                    #     count_minus_ones += 1
 
-                    else:
-                        mask_frame = np.zeros((704, 704))
-                        count_zeros += 1
+                    # else:
+                    #     mask_frame = np.zeros((704, 704))
+                    #     count_zeros += 1
+
+                    mask_frame = -1*np.ones((704, 704))
 
                 if np.isnan(mask_frame).any():
                     raise ValueError('NaN detected')
-                    
+
                 frame_data[frame,:,:] = mask_frame
-            
-            print('In the current pullback, there are {} frames with all -1 and {} with all zeros'. format(count_minus_ones, count_zeros))
+
+            #print('In the current pullback, there are {} frames with all -1 and {} with all zeros'. format(count_minus_ones, count_zeros))
             #Fix spacing and direction
-            frame_data_T = np.transpose(frame_data, (1, 2, 0)) 
+            frame_data_T = np.transpose(frame_data, (1, 2, 0))
             final_seg = sitk.GetImageFromArray(frame_data_T.astype(np.int32))
             final_seg.SetSpacing((1.0, 1.0, 1.0))
             final_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))

@@ -3,11 +3,10 @@ import os
 import numpy as np
 import SimpleITK as sitk
 import pandas as pd
+import argparse
 
-#parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/scans DICOM'
-
-parent_path = r'Z:\grodriguez\CardiacOCT\data-original\scans DICOM'
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+#annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
 
@@ -53,9 +52,11 @@ def main(argv):
     """Callable entry point.
     """
 
-    files = os.listdir(parent_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data', type=str)
+    args, unknown = parser.parse_known_args(argv)
 
-    i = 0
+    files = os.listdir(args.data)
 
     for filename in files:
 
@@ -63,12 +64,12 @@ def main(argv):
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
 
         if belonging_set == 'Testing':
-            #new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs'
-            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task504_CardiacOCT\imagesTs'
+            new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
+            #new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task504_CardiacOCT\imagesTs'
 
         else:
-            #new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task503_CardiacOCT/imagesTr'
-            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task504_CardiacOCT\imagesTr'
+            new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/imagesTr'
+            #new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task504_CardiacOCT\imagesTr'
 
         pullback_name = filename.split('.')[0]
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
@@ -86,9 +87,9 @@ def main(argv):
 
         else:
 
-            # load the files to create a list of slices
+            #Load the files to create a list of slices
             print('Loading DICOM...')
-            series = sitk.ReadImage(parent_path +'/'+filename)
+            series = sitk.ReadImage(args.data +'/'+filename)
             series_pixel_data = sitk.GetArrayFromImage(series)
 
             for i in range(3):
@@ -103,12 +104,12 @@ def main(argv):
                 else:
 
                     channel_pixel_data = np.zeros((series_pixel_data.shape[0], 704, 704))
-                    print('Processing channel ', i+1)     
+                    print('Processing channel ', i+1)
 
-                    for frame in range(len(series_pixel_data)):     
+                    for frame in range(len(series_pixel_data)):
 
                         resized_image_pixel_data = resize_image(series_pixel_data[frame,:,:,i])
-                        
+
                         #Circular mask as preprocessing (remove Abbott watermark)
                         circular_mask = create_circular_mask(resized_image_pixel_data.shape[0], resized_image_pixel_data.shape[1], radius=346)
 
@@ -124,13 +125,9 @@ def main(argv):
                     final_image.SetSpacing((1.0, 1.0, 1.0))
                     final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
                     sitk.WriteImage(final_image, filename_path)
-                    
+
             print('Done\n')
             print('###########################################\n')
-            i += 1
-
-            if i == 2:
-                break
 
 if __name__ == '__main__':
     r = main(sys.argv)
