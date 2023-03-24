@@ -38,9 +38,26 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
     guide_pixels = np.argwhere(vessel_guide)
     calcium_pixels = np.argwhere(vessel_calcium)
 
+    n_bins = 360 // bin_size
+
     if lipid_pixels.size==0 and calcium_pixels.size==0:
 
-        return 0, 0
+        vessel_com = sim.center_of_mass(vessel_center)
+
+        dist_guide = np.zeros((guide_pixels.shape[0], 1))
+
+        for n in range(guide_pixels.shape[0]):
+            dist_guide[n, 0] = np.degrees(
+                np.arctan2((guide_pixels[n, 0] - vessel_com[0]), (guide_pixels[n, 1] - vessel_com[1])))
+        hist_count_guide, bins_guide = np.histogram(dist_guide[:, 0], n_bins, (-180, 180))
+
+        # thickness per lipid/calcium bin
+        thickness_bin = np.zeros(bins_guide.shape[0] - 1)
+        for n in range(thickness_bin.shape[0] - 1):
+            if hist_count_guide[n] > 0:
+                thickness_bin[n] = -1
+
+        return  0, 0
 
     else:
     
@@ -61,13 +78,19 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
 
             
         # Bin pixels in 360 degree bins
-        #hist_count_wall, bins_wall = np.histogram(dist_wall[:, 1], 360//bin_size, (-180, 180))
-        hist_count_lipid, bins = np.histogram(dist_lipid[:, 0], 360//bin_size, (-180, 180))
-        hist_count_guide, _ = np.histogram(dist_guide[:, 0], 360//bin_size, (-180, 180))
+        hist_count_lipid, bins = np.histogram(dist_lipid[:, 0], n_bins, (-180, 180))
+        hist_count_guide, _ = np.histogram(dist_guide[:, 0], n_bins, (-180, 180))
 
-        lipid_ids = np.where(hist_count_lipid > 0)[0]
+        lipid_ids = np.where(hist_count_lipid > 20)[0]
 
         if lipid_ids.size == 0:
+ 
+            thickness_bin = np.zeros(n_bins)
+
+            for n in range(thickness_bin.shape[0] - 1):
+                    if hist_count_guide[n] > 0:
+                        thickness_bin[n] = -1
+                        
             return 0, 0
 
         # Merge labels and generate new image (new labels: lipid + wall, calcium, catheter, rest)
@@ -100,7 +123,6 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
         contours4[:image.shape[0], :image.shape[0]-1] = edges2 == 2
         contours3[contours3 == 0] = contours4[contours3 == 0]
 
-
         id1 = np.argwhere(contours == 1)
         id2 = np.argwhere(contours3 == 1)
 
@@ -112,28 +134,39 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
             dist_wcontour[n, 0] = np.degrees(
                 np.arctan2((wcontour_pixels[n, 0] - vessel_com[0]), (wcontour_pixels[n, 1] - vessel_com[1])))
             
-        hist_count_wcontour, _ = np.histogram(dist_wcontour[:, 0], 360//bin_size, (-180, 180))
+        hist_count_wcontour, _ = np.histogram(dist_wcontour[:, 0], n_bins, (-180, 180))
+        guide_ids = np.where(hist_count_guide > 0)[0]
         wall_nids = np.where(hist_count_wcontour == 0)[0]
 
-        # Add tube ids if lipid overlaps tube at both sides
-        overlap_lipid_guide = np.isin(lipid_ids, np.concatenate((wall_nids-3,wall_nids+3)))
+        splits = np.flatnonzero(np.diff(wall_nids) != 1)
+        sub_arrs = np.split(wall_nids, splits + 1)
 
-        if np.sum(overlap_lipid_guide) > 1:
+        if np.isin(0,wall_nids) and np.isin(n_bins-1, wall_nids):
+            sub_arrs[0] = np.concatenate((sub_arrs[0],sub_arrs[-1]))
+            del sub_arrs[-1]
 
-            overlap_lipid_ids = lipid_ids[overlap_lipid_guide]
-            overlap_lipid_guide_diff = np.diff(overlap_lipid_ids)
-            max_diff_id = np.argmax(overlap_lipid_guide_diff)
+        for n in range(len(sub_arrs)):
 
-            if overlap_lipid_guide_diff[max_diff_id] > 1:
+            # Add guide ids if lipid overlaps guide at both sides
+            overlap_lipid_guide = np.isin(lipid_ids, np.concatenate((wall_nids-3,wall_nids+3)))
 
-                added_ids = np.unique(np.concatenate((wall_nids-3,wall_nids,wall_nids+3)))
-                added_ids = added_ids[(added_ids>-1) & (added_ids<180)]
-                lipid_ids = np.unique(np.concatenate((lipid_ids,added_ids)))
+            if np.sum(overlap_lipid_guide) > 1:
+
+                overlap_lipid_ids = lipid_ids[overlap_lipid_guide]
+                overlap_lipid_guide_diff = np.diff(overlap_lipid_ids)
+                max_diff_id = np.argmax(overlap_lipid_guide_diff)
+
+                if overlap_lipid_guide_diff[max_diff_id] > 1:
+
+                    added_ids = np.unique(np.concatenate((wall_nids-3,wall_nids,wall_nids+3)))
+                    # Only add IDs that fall within 0 - 179 range
+                    added_ids = added_ids[(added_ids>-1) & (added_ids<180)]
+                    lipid_ids = np.unique(np.concatenate((lipid_ids,added_ids)))
                 
-        lipid_angle_deg = len(lipid_ids)/(len(bins)-1)*360
+        lipid_angle_deg = len(lipid_ids)/(n_bins)*360
 
         # Detect edges of lipid
-        lipid_bool = np.zeros(len(bins)-1)
+        lipid_bool = np.zeros(n_bins)
         lipid_bool[lipid_ids] = 1
 
         # There is no lipid in the image or the image is all lipid
@@ -151,7 +184,7 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
             if lipid_bool[lipid_edges[0]] > 0:
                 lipid_edges = np.roll(lipid_edges,1)
                 
-            lipid_edges = lipid_edges+1
+            lipid_edges = lipid_edges + 1
             
         lipid_edge1 = np.zeros((lipid_edges.size//2,2))
         lipid_edge2 = np.zeros((lipid_edges.size//2,2))
@@ -170,6 +203,7 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
 
             lipid_edge2[n,0] = vessel_com[1]+(image.shape[0]*0.4*np.cos(np.radians(lipid_angles[n,1])))
             lipid_edge2[n,1] = vessel_com[0]+(image.shape[0]*0.4*np.sin(np.radians(lipid_angles[n,1])))
+
 
         lipid_bins = bins[lipid_ids]
 
@@ -192,19 +226,19 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
         id1_lipid = id1[thin_id1]
         id2_lipid = id2[thin_id2]
 
-        if id1_lipid.size==0 or id2_lipid.size==0:
-
-            return 0, 0
-
-
         id1_min = np.zeros(id1_lipid.shape[0])
         id1_argmin = np.zeros(id1_lipid.shape[0]).astype('int16')
+
+        if id1_lipid.size==0 or id2_lipid.size==0:
+            thickness = np.nan
+            return 0, 0
+
 
         for n in range(id1_lipid.shape[0]):
             C = []
             for nn in range(id2_lipid.shape[0]):
-
                 C.append((id1_lipid[n,0]-id2_lipid[nn,0])**2+(id1_lipid[n,1]-id2_lipid[nn,1])**2)
+
             id1_argmin[n] = np.argmin(C)
             id1_min[n] = C[id1_argmin[n]]
         
@@ -219,8 +253,7 @@ def create_annotations(image, im_insize = 704, bin_size = 2):
 
         else:
             conv_fact = 1
-
-                           
+   
         id1_min = np.sqrt(id1_min)*1000/conv_fact
         thickness = id1_min[id1m]/100
         
@@ -327,7 +360,7 @@ def count_frames_excel(path, segs_folder, excel_name):
     counts_per_frame = pd.DataFrame(columns = ['pullback', 'dataset', 'set', 'frame',  'background', 
                                                'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 'media', 
                                                'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
-                                               'rupture', 'lipid_arc', 'cap_thickness'])
+                                               'rupture', 'cap_thickness', 'lipid_arc'])
 
     for file in segs_folder:
 
@@ -356,27 +389,18 @@ def count_frames_excel(path, segs_folder, excel_name):
 
                 #Post-processing measurements
                 cap_thickness, lipid_arc = create_annotations(seg_map_data[frame,:,:])
-                if isinstance(cap_thickness, str) == False:
-                    cap_thickness = '0'
-
-                if isinstance(lipid_arc, str) == False:
-                    lipid_arc = '0'
 
                 one_hot_list = one_hot.tolist()
                 one_hot_list.insert(0, pullback_name)
                 one_hot_list.insert(1, dataset)
                 one_hot_list.insert(2, belonging_set)
                 one_hot_list.insert(3, frame)
-                one_hot_list.append(lipid_arc)
                 one_hot_list.append(cap_thickness)
+                one_hot_list.append(lipid_arc)
 
             else:
                 continue
 
-
-
-            
-            
             counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
     counts_per_frame.to_excel('./{}.xlsx'.format(excel_name))
 
@@ -384,18 +408,13 @@ if __name__ == "__main__":
 
     num_classes = 13
 
-    path_first = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
-    path_sec = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS'
-    path_third = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 2'
-    excel_name1 = 'third_dataset_counts_frames'
-    excel_name2 = 'trial_third_dataset_counts_pullbacks'
+    path = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
+    excel_name = 'new_automatic_measures'
 
-    seg_files_1 = os.listdir(path_first)
-    seg_files_2 = os.listdir(path_sec)
-    seg_files_3 = os.listdir(path_third)
+    seg_files = os.listdir(path)
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
     #count_frames_excel(path_third, seg_files_3, excel_name1)
-    count_frames_excel(path_first, seg_files_1, excel_name2)
+    count_frames_excel(path, seg_files, excel_name)
 
     

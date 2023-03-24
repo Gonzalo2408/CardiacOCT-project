@@ -62,9 +62,9 @@ For the third training, a nearest neighbor interpolation sampler was used, since
 
 ### 3D approach
 
-For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotations in each 3D volume. The frames that do not contain any label have a segmentation map that only contains -1, in order to the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model (third training), in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
+For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotations in each 3D volume (DC + CE loss). The frames that do not contain any label have a segmentation map that only contains -1, in order for the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model (third training), in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
 
-(Expand more when training)
+
 
 
 ## Training
@@ -160,9 +160,9 @@ For the post-processing measurements, we perfomed a Bland-Altman analysis in ord
 
 | Model  | FCT (mean diff / SD) (µm) | Lipid arc (mean diff / SD) (º)
 | ------------- | -------------- | -------------- 
-| 1  | 51.62 ± [350, -240] | 11.92 ± [74, -50]
-| 2  | 32.14 ± [310,  -240] | 4.54 ± [55, -46]
-| 3  | 31.3 ± [280,  -220] | 2.43 ± [48, -43]
+| 1  | 37.96 ± [230, -150] | 10.57 ± [80, -60]
+| 2  | 35.88 ± [250,  -180] | 6.06 ± [68, -56]
+| 3  | 28.51 ± [190,  -130] | 1.71 ± [54, -50]
 
 
 ## TODO:
