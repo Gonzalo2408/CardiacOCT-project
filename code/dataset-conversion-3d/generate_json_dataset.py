@@ -62,15 +62,15 @@ def generate_dataset_json(output_file: str, imagesTr_dir: str, imagesTs_dir: str
 
 
 def main():
-    target_base = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT'
-    target_imagesTr = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/imagesTr'
-    target_imagesTs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
-    task_name = 'Task504_CardiacOCT'
+    target_base = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task505_CardiacOCT'
+    target_imagesTr = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task505_CardiacOCT/imagesTr'
+    target_imagesTs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task505_CardiacOCT/imagesTs'
+    task_name = 'Task505_CardiacOCT'
     dataset_description = 'Semantic segmentation of intracoronary OCT pullbacks'
     modalities = ('Red', 'Green', 'Blue')
 
     generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, modalities=modalities, dataset_description=dataset_description,
-                        labels={0:'background', 1:'lumen', 2:'guidewire', 3:'wall', 4:'lipid', 5:'calcium', 
+                        labels={0:'background', 1:'lumen', 2:'guidewire', 3:'   wall', 4:'lipid', 5:'calcium', 
                         6:'media', 7:'catheter', 8: 'sidebranch', 9: 'rthrombus', 10:'wthrombus', 11:'dissection', 12:'rupture'}, 
                         dataset_name=task_name, license='hands off!')
 

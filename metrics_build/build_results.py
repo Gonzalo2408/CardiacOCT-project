@@ -88,6 +88,8 @@ def main(argv):
                     #Select between these according to the folder you are in!!
                     #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task503_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
                     if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results_model3_2d/{}'.format(frame):
+
+                        #We omit the last two values since they are just a string (check in json file)
                         list_dicts_pullback.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
 
                     else:

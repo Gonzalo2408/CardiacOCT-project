@@ -16,19 +16,18 @@ def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
 
     rows, cols, n_slices = image.shape
 
-    #Check if annot is in first slice (we take frames after only)
-    if n_frame - n_frames_to_sample < 0:
-        frames = np.arange(n_frame, n_frames_to_sample+3)
-        frames_to_sample = frames
+    # #Check if annot is in first slice (we take frames after only)
+    # if n_frame - n_frames_to_sample < 0:
+    #     frames = np.arange(n_frame, n_frames_to_sample+3)
+    #     frames_to_sample = frames
         
-    #Check if annot is at the end of the 3D volume
-    elif n_frame + n_frames_to_sample > n_slices:
-        frames = np.arange((-n_frames_to_sample-3), n_frame)
-        frames_to_sample = frames + n_frame
+    # #Check if annot is at the end of the 3D volume
+    # elif n_frame + n_frames_to_sample > n_slices:
+    #     frames = np.arange((-n_frames_to_sample-3), n_frame)
+    #     frames_to_sample = frames + n_frame
 
-    else:
-        frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
-        frames_to_sample = frames + n_frame
+    frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
+    frames_to_sample = frames + n_frame
 
     sub_volume = np.zeros((rows, cols, len(frames_to_sample)))
 
@@ -52,6 +51,7 @@ def create_circular_mask(h, w, center=None, radius=None):
     mask = dist_from_center >= radius
     mask = np.expand_dims(mask,0)
     return mask
+
 
 def resize_image(raw_frame):
 
@@ -84,7 +84,7 @@ def main(argv):
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default=r'Z:\grodriguez\CardiacOCT\data-original\extra-scans-DICOM-2')
+    parser.add_argument('--data', type=str, default=r'Z:\grodriguez\CardiacOCT\data-original\scans-DICOM')
     args, unknown = parser.parse_known_args(argv)
 
     files = os.listdir(args.data)
@@ -111,11 +111,10 @@ def main(argv):
         frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
 
         #Load the files to create a list of slices
-        
+        print('Loading DICOM {} ...'.format(filename))
         series = sitk.ReadImage(args.data +'/'+filename)
         series_pixel_data = sitk.GetArrayFromImage(series)
-        print('Loading DICOM {} ...'.format(filename))
-
+        
         for i in range(3):
 
             channel_pixel_data = np.zeros((series_pixel_data.shape[0], 704, 704))
@@ -134,37 +133,62 @@ def main(argv):
                 if np.isnan(channel_pixel_data[frame,:,:]).any():
                     raise ValueError('NaN detected')
 
-            print('Writing NIFTI file...')
             channel_pixel_data_T = np.transpose(channel_pixel_data, (1, 2, 0))
 
             n_split = 1
+            #Find neighbor annotation to create clusters
+            thresh = 20
+            list_skips = []
 
-            for frame in range(len(channel_pixel_data_T)):
+            for frame in frames_list:
+                
+                #List that contains annots that already have been included (avoid redundant data)
+                if frame in list_skips:
+                    continue
 
-                if frame in frames_list:
+                else:
+                    #K-neighbors to find near annotations
+                    neighbor_annots = np.arange(frame-thresh, frame+thresh)
+                    list_neighbors = []
+                    
+                    for neighbor in neighbor_annots:
+                        
+                        if neighbor in frames_list:
+                            list_neighbors.append(neighbor)
+                            list_skips.append(neighbor)
+                            
+                        else:
+                            continue
 
-                    if frame - 2 < 0:
-                        continue
+                    print('Frame {} has {} neighbors, which are the frames {}'.format(frame, len(list_neighbors), list_neighbors))
 
+                    #Case in which the last annotation is also 2 frames away from the end of the full 3D scan
+                    if list_neighbors[-1] + 2 > channel_pixel_data_T.shape[2]:
+                        sub_volume = channel_pixel_data_T[:,:,list_neighbors[0]:list_neighbors[-1]+1]
+                    
+                    #Case in which an annotation is the first one
+                    if list_neighbors[0] - 2 < 0:
+                        sub_volume = channel_pixel_data_T[:,:,list_neighbors[0]:list_neighbors[-1]]
+
+                    #We take all frames that contain the annotations plus 2 frames before and after the cluster of slices
                     else:
-                        sub_volume = generate_new_volume(channel_pixel_data_T, frame)
+                        sub_volume = channel_pixel_data_T[:,:,list_neighbors[0]:list_neighbors[-1]+1]
+
+                    print('A sub_volume has been generated with shape {}'.format(sub_volume.shape))
 
                     #Fix spacing and direction
+                    print('Writing NIFTI file...')
                     final_image = sitk.GetImageFromArray(sub_volume.astype(np.uint8))
                     final_image.SetSpacing((1.0, 1.0, 1.0))
                     final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-                    filename_path = new_path_imgs + '/' + patient_name + '_{}_{}_split{}_000{}.nii.gz'.format(n_pullback, "%03d" % id, n_split, i)
+                    filename_path = new_path_imgs + '/' + patient_name + '_{}_split{}_{}_000{}.nii.gz'.format(n_pullback, n_split, "%03d" % id, i)
 
                     sitk.WriteImage(final_image, filename_path)
 
                     n_split += 1
 
-                else:
-                    continue
-
         print('Done\n')
         print('###########################################\n')
-        break
 
 if __name__ == '__main__':
     r = main(sys.argv)

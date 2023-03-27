@@ -1,27 +1,60 @@
 import scipy.ndimage as sim
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+import SimpleITK as sitk
 
-def create_annotations(image, conv_fact = 1, im_insize = 704, bin_size = 2):    
+def count_distance_to_centre(region, centre_of_lumen, dists, only_angle = True):
+    
+    if only_angle == False:
+
+        for n in range(region.shape[0]):
+                dists[n, 0] = np.sqrt((region[n, 0]-centre_of_lumen[0])**2+(region[n, 1]-centre_of_lumen[1])**2)
+                dists[n, 1] = np.degrees(np.arctan2((region[n, 0]-centre_of_lumen[0]), (region[n, 1]-centre_of_lumen[1])))
+
+    else:
+        for n in range(region.shape[0]):
+                dists[n, 0] = np.degrees(np.arctan2((region[n, 0]-centre_of_lumen[0]), (region[n, 1]-centre_of_lumen[1])))
+
+    return dists
+    
+
+def create_annotations(image, bin_size = 2):    
+
+    im_insize = image.shape[0]
+
     # Define segmentations
-    vessel_bg = image == 0
     vessel_center = image == 1
-    vessel_tube = image == 2
-    vessel_fat = image == 4
+    vessel_guide = image == 2
+    vessel_lipid = image == 4
     vessel_wall = image == 3
-    vessel_cal = image == 5
+    vessel_calcium = image == 5
     
     # Pixel IDs segmentations
-    bg_pixels = np.argwhere(vessel_bg)
     wall_pixels = np.argwhere(vessel_wall)
-    fat_pixels = np.argwhere(vessel_fat)
-    tube_pixels = np.argwhere(vessel_tube)
-    cal_pixels = np.argwhere(vessel_cal)
+    lipid_pixels = np.argwhere(vessel_lipid)
+    guide_pixels = np.argwhere(vessel_guide)
+    calcium_pixels = np.argwhere(vessel_calcium)
 
-    
-    if fat_pixels.size==0 and cal_pixels.size==0:
+    n_bins = 360 // bin_size
 
-        return np.zeros((im_insize,im_insize), np.uint8), np.zeros(360//bin_size), 0, 0
+    if lipid_pixels.size==0 and calcium_pixels.size==0:
+
+        vessel_com = sim.center_of_mass(vessel_center)
+
+        dist_guide = np.zeros((guide_pixels.shape[0], 1))
+
+        for n in range(guide_pixels.shape[0]):
+            dist_guide[n, 0] = np.degrees(
+                np.arctan2((guide_pixels[n, 0] - vessel_com[0]), (guide_pixels[n, 1] - vessel_com[1])))
+        hist_count_guide, bins_guide = np.histogram(dist_guide[:, 0], n_bins, (-180, 180))
+
+        # thickness per lipid/calcium bin
+        thickness_bin = np.zeros(bins_guide.shape[0] - 1)
+        for n in range(thickness_bin.shape[0] - 1):
+            if hist_count_guide[n] > 0:
+                thickness_bin[n] = -1
+
+        return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0
 
     else:
     
@@ -29,46 +62,36 @@ def create_annotations(image, conv_fact = 1, im_insize = 704, bin_size = 2):
         vessel_com = sim.center_of_mass(vessel_center)
 
         # Determine distance and angle of pixels relative to COM
-        dist_bg = np.zeros((bg_pixels.shape[0], 1))
         dist_wall = np.zeros((wall_pixels.shape[0], 2))
-        dist_fat = np.zeros((fat_pixels.shape[0], 1))
-        dist_tube = np.zeros((tube_pixels.shape[0], 1))
-        dist_cal = np.zeros((cal_pixels.shape[0], 2))
+        dist_lipid = np.zeros((lipid_pixels.shape[0], 1))
+        dist_guide = np.zeros((guide_pixels.shape[0], 1))
+        dist_calcium = np.zeros((calcium_pixels.shape[0], 2))
 
-        #for n in range(bg_pixels.shape[0]):
-            #dist_bg[n, 0] = np.sqrt((bg_pixels[n, 0]-vessel_com[0])**2+(bg_pixels[n, 1]-vessel_com[1])**2)
-        #    dist_bg[n, 0] = np.degrees(np.arctan2((bg_pixels[n, 0]-vessel_com[0]), (bg_pixels[n, 1]-vessel_com[1])))
 
-        for n in range(wall_pixels.shape[0]):
-            dist_wall[n, 0] = np.sqrt((wall_pixels[n, 0]-vessel_com[0])**2+(wall_pixels[n, 1]-vessel_com[1])**2)
-            dist_wall[n, 1] = np.degrees(np.arctan2((wall_pixels[n, 0]-vessel_com[0]), (wall_pixels[n, 1]-vessel_com[1])))
+        dist_wall = count_distance_to_centre(wall_pixels, vessel_com, dist_wall, only_angle=False)
+        dist_lipid = count_distance_to_centre(lipid_pixels, vessel_com, dist_lipid)
+        dist_guide = count_distance_to_centre(guide_pixels, vessel_com, dist_guide)
+        dist_calcium = count_distance_to_centre(calcium_pixels, vessel_com, dist_calcium, only_angle=False)
 
-        for n in range(fat_pixels.shape[0]):
-            #dist_fat[n, 0] = np.sqrt((fat_pixels[n, 0]-vessel_com[0])**2+(fat_pixels[n, 1]-vessel_com[1])**2)
-            dist_fat[n, 0] = np.degrees(np.arctan2((fat_pixels[n, 0]-vessel_com[0]), (fat_pixels[n, 1]-vessel_com[1])))
-
-        for n in range(tube_pixels.shape[0]):
-            #dist_tube[n, 0] = np.sqrt((tube_pixels[n, 0]-vessel_com[0])**2+(tube_pixels[n, 1]-vessel_com[1])**2)
-            dist_tube[n, 0] = np.degrees(np.arctan2((tube_pixels[n, 0]-vessel_com[0]), (tube_pixels[n, 1]-vessel_com[1])))
-
-        for n in range(cal_pixels.shape[0]):
-            dist_cal[n, 0] = np.sqrt((cal_pixels[n, 0]-vessel_com[0])**2+(cal_pixels[n, 1]-vessel_com[1])**2)
-            dist_cal[n, 1] = np.degrees(np.arctan2((cal_pixels[n, 0]-vessel_com[0]), (cal_pixels[n, 1]-vessel_com[1])))
             
         # Bin pixels in 360 degree bins
-        hist_count_wall, bins_wall = np.histogram(dist_wall[:, 1], 360//bin_size, (-180, 180))
-        hist_count_fat, bins = np.histogram(dist_fat[:, 0], 360//bin_size, (-180, 180))
-        hist_count_tube, bins_tube = np.histogram(dist_tube[:, 0], 360//bin_size, (-180, 180))
-        #hist_count_bg, bins_bg = np.histogram(dist_bg[:, 0], 360//bin_size, (-180, 180))
-        hist_count_cal, bins_cal = np.histogram(dist_cal[:, 1], 360//bin_size, (-180, 180))
-#        hist_count_wall_tube = hist_count_wall+hist_count_tube
+        hist_count_lipid, bins = np.histogram(dist_lipid[:, 0], n_bins, (-180, 180))
+        hist_count_guide, _ = np.histogram(dist_guide[:, 0], n_bins, (-180, 180))
+        hist_count_calcium, bins_cal = np.histogram(dist_calcium[:, 1], n_bins, (-180, 180))
 
-        fat_ids = np.where(hist_count_fat > 0)[0]
-        if fat_ids.size == 0:
-            return np.zeros((im_insize, im_insize), np.uint8), np.zeros(360 // bin_size)
+        lipid_ids = np.where(hist_count_lipid > 20)[0]
 
+        if lipid_ids.size == 0:
+ 
+            thickness_bin = np.zeros(n_bins)
 
-            # Get contours of wall
+            for n in range(thickness_bin.shape[0] - 1):
+                    if hist_count_guide[n] > 0:
+                        thickness_bin[n] = -1
+                        
+            return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0
+
+        # Merge labels and generate new image (new labels: lipid + wall, calcium, catheter, rest)
         new_image = np.copy(image).astype('int16')
         new_image[new_image == 2] = 10
         new_image[new_image == 4] = 0
@@ -84,179 +107,162 @@ def create_annotations(image, conv_fact = 1, im_insize = 704, bin_size = 2):
         edges1 = np.abs(np.diff(new_image, axis=0))
         edges2 = np.abs(np.diff(new_image, axis=1))
 
-        contours = np.zeros((704, 704))
-        contours2 = np.zeros((704, 704))
-
-        contours[:703, :704] = edges1 == 3
-        contours2[:704, :703] = edges2 == 3
-
+        #Getting wall contours
+        contours = np.zeros((image.shape))
+        contours2 = np.zeros((image.shape))
+        contours[:im_insize-1, :im_insize] = edges1 == 3
+        contours2[:im_insize, :im_insize-1] = edges2 == 3
         contours[contours == 0] = contours2[contours == 0]
 
-        contours3 = np.zeros((704, 704))
-        contours4 = np.zeros((704, 704))
-
-        contours3[:703, :704] = edges1 == 2
-        contours4[:704, :703] = edges2 == 2
+        #Getting lumen contours
+        contours3 = np.zeros((image.shape))
+        contours4 = np.zeros((image.shape))
+        contours3[:im_insize-1, :im_insize] = edges1 == 2
+        contours4[:im_insize, :im_insize-1] = edges2 == 2
         contours3[contours3 == 0] = contours4[contours3 == 0]
 
         id1 = np.argwhere(contours == 1)
         id2 = np.argwhere(contours3 == 1)
 
-
-        # Determine angle fat
+        #Calculate angle of each pixel in the wall with the horizontal axis
         wcontour_pixels = np.argwhere(contours)
         dist_wcontour = np.zeros((wcontour_pixels.shape[0], 1))
 
         for n in range(wcontour_pixels.shape[0]):
             dist_wcontour[n, 0] = np.degrees(
                 np.arctan2((wcontour_pixels[n, 0] - vessel_com[0]), (wcontour_pixels[n, 1] - vessel_com[1])))
-        hist_count_wcontour, bins_wcontour = np.histogram(dist_wcontour[:, 0], 360//bin_size, (-180, 180))
-
-        tube_ids = np.where(hist_count_tube > 0)[0]
+            
+        hist_count_wcontour, _ = np.histogram(dist_wcontour[:, 0], n_bins, (-180, 180))
         wall_nids = np.where(hist_count_wcontour == 0)[0]
 
+        splits = np.flatnonzero(np.diff(wall_nids) != 1)
+        sub_arrs = np.split(wall_nids, splits + 1)
 
-        # Add tube ids if fat overlaps tube at both sides
-        overlap_fat_tube = np.isin(fat_ids,np.concatenate((wall_nids-3,wall_nids+3)))
-        print(fat_ids)
-        print(np.concatenate((wall_nids-3,wall_nids+3)))
-        if np.sum(overlap_fat_tube)>1:
-            print(wall_nids)
-            overlap_fat_ids = fat_ids[overlap_fat_tube]
-            print(overlap_fat_ids)
-            overlap_fat_tube_diff = np.diff(overlap_fat_ids)
-            max_diff_id = np.argmax(overlap_fat_tube_diff)
-            if overlap_fat_tube_diff[max_diff_id] > 1:
-#                 if np.isin(0,tube_ids) and np.isin(179,tube_ids):
-#                     print(max_diff_id)
-#                     if overlap_fat_tube_diff[max_diff_id]>90:
-#                         added_ids = np.concatenate((np.arange(0, overlap_fat_ids[max_diff_id]+1),np.arange(overlap_fat_ids[max_diff_id+1],180)))
-#                     else: 
-#                         added_ids = np.arange(overlap_fat_ids[max_diff_id],overlap_fat_ids[max_diff_id+1])
-#                     print(overlap_fat_ids)
-#                     print(added_ids)
-#                 else:
-#                     added_ids = np.arange(overlap_fat_ids[max_diff_id],overlap_fat_ids[max_diff_id+1])
-                added_ids = np.unique(np.concatenate((wall_nids-3,wall_nids,wall_nids+3)))
-                added_ids = added_ids[(added_ids>-1) & (added_ids<180)]
-                print(added_ids)
-                fat_ids = np.unique(np.concatenate((fat_ids,added_ids)))
+        if np.isin(0,wall_nids) and np.isin(n_bins-1, wall_nids):
+            sub_arrs[0] = np.concatenate((sub_arrs[0],sub_arrs[-1]))
+            del sub_arrs[-1]
+
+        for n in range(len(sub_arrs)):
+
+            # Add tube ids if lipid overlaps tube at both sides
+            temp_wall_nids = sub_arrs[n]
+            overlap_lipid_guide = np.isin(lipid_ids, np.concatenate((temp_wall_nids-3,temp_wall_nids+3)))
+
+            if np.sum(overlap_lipid_guide) > 1:
+
+                overlap_lipid_ids = lipid_ids[overlap_lipid_guide]
+                overlap_lipid_guide_diff = np.diff(overlap_lipid_ids)
+                max_diff_id = np.argmax(overlap_lipid_guide_diff)
+
+                if overlap_lipid_guide_diff[max_diff_id] > 1:
+
+                    added_ids = np.unique(np.concatenate((temp_wall_nids-3,temp_wall_nids,temp_wall_nids+3)))
+                    # Only add IDs that fall within 0 - 179 range
+                    added_ids = added_ids[(added_ids>-1) & (added_ids<180)]
+                    lipid_ids = np.unique(np.concatenate((lipid_ids,added_ids)))
                 
-        fat_angle_deg = len(fat_ids)/(len(bins)-1)*360
+        lipid_angle_deg = len(lipid_ids)/(n_bins)*360
 
-        # Detect edges of fat
-        fat_bool = np.zeros(len(bins)-1)
-        fat_bool[fat_ids]=1
+        # Detect edges of lipid
+        lipid_bool = np.zeros(n_bins)
+        lipid_bool[lipid_ids] = 1
 
-        if np.sum(fat_bool < 1)==0 or np.sum(fat_bool < 1)==fat_bool.shape[0]:
-            fat_edges = np.array([])
+        # There is no lipid in the image or the image is all lipid
+        if np.sum(lipid_bool < 1)==0 or np.sum(lipid_bool < 1)==lipid_bool.shape[0]:
+            lipid_edges = np.array([])
+
         else:
-            fat_edges = np.where(np.abs(np.diff(fat_bool)) > 0)[0]
+            # Differences of 0 to 1 or 1 to 0 are edges of the lipid
+            lipid_edges = np.where(np.abs(np.diff(lipid_bool)) > 0)[0]
 
-            if np.abs(fat_bool[0]-fat_bool[-1])>0:
-                fat_edges = np.concatenate((fat_edges,np.array([-1])))
+            # Not sure what's going on here
+            if np.abs(lipid_bool[0]-lipid_bool[-1])>0:
+                lipid_edges = np.concatenate((lipid_edges,np.array([-1])))
                                       
-            if fat_bool[fat_edges[0]] > 0:
-                fat_edges = np.roll(fat_edges,1)
+            if lipid_bool[lipid_edges[0]] > 0:
+                lipid_edges = np.roll(lipid_edges,1)
                 
-            fat_edges = fat_edges+1
+            lipid_edges = lipid_edges + 1
             
+        lipid_edge1 = np.zeros((lipid_edges.size//2,2))
+        lipid_edge2 = np.zeros((lipid_edges.size//2,2))
+        lipid_angles = np.zeros((lipid_edges.size//2,2))
+
+        # Calculate lipid edge coordinates
+        for n in range(lipid_edges.size//2):
+
+            #This is just each coord in lipid_edges, and the angle for each one
+            lipid_angle_ids = [lipid_edges[2*n],lipid_edges[2*n+1]]
+            lipid_angles[n] = bins[lipid_angle_ids]+bin_size/2
+
+            #Gets coordinate through which each arc is defined
+            lipid_edge1[n,0] = vessel_com[1]+(im_insize*0.4*np.cos(np.radians(lipid_angles[n,0])))
+            lipid_edge1[n,1] = vessel_com[0]+(im_insize*0.4*np.sin(np.radians(lipid_angles[n,0])))
+
+            lipid_edge2[n,0] = vessel_com[1]+(im_insize*0.4*np.cos(np.radians(lipid_angles[n,1])))
+            lipid_edge2[n,1] = vessel_com[0]+(im_insize*0.4*np.sin(np.radians(lipid_angles[n,1])))
 
 
-        fat_edge1 = np.zeros((fat_edges.size//2,2))
-        fat_edge2 = np.zeros((fat_edges.size//2,2))
-        fat_angles = np.zeros((fat_edges.size//2,2))
+        if calcium_pixels.size > 0: 
+            cal_ids = np.where(hist_count_calcium > 0)[0]
 
-        # Calculate fat edge coordinates
-        for n in range(fat_edges.size//2):
-            #fat_angle_ids = fat_ids[[fat_edges[n],fat_edges[n]+1]]
-            fat_angle_ids = [fat_edges[2*n],fat_edges[2*n+1]]
-            fat_angles[n] = bins[fat_angle_ids]+bin_size/2
 
-            fat_edge1[n,0] = vessel_com[1]+(image.shape[0]*0.4*np.cos(np.radians(fat_angles[n,0])))
-            fat_edge1[n,1] = vessel_com[0]+(image.shape[0]*0.4*np.sin(np.radians(fat_angles[n,0])))
-
-            fat_edge2[n,0] = vessel_com[1]+(image.shape[0]*0.4*np.cos(np.radians(fat_angles[n,1])))
-            fat_edge2[n,1] = vessel_com[0]+(image.shape[0]*0.4*np.sin(np.radians(fat_angles[n,1])))
-        
-        if cal_pixels.size>0:
-            cal_ids = np.where(hist_count_cal > 0)[0]
-            #fat_ids = np.unique(np.concatenate((fat_ids,cal_ids),0))
-
-        fat_bins = bins[fat_ids]
-#        angle_id = np.argmin(hist_count_wall_tube[fat_ids])
-#        angle = fat_bins[angle_id]
-               
-
-#         thin_id = (np.digitize(dist_wall[:, 1], bins)-1) == fat_ids[angle_id]
-
-#         if dist_wall[thin_id, 0].size == 0:
-#             #thin_id = np.digitize(dist_fat[:, 1], bins) == fat_ids[angle_id]
-#             min_dist = 0
-#             max_dist = 0
-#         else:
-#             min_dist = np.min(dist_wall[thin_id, 0])
-#             if cal_pixels.size>0:
-#                 thin_id_cal = (np.digitize(dist_cal[:, 1], bins)-1) == fat_ids[angle_id]
-#                 if dist_cal[thin_id_cal, 0].size == 0:
-#                     max_dist = np.max(dist_wall[thin_id, 0])
-#                 else:
-#                     max_dist = np.min(dist_cal[thin_id_cal, 0])
-#             else:
-#                 max_dist = np.max(dist_wall[thin_id, 0])
-                
-#         thickness = max_dist - min_dist
-
+        lipid_bins = bins[lipid_ids]
 
         # Calculate coordinates thinnest point
-
         angle_edge1 = np.zeros((id1.shape[0], 1))
         angle_edge2 = np.zeros((id2.shape[0], 1))
 
         for n in range(id1.shape[0]):
             angle_edge1[n, 0] = np.degrees(np.arctan2((id1[n, 0]-vessel_com[0]), (id1[n, 1]-vessel_com[1])))
+
         for n in range(id2.shape[0]):
             angle_edge2[n, 0] = np.degrees(np.arctan2((id2[n, 0]-vessel_com[0]), (id2[n, 1]-vessel_com[1])))
         
-        
+
         angle_bin1 = np.digitize(angle_edge1[:, 0], bins)
         angle_bin2 = np.digitize(angle_edge2[:, 0], bins)
-        thin_id1 = np.isin(bins[angle_bin1-1],fat_bins)
-        thin_id2 = np.isin(bins[angle_bin2-1],fat_bins)
+        thin_id1 = np.isin(bins[angle_bin1-1],lipid_bins)
+        thin_id2 = np.isin(bins[angle_bin2-1],lipid_bins)
 
-        id1_fat = id1[thin_id1]
-        id2_fat = id2[thin_id2]
-        if id1_fat.size==0 or id2_fat.size==0:
-#             overlay = np.zeros((image.shape[0],image.shape[1]), np.uint8) 
-#             pil_image = Image.fromarray(overlay)
-#             contour_image = Image.fromarray(contours.astype('uint8')*11).convert('L')
-#             pil_image.paste(contour_image)
-            return np.zeros((im_insize,im_insize), np.uint8), np.zeros(360//bin_size) 
+        id1_lipid = id1[thin_id1]
+        id2_lipid = id2[thin_id2]
 
+        id1_min = np.zeros(id1_lipid.shape[0])
+        id1_argmin = np.zeros(id1_lipid.shape[0]).astype('int16')
 
-        id1_min = np.zeros(id1_fat.shape[0])
-        id1_argmin = np.zeros(id1_fat.shape[0]).astype('int16')
-        for n in range(id1_fat.shape[0]):
-            C = []
-            for nn in range(id2_fat.shape[0]):
+        if id1_lipid.size==0 or id2_lipid.size==0:
+            thickness = np.nan
 
-                C.append((id1_fat[n,0]-id2_fat[nn,0])**2+(id1_fat[n,1]-id2_fat[nn,1])**2)
-            id1_argmin[n] = np.argmin(C)
-            id1_min[n] = C[id1_argmin[n]]
-        
-        contours3[contours3==0]=contours[contours3==0]
+        else:
 
-        id1m = np.argmin(id1_min)
-        id2m = id1_argmin[id1m]
-                           
-        #id1m,id2m = np.divmod(id_min,id2_fat.shape[0])
-        id1_min = np.sqrt(id1_min)*1000/conv_fact
-        thickness = id1_min[id1m]/100
+            for n in range(id1_lipid.shape[0]):
+                C = []
+                for nn in range(id2_lipid.shape[0]):
+                    C.append((id1_lipid[n,0]-id2_lipid[nn,0])**2+(id1_lipid[n,1]-id2_lipid[nn,1])**2)
 
-        thin_x = id1_fat[id1m,1]
-        thin_y = id1_fat[id1m,0]
-        thin_x2 = id2_fat[id2m,1]
-        thin_y2 = id2_fat[id2m,0]
+                id1_argmin[n] = np.argmin(C)
+                id1_min[n] = C[id1_argmin[n]]
+            
+            contours3[contours3==0]=contours[contours3==0]
+
+            id1m = np.argmin(id1_min)
+            id2m = id1_argmin[id1m]
+
+            #Spacing depends on size of image (checked on DCM metadata)
+            if im_insize == 1024:
+                conv_fact = 0.68
+
+            else:
+                conv_fact = 1
+
+            id1_min = np.sqrt(id1_min)*1000/conv_fact
+            thickness = id1_min[id1m]/100
+            
+            thin_x = id1_lipid[id1m,1]
+            thin_y = id1_lipid[id1m,0]
+            thin_x2 = id2_lipid[id2m,1]
+            thin_y2 = id2_lipid[id2m,0]
         
         # thickness per lipid/calcium bin
         thickness_bin = np.zeros(bins.shape[0]-1)                
@@ -264,44 +270,47 @@ def create_annotations(image, conv_fact = 1, im_insize = 704, bin_size = 2):
             try:
                 thickness_bin[n] = np.min(id1_min[angle_bin1[thin_id1]==(n+1)])
             except (ValueError, TypeError):
-                if hist_count_tube[n]>0:
+                if hist_count_guide[n]>0:
                     thickness_bin[n] = -1
                 
         # Pil manipulations
-        overlay = np.zeros((image.shape[0],image.shape[1]), np.uint8) 
+        overlay = np.zeros((im_insize,image.shape[1]), np.uint8) 
         pil_image = Image.fromarray(overlay)
 
         contour_image = Image.fromarray(contours.astype('uint8')*16).convert('L')
         pil_image.paste(contour_image)
         
         img1 = ImageDraw.Draw(pil_image)   
-        img1.line([(thin_x,thin_y),(thin_x2,thin_y2)], fill = 13, width = 3)
-        dotsize=3
-        img1.ellipse([(thin_x-dotsize,thin_y-dotsize),(thin_x+dotsize,thin_y+dotsize)], fill = 13, width = 0) 
-        img1.ellipse([(thin_x2-dotsize,thin_y2-dotsize),(thin_x2+dotsize,thin_y2+dotsize)], fill = 13, width = 0)
-        
-        
-        for n in range(fat_edges.shape[0]//2):
-            img1.line([(vessel_com[1], vessel_com[0]), (fat_edge1[n,0], fat_edge1[n,1])],fill = 14, width = 3)
-            img1.line([(vessel_com[1], vessel_com[0]), (fat_edge2[n,0], fat_edge2[n,1])],fill = 14, width = 3)
 
+        if not np.isnan(thickness):
+            img1.line([(thin_x,thin_y),(thin_x2,thin_y2)], fill = 13, width = 3)
             dotsize=3
-            img1.ellipse([(fat_edge1[n,0]-dotsize,fat_edge1[n,1]-dotsize),(fat_edge1[n,0]+dotsize,fat_edge1[n,1]+dotsize)], fill = 14, width = 0) 
-            img1.ellipse([(fat_edge2[n,0]-dotsize,fat_edge2[n,1]-dotsize),(fat_edge2[n,0]+dotsize,fat_edge2[n,1]+dotsize)], fill = 14, width = 0) 
-            img1.arc([(vessel_com[1]-30,vessel_com[0]-30),(vessel_com[1]+30,vessel_com[0]+30)],start = fat_angles[n,0],end = fat_angles[n,1], fill = 14, width = 3)
+            img1.ellipse([(thin_x-dotsize,thin_y-dotsize),(thin_x+dotsize,thin_y+dotsize)], fill = 13, width = 0) 
+            img1.ellipse([(thin_x2-dotsize,thin_y2-dotsize),(thin_x2+dotsize,thin_y2+dotsize)], fill = 13, width = 0)
+            
+        
+        for n in range(lipid_edges.shape[0]//2):
+            img1.line([(vessel_com[1], vessel_com[0]), (lipid_edge1[n,0], lipid_edge1[n,1])],fill = 14, width = 3)
+            img1.line([(vessel_com[1], vessel_com[0]), (lipid_edge2[n,0], lipid_edge2[n,1])],fill = 14, width = 3)
+
+            dotsize=6
+            img1.ellipse([(lipid_edge1[n,0]-dotsize,lipid_edge1[n,1]-dotsize),(lipid_edge1[n,0]+dotsize,lipid_edge1[n,1]+dotsize)], fill = 14, width = 0) 
+            img1.ellipse([(lipid_edge2[n,0]-dotsize,lipid_edge2[n,1]-dotsize),(lipid_edge2[n,0]+dotsize,lipid_edge2[n,1]+dotsize)], fill = 14, width = 0) 
+            img1.arc([(vessel_com[1]-30,vessel_com[0]-30),(vessel_com[1]+30,vessel_com[0]+30)],start = lipid_angles[n,0],end = lipid_angles[n,1], fill = 14, width = 3)
         
         # Resize back to original size before adding text
-        pil_image = pil_image.resize((im_insize,im_insize), Image.NEAREST)
+        #pil_image = pil_image.resize((im_insize,im_insize), Image.NEAREST)
         
         img1 = ImageDraw.Draw(pil_image) 
-        img1.fontmode = "L"
-        fnt = ImageFont.truetype("./arial-unicode-ms.ttf",14)
+        img1.fontmode = "1"
+        fnt = ImageFont.truetype("Z:/grodriguez/CardiacOCT/post-processing/arial-unicode-ms.ttf",18)
 
         cap_thickness = '%.0f' % thickness
-        lipid_arc = '%.0f' % np.round(fat_angle_deg)
+        lipid_arc = '%.0f' % np.round(lipid_angle_deg)
         img1.text((536,28),'Wall width: ' + '%.0f' % thickness + 'μm', font = fnt, fill=15)
-        img1.text((536,56),'Lipid angle: ' + '%.0f' % np.round(fat_angle_deg) + '°', font = fnt, fill=15)
+        img1.text((536,56),'Lipid angle: ' + '%.0f' % np.round(lipid_angle_deg) + '°', font = fnt, fill=15)
         
         output_image = np.array(pil_image)
+
 
     return output_image, thickness_bin, cap_thickness, lipid_arc

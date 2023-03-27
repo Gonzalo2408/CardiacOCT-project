@@ -51,6 +51,9 @@ def resize_image(raw_frame):
     return resampled_seg_frame
 
 def check_uniques(raw_unique, new_unique):
+
+    #The unique number of labels before and after preprocessing should be identical (this function checks that)
+ 
     if len(raw_unique) != len(new_unique):
         print(raw_unique, new_unique)
         print('Warning! There are noisy pixel values in the frame {}. Check resampling technique or image generated'.format(frame))
@@ -83,6 +86,7 @@ for filename in os.listdir(path_segs):
     id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
     n_pullback = int(annots.loc[annots['Pullback'] == pullback_name]['Nº pullback'].values[0])
 
+    #Read segmentation file
     orig_seg = sitk.ReadImage(path_segs + '/' + filename)
     orig_seg_pixel_array = sitk.GetArrayFromImage(orig_seg)
 
