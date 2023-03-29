@@ -10,3 +10,6 @@ In this folder, you can find the scripts that use the predicted labels from nnUN
     - Frames counts X: same as with the pullback, but for each annotated frame. In this case, each cell gives a binary value indicating that if a label is present or not in the current frame. Moreover, for the cases in which X corresponds to a trained model, you can also see the post-processing measurements for that frame (lipid arc and cap thickness), plus if a TCFA is detected or not.
 
 - **manual_vs_automatic_fct_arc.xlsx**: the goal of this Excel file is to see more in detail what is the difference between the manual and automatic measurements of the FCT and lipid arc for the same manual segmentations in the test set. In theory, both measurements should be the same (since they are seeing the same manual segmentation), but there is some bias in different measurements. We are currently analyzing each case to see why is this bias happening.
+
+
+The two scripts generate these Excel files (one script for counting in the original datasets and other one for the predicted results). Moreover, for the test images, the segmentation and automatic measurement are saved as .pngs into a folder for further visual analysis. This is also done for both manual and predicted segmentations.
