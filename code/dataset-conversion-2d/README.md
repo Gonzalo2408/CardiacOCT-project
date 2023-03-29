@@ -4,7 +4,7 @@ In this folder, the original dataset is converted into 2D slices for the 2D trai
 
 For the images conversion, this is submitted to the SOL cluster using a Docker container since this takes longer to convert (~2 hours for the latest dataset). 
 
-![plot](F:/BACKUP/RADBOUD/2º MASTER/TFM/Images/2d_dataset_conversion.png)
+2d_dataset_conversion.png
 
 ### Additional scripts
 
