@@ -8,7 +8,7 @@ For the inital idea for training, we used the full scans and segmentations as in
 
 Using this data as input for the training leads to several problems:
 
- - **NaN loss**: since the annotations are very sparse in compare with the size of the pullback, the sparse trainer cannot calculate a loss function (difficult to troubleshoot this, but I suppose it's because of gradient exploding or zero division error while calculating the loss and DICEs)
+ - **NaN loss**: since the annotations are very sparse in compare with the size of the pullback, the sparse trainer cannot calculate a loss function (difficult to troubleshoot this, but I suppose it's because of gradient exploding or zero division error while calculating the loss and DICEs).
 
  - **Long runtimes**: for the full dataset, one epoch took around 3000 seconds (~1 hour). This makes this training not feasible or reproducible, considering the fact that the algorithm runs for 1000 epochs.
 
