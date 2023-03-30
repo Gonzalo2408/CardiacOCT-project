@@ -6,17 +6,11 @@ Acute myocardial infarction (MI) remains as one of the leading causes of mortali
 
 In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a no-new UNet (nnUNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
 
-
-<p float="left" align="center">
-<img src="https://user-images.githubusercontent.com/37450737/220990629-a658d95a-8c3b-4fb9-9289-d44a6c1d26d3.png" width=35% height=35%>
-<img src="https://user-images.githubusercontent.com/37450737/220990554-bb602dce-e69f-4a0e-ad8e-163e607415e6.png" width=35% height=35%>
-<figcaption> Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right) </figcaption>
-<p>
-
+![Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right)](assets/intro_images.png)
            
 ## Dataset
 
-The intracoronary OCT dataset used in this study is a collection of OCT scans from 5 different medical centers: Isala Zwole (ISALA), Amphia Hospital (AMPH), ?? (NEMC), Hague Medical Centrum (HMC) and RadboudUMC (RADB).
+The intracoronary OCT dataset used in this study is a collection of OCT scans from 5 different medical centers: Isala (ISALA, Zwolle), Amphia Hospital (AMPH, Breda), North Estonia Medical Center (NEMC, Tallinn), Den Haag Medical Centrum (HMC, Den Haag) and RadboudUMC (RADB, Nijmegen).
 
 Since the manually labelling of OCT frames is a very time consuming task for annotators, not all scans were included for the training. In particular, the standard methodology is to label each 40th frame in the scan, unless there are some regions in other frames that are necessarily to label. Thus, frames that contain some degree of labelling were included for the training. 
 
@@ -65,8 +59,6 @@ For the third training, a nearest neighbor interpolation sampler was used, since
 For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotations in each 3D volume (DC + CE loss). The frames that do not contain any label have a segmentation map that only contains -1, in order for the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model (third training), in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
 
 
-
-
 ## Training
 
 ### nn-UNet
@@ -80,13 +72,9 @@ The problem with this model is that it needs a very specific input settings and 
 
 ## Post-processing
 
-For the post-processing techniques, an algorithm that automatically measures the fibrous cap thickness and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a fibrous cap thickness < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient, so two algorithms were proposed to automatically measure these values.
+For the post-processing techniques, an algorithm that automatically measures the fibrous cap thickness (FCT) and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a FCT < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient.
 
-<p float="left" align="center">
-<img src="https://user-images.githubusercontent.com/37450737/225949264-3a4a304f-5cf4-4be7-8d79-bd3083b3ba8b.png" width=35% height=35%>
-<img src="https://user-images.githubusercontent.com/37450737/225949445-5a0a4ba1-cab0-48f2-ae28-f9a33b91acdb.png" width=35% height=35%>
-<figcaption> Figure 2. Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right) </figcaption>
-<p>
+![Figure 2. Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right)](assets/post_proc_intro_image.png)
 
 ## Results
 
@@ -110,7 +98,7 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 | Plaque rupture | 0.33 | 0.256 | 0.32
 
 
-In this case, we see a noticeable increase in the last 2D model, specially for calcium. (...)
+In this case, we see a noticeable increase in the last 2D model, specially for calcium. 
 
 
 ### Results on test set (frame-level)
@@ -136,7 +124,7 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 
 ### Results on test set (pullback-level)
 
-| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 2D model sparse
+| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 3D model sparse
 | ------------- | -------------- | -------------- | -------------- | --------------
 | Lumen  | 0.981 | 0.981 | 0.986
 | Guidewire  | 0.929 | 0.931 | 0.942
@@ -152,6 +140,16 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 | Plaque rupture | 0.316 | 0.37 | 0.378 
 
 
+### Lipid arc DICE
+
+Inspired by the approaches in the study by [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1), we calculated the DICE scores for the lipid arc. This way, we obtain a more insightful measure to asses the model performance (the previous DICE were computed pixel-label). The following table shows these DICE scores for the test set using the prediction given by the three 2D models that we have up to now. An average over the DICE scores for each frame is shown.
+
+Model | Lipid arc DICE |
+| ------------- | -------------- 
+| Model 1 | 0.666
+| Model 2 | 0.759
+| Model 3 | 0.767
+
 ### Post processing results
 
 For the post-processing measurements, we perfomed a Bland-Altman analysis in order to find the agreement between manual and automatic segmentations.
@@ -166,9 +164,9 @@ For the post-processing measurements, we perfomed a Bland-Altman analysis in ord
 
 
 ## TODO:
- - Keep adding metrics to Excel files
- - Solve NaN problem with 3d version on third dataset --> impute -1 once preprocessing is done, check again with new resampling
- - Do 3D training
+ - See manual measurements in detail
+ - Solve problem with DA 
+ - Do training with the selective volumes (3 frames or k-neighbors approach)
  - Figure out post-processing techniques for lipid arc and cap thickness measurements (using dynammic programming + semantic segmentation of lipid, lumen, intima, etc). 
  For this, check [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1) and [Wang et al. (2012)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3370980/)
 
