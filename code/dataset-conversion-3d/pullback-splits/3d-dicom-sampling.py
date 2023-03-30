@@ -10,21 +10,21 @@ annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_fi
 
 def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
 
-    ## TO DO##
+    # TO DO##
     # Add the case in which two annotated frames are very close to each other.
     # In that case, I think we should consider the n annotated frames in the same subvolume
 
     rows, cols, n_slices = image.shape
 
-    # #Check if annot is in first slice (we take frames after only)
-    # if n_frame - n_frames_to_sample < 0:
-    #     frames = np.arange(n_frame, n_frames_to_sample+3)
-    #     frames_to_sample = frames
+    #Check if annot is in first slice (we take frames after only)
+    if n_frame - n_frames_to_sample < 0:
+        frames = np.arange(n_frame, n_frames_to_sample+3)
+        frames_to_sample = frames
         
-    # #Check if annot is at the end of the 3D volume
-    # elif n_frame + n_frames_to_sample > n_slices:
-    #     frames = np.arange((-n_frames_to_sample-3), n_frame)
-    #     frames_to_sample = frames + n_frame
+    #Check if annot is at the end of the 3D volume
+    elif n_frame + n_frames_to_sample > n_slices:
+        frames = np.arange((-n_frames_to_sample-3), n_frame)
+        frames_to_sample = frames + n_frame
 
     frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
     frames_to_sample = frames + n_frame
@@ -36,6 +36,54 @@ def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
         sub_volume[:, :, i] = image[:, :, frames_to_sample[i]]
 
     return sub_volume
+
+
+def generate_cluster_volume(image, n_frame, frames_list, list_skips, k=30):
+
+    #K-neighbors to find near annotations
+    rows, cols, n_slices = image.shape
+    neighbor_annots = np.arange(n_frame-k, n_frame+k)
+    list_neighbors = []
+    
+    for neighbor in neighbor_annots:
+        
+        if neighbor in frames_list:
+            list_neighbors.append(neighbor)
+            list_skips.append(neighbor)
+            
+        else:
+            continue
+
+    print('Frame {} has {} neighbor(s). The new volume will have the annotations in {}'.format(n_frame, len(list_neighbors)-1, list_neighbors))
+
+    #Case in which the last annotation is also 2 frames away from the end of the full 3D scan
+    if list_neighbors[-1] + 10 > n_slices:
+        frames_to_sample = np.arange(list_neighbors[0]-10, list_neighbors[-1]+1)
+    
+    #Case in which an annotation is the first one
+    elif list_neighbors[0] - 10 < 0:
+        frames_to_sample = np.arange(list_neighbors[0], list_neighbors[-1]+11)
+
+    #Case in which both cases occur
+    elif list_neighbors[-1] + 10 > n_slices and list_neighbors[0] - 10 < 0:
+        frames_to_sample = np.arange(list_neighbors[0], list_neighbors[-1])
+
+    #We take all frames that contain the annotations plus 1 frames before and after the cluster of slices
+    else:
+        frames_to_sample = np.arange(list_neighbors[0]-10, list_neighbors[-1]+11)
+
+    print('We are sampling these frames ', frames_to_sample)
+
+    
+    sub_volume = np.zeros((rows, cols, len(frames_to_sample)))
+
+    for i in range(len(frames_to_sample)):
+        
+        sub_volume[:, :, i] = image[:, :, frames_to_sample[i]]
+
+    print('A sub_volume has been generated with shape {}'.format(sub_volume.shape))
+
+    return sub_volume, list_neighbors
 
 
 def create_circular_mask(h, w, center=None, radius=None):
@@ -84,23 +132,26 @@ def main(argv):
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default=r'Z:\grodriguez\CardiacOCT\data-original\scans-DICOM')
-    args, unknown = parser.parse_known_args(argv)
+    parser.add_argument('--data', type=str, default='Z:/grodriguez/CardiacOCT/data-original/scans-DICOM')
+    args, _ = parser.parse_known_args(argv)
 
     files = os.listdir(args.data)
 
-    for filename in files:
+    a = 0
 
+    for filename in files:
+        
+        print('Loading DICOM {} ...'.format(filename))
         patient_name = "-".join(filename.split('.')[0].split('-')[:3])
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
 
         if belonging_set == 'Testing':
             #new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
-            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task505_CardiacOCT\imagesTs'
+            new_path_imgs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task505_CardiacOCT/imagesTs'
 
         else:
             #new_path_imgs = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task504_CardiacOCT/imagesTr'
-            new_path_imgs = r'Z:\grodriguez\CardiacOCT\data-3d\nnUNet_raw_data\Task505_CardiacOCT\imagesTr'
+            new_path_imgs = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_raw_data/Task505_CardiacOCT/imagesTr'
 
 
         pullback_name = filename.split('.')[0]
@@ -110,8 +161,21 @@ def main(argv):
         frames_with_annot = annots.loc[annots['Pullback'] == pullback_name]['Frames']
         frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
 
+        #Check that file already exists
+        stop = False
+        for file in os.listdir(new_path_imgs):
+            if '{}_{}'.format(patient_name, n_pullback) in file:
+                print('Patient already processed. Skip')
+                stop = True
+                break
+            
+            else: 
+                continue
+            
+        if stop == True:
+            continue
+
         #Load the files to create a list of slices
-        print('Loading DICOM {} ...'.format(filename))
         series = sitk.ReadImage(args.data +'/'+filename)
         series_pixel_data = sitk.GetArrayFromImage(series)
         
@@ -136,8 +200,7 @@ def main(argv):
             channel_pixel_data_T = np.transpose(channel_pixel_data, (1, 2, 0))
 
             n_split = 1
-            #Find neighbor annotation to create clusters
-            thresh = 20
+            #Find neighbor annotations to create clusters
             list_skips = []
 
             for frame in frames_list:
@@ -147,48 +210,33 @@ def main(argv):
                     continue
 
                 else:
-                    #K-neighbors to find near annotations
-                    neighbor_annots = np.arange(frame-thresh, frame+thresh)
-                    list_neighbors = []
                     
-                    for neighbor in neighbor_annots:
-                        
-                        if neighbor in frames_list:
-                            list_neighbors.append(neighbor)
-                            list_skips.append(neighbor)
-                            
-                        else:
-                            continue
+                    #Get volume that contains neighboring annotations
+                    sub_volume, _ = generate_cluster_volume(channel_pixel_data_T, frame, frames_list, list_skips)
 
-                    print('Frame {} has {} neighbors, which are the frames {}'.format(frame, len(list_neighbors), list_neighbors))
-
-                    #Case in which the last annotation is also 2 frames away from the end of the full 3D scan
-                    if list_neighbors[-1] + 2 > channel_pixel_data_T.shape[2]:
-                        sub_volume = channel_pixel_data_T[:,:,list_neighbors[0]:list_neighbors[-1]+1]
+                    #Get only "big" volumes
+                    if sub_volume.shape[2] < 30:
+                        continue
                     
-                    #Case in which an annotation is the first one
-                    if list_neighbors[0] - 2 < 0:
-                        sub_volume = channel_pixel_data_T[:,:,list_neighbors[0]:list_neighbors[-1]]
-
-                    #We take all frames that contain the annotations plus 2 frames before and after the cluster of slices
                     else:
-                        sub_volume = channel_pixel_data_T[:,:,list_neighbors[0]:list_neighbors[-1]+1]
 
-                    print('A sub_volume has been generated with shape {}'.format(sub_volume.shape))
+                        #Fix spacing and direction
+                        print('Writing NIFTI file...')
+                        final_image = sitk.GetImageFromArray(sub_volume.astype(np.uint8))
+                        final_image.SetSpacing((1.0, 1.0, 1.0))
+                        final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
+                        filename_path = new_path_imgs + '/' + patient_name + '_{}_split{}_{}_000{}.nii.gz'.format(n_pullback, n_split, "%03d" % id, i)
 
-                    #Fix spacing and direction
-                    print('Writing NIFTI file...')
-                    final_image = sitk.GetImageFromArray(sub_volume.astype(np.uint8))
-                    final_image.SetSpacing((1.0, 1.0, 1.0))
-                    final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-                    filename_path = new_path_imgs + '/' + patient_name + '_{}_split{}_{}_000{}.nii.gz'.format(n_pullback, n_split, "%03d" % id, i)
+                        sitk.WriteImage(final_image, filename_path)
 
-                    sitk.WriteImage(final_image, filename_path)
+                        n_split += 1
 
-                    n_split += 1
+        a += 1
+        if a > 2:
+            break
 
-        print('Done\n')
-        print('###########################################\n')
+        print('Done \n')
+        print('########################################### \n')
 
 if __name__ == '__main__':
     r = main(sys.argv)

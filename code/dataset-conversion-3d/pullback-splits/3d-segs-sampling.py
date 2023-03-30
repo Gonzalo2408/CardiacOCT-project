@@ -12,35 +12,80 @@ annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_fi
 path_segs = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
 #annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
-# def generate_new_volume(seg, n_frame, n_frames_to_sample = 2):
+def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
 
-#     ## TO DO##
-#     # Add the case in which two annotated frames are very close to each other.
-#     # In that case, I think we should consider the n annotated frames in the same subvolume
+    # TO DO##
+    # Add the case in which two annotated frames are very close to each other.
+    # In that case, I think we should consider the n annotated frames in the same subvolume
 
-#     rows, cols, n_slices = seg.shape
+    rows, cols, n_slices = image.shape
 
-#     # #Check if annot is in first slice (we skip this one for now)
-#     # if n_frame - n_frames_to_sample < 0:
-#     #     frames = np.arange(n_frame, n_frames_to_sample+3)
-#     #     frames_to_sample = frames
+    #Check if annot is in first slice (we take frames after only)
+    if n_frame - n_frames_to_sample < 0:
+        frames = np.arange(n_frame, n_frames_to_sample+3)
+        frames_to_sample = frames
         
+    #Check if annot is at the end of the 3D volume
+    elif n_frame + n_frames_to_sample > n_slices:
+        frames = np.arange((-n_frames_to_sample-3), n_frame)
+        frames_to_sample = frames + n_frame
 
-#     # #Check if annot is at the end of the 3D volume
-#     # elif n_frame + n_frames_to_sample > n_slices:
-#     #     frames = np.arange((-n_frames_to_sample-3), n_frame)
-#     #     frames_to_sample = frames + n_frame
+    frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
+    frames_to_sample = frames + n_frame
+
+    sub_volume = np.zeros((rows, cols, len(frames_to_sample)))
+
+    for i in range(len(frames_to_sample)):
+
+        sub_volume[:, :, i] = image[:, :, frames_to_sample[i]]
+
+    return sub_volume
+
+def generate_cluster_volume(image, n_frame, frames_list, list_skips, k=30):
+
+    #K-neighbors to find near annotations
+    rows, cols, n_slices = image.shape
+    neighbor_annots = np.arange(n_frame-k, n_frame+k)
+    list_neighbors = []
     
-#     frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
-#     frames_to_sample = frames + n_frame
+    for neighbor in neighbor_annots:
+        
+        if neighbor in frames_list:
+            list_neighbors.append(neighbor)
+            list_skips.append(neighbor)
+            
+        else:
+            continue
 
-#     sub_volume = np.zeros((rows, cols, len(frames_to_sample)))
+    print('Frame {} has {} neighbor(s). The new volume will have the annotations in {}'.format(n_frame, len(list_neighbors)-1, list_neighbors))
 
-#     for i in range(len(frames_to_sample)):
+    #Case in which the last annotation is also 2 frames away from the end of the full 3D scan
+    if list_neighbors[-1] + 10 > n_slices:
+        frames_to_sample = np.arange(list_neighbors[0]-10, list_neighbors[-1]+1)
+    
+    #Case in which an annotation is the first one
+    elif list_neighbors[0] - 10 < 0:
+        frames_to_sample = np.arange(list_neighbors[0], list_neighbors[-1]+11)
 
-#         sub_volume[:, :, i] = seg[:, :, frames_to_sample[i]]
+    #Case in which both cases occur
+    elif list_neighbors[-1] + 10 > n_slices and list_neighbors[0] - 10 < 0:
+        frames_to_sample = np.arange(list_neighbors[0], list_neighbors[-1])
 
-#     return sub_volume, frames_to_sample
+    #We take all frames that contain the annotations plus 1 frames before and after the cluster of slices
+    else:
+        frames_to_sample = np.arange(list_neighbors[0]-10, list_neighbors[-1]+11)
+
+    print('We are sampling these frames ', frames_to_sample)
+
+    sub_volume = np.zeros((rows, cols, len(frames_to_sample)))
+
+    for i in range(len(frames_to_sample)):
+        
+        sub_volume[:, :, i] = image[:, :, frames_to_sample[i]]
+
+    print('A sub_volume has been generated with shape {}'.format(sub_volume.shape))
+
+    return sub_volume, frames_to_sample, list_neighbors
 
 
 def create_circular_mask(h, w, center=None, radius=None):
@@ -99,6 +144,12 @@ def check_uniques(raw_unique, new_unique, frame):
 
 def main(argv):
 
+    a = 0
+
+    split_data_pd = pd.DataFrame(columns = ['Pullback', 'Shape volume', 'Nº split', 
+                                        'Frame(s) with annots', 'Starting frame', 
+                                        'Ending frame', 'Annotated frames'])
+
     for filename in os.listdir(path_segs):
 
         #Geting patient ID from pullback
@@ -122,9 +173,18 @@ def main(argv):
         print('There is a total of {} annotations. Sampling around annotations...'. format(len(frames_list)))
 
 
-        #Check that seg already exists
-        if os.path.exists(new_path_segs + '/' + patient_name + '_{}_{}.nii.gz'.format(n_pullback, "%03d" % id)):
-            print('Already exists. Skip')
+        #Check that file already exists
+        stop = False
+        for file in os.listdir(new_path_segs):
+            if '{}_{}'.format(patient_name, n_pullback) in file:
+                print('Patient already processed. Skip')
+                stop = True
+                break
+            
+            else: 
+                continue
+            
+        if stop == True:
             continue
 
         else:
@@ -157,73 +217,50 @@ def main(argv):
             frame_data_T = np.transpose(frame_data, (1, 2, 0))
 
             n_split = 1
-            split_data_pd = pd.DataFrame(columns = ['Pullback', 'Shape volume', 'Nº split', 
-                                                    'Frame(s) with annots', 'Starting frame', 
-                                                    'Ending frame', 'Annotated frames'])
 
-            #Find neighbor annotation to create clusters
-            thresh = 20
+            #Find neighbor annotations to create clusters
             list_skips = []
 
             for frame in frames_list:
-                
+
                 #List that contains annots that already have been included (avoid redundant data)
                 if frame in list_skips:
                     continue
 
                 else:
-                    #K-neighbors to find near annotations
-                    neighbor_annots = np.arange(frame-thresh, frame+thresh)
-                    list_neighbors = []
                     
-                    for neighbor in neighbor_annots:
-                        
-                        if neighbor in frames_list:
-                            list_neighbors.append(neighbor)
-                            list_skips.append(neighbor)
-                            
-                        else:
-                            continue
+                    sub_volume, frame_to_sample, list_neighbors = generate_cluster_volume(frame_data_T, frame, frames_list, list_skips)
 
-                    print('Frame {} has {} neighbors, which are the frames {}'.format(frame, len(list_neighbors), list_neighbors))
-
-                    #Case in which the last annotation is also 2 frames away from the end of the full 3D scan
-                    if list_neighbors[-1] + 2 > frame_data_T.shape[2]:
-                        sub_volume = frame_data_T[:,:,list_neighbors[0]:list_neighbors[-1]+1]
+                    #Get only "big" volumes
+                    if sub_volume.shape[2] < 30:
+                        continue
                     
-                    #Case in which an annotation is the first one
-                    if list_neighbors[0] - 2 < 0:
-                        sub_volume = frame_data_T[:,:,list_neighbors[0]:list_neighbors[-1]+1]
-
-                    #We take all frames that contain the annotations plus 2 frames before and after the cluster of slices
                     else:
-                        sub_volume = frame_data_T[:,:,list_neighbors[0]:list_neighbors[-1]+1]
 
-                    print('A sub_volume has been generated with shape {}'.format(sub_volume.shape))
+                        #Fix spacing and direction
+                        final_seg = sitk.GetImageFromArray(sub_volume.astype(np.int32))
+                        final_seg.SetSpacing((1.0, 1.0, 1.0))
+                        final_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
 
-        
-                    #Fix spacing and direction
-                    final_seg = sitk.GetImageFromArray(sub_volume.astype(np.int32))
-                    final_seg.SetSpacing((1.0, 1.0, 1.0))
-                    final_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
+                        sitk.WriteImage(final_seg, new_path_segs + '/' + patient_name + '_{}_split{}_{}.nii.gz'.format(n_pullback, n_split, "%03d" % id ))
+                        
+                        #Create new Excel file to see how is the sampling working
+                        frame_info_to_pd = []
+                        frame_info_to_pd.append(pullback_name)
+                        frame_info_to_pd.append(sub_volume.shape)
+                        frame_info_to_pd.append(n_split)
+                        frame_info_to_pd.append(frame_to_sample)
+                        frame_info_to_pd.append(frame_to_sample[0])
+                        frame_info_to_pd.append(frame_to_sample[-1])
+                        frame_info_to_pd.append(len(list_neighbors))
+                        
+                        split_data_pd = split_data_pd.append(pd.Series(frame_info_to_pd, index=split_data_pd.columns[:len(frame_info_to_pd)]), ignore_index=True)
 
-                    sitk.WriteImage(final_seg, new_path_segs + '/' + patient_name + '_{}_split{}_{}.nii.gz'.format(n_pullback, n_split, "%03d" % id ))
-                    
-                    #Create new Excel file to see how is the sampling working
-                    frame_info_to_pd = []
-                    frame_info_to_pd.append(pullback_name)
-                    frame_info_to_pd.append(sub_volume.shape)
-                    frame_info_to_pd.append(n_split)
-                    frame_info_to_pd.append(list_neighbors)
-                    frame_info_to_pd.append(list_neighbors[0])
-                    frame_info_to_pd.append(list_neighbors[-1])
-                    frame_info_to_pd.append(len(list_neighbors))
-                    
-                    print(frame_info_to_pd)
+                        n_split += 1
 
-                    split_data_pd = split_data_pd.append(pd.Series(frame_info_to_pd, index=split_data_pd.columns[:len(frame_info_to_pd)]), ignore_index=True)
-
-                    n_split += 1
+        a += 1
+        if a > 2:
+            break
 
     split_data_pd.to_excel(r'Z:\grodriguez\CardiacOCT\excel-files\pseudo_volumes_data.xlsx')
 

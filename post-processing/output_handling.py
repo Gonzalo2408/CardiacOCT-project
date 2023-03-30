@@ -16,18 +16,68 @@ def count_distance_to_centre(region, centre_of_lumen, dists, only_angle = True):
                 dists[n, 0] = np.degrees(np.arctan2((region[n, 0]-centre_of_lumen[0]), (region[n, 1]-centre_of_lumen[1])))
 
     return dists
+
+def compute_new_dices(orig_lipid, pred_lipid):
+
+    #Instead of computing the DICE pixel-level, we check whether if a bin (360 bins in total) 
+    # contains or does not contain lipid. We obtain the new confusion matrix with those results 
+    # comparing the manual and predicted segmentations
+
+    bins = 360
+
+    tp = 0
+    tn = 0
+    fp = 0
+    fn = 0
+
+    if all(i == 0 for i in orig_lipid) and all(i == 0 for i in pred_lipid):
+        return np.nan
+
+    for angle in range(bins):
+
+        if angle in orig_lipid and angle not in pred_lipid:
+            fn += 1
+
+        elif angle not in orig_lipid and angle in pred_lipid:
+            fp += 1
+
+        elif angle in orig_lipid and angle in pred_lipid:
+            tp += 1
+        
+        elif angle not in orig_lipid and angle not in pred_lipid:
+            tn += 1
+
+    try:
+        dice_score = 2*tp / (tp + fp + tp + fn)
+
+    except ZeroDivisionError:
+        dice_score = np.nan
+
+    return dice_score
     
 
 def create_annotations(image, bin_size = 2):    
 
     im_insize = image.shape[0]
 
+    merged_img = np.zeros((im_insize, im_insize))
+
+    #Define lumen ROI (lumen + catheter)
+
+    for i in range(im_insize):
+        for j in range(im_insize):
+            if image[i, j] == 1 or image[i, j] == 7:
+                merged_img[i, j] = 1
+            else:
+                merged_img[i, j] = image[i, j]
+
     # Define segmentations
-    vessel_center = image == 1
-    vessel_guide = image == 2
-    vessel_lipid = image == 4
-    vessel_wall = image == 3
-    vessel_calcium = image == 5
+
+    vessel_center = merged_img == 1
+    vessel_guide = merged_img == 2
+    vessel_lipid = merged_img == 4
+    vessel_wall = merged_img == 3
+    vessel_calcium = merged_img == 5
     
     # Pixel IDs segmentations
     wall_pixels = np.argwhere(vessel_wall)
@@ -54,7 +104,9 @@ def create_annotations(image, bin_size = 2):
             if hist_count_guide[n] > 0:
                 thickness_bin[n] = -1
 
-        return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0
+        lipid_ids = [0,0]
+
+        return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0, lipid_ids
 
     else:
     
@@ -89,10 +141,10 @@ def create_annotations(image, bin_size = 2):
                     if hist_count_guide[n] > 0:
                         thickness_bin[n] = -1
                         
-            return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0
+            return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0, lipid_ids
 
         # Merge labels and generate new image (new labels: lipid + wall, calcium, catheter, rest)
-        new_image = np.copy(image).astype('int16')
+        new_image = np.copy(merged_img).astype('int16')
         new_image[new_image == 2] = 10
         new_image[new_image == 4] = 0
         new_image[new_image == 5] = 3
@@ -313,4 +365,4 @@ def create_annotations(image, bin_size = 2):
         output_image = np.array(pil_image)
 
 
-    return output_image, thickness_bin, cap_thickness, lipid_arc
+    return output_image, thickness_bin, cap_thickness, lipid_arc, lipid_ids

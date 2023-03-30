@@ -97,7 +97,7 @@ def count_frames_excel(path, segs_folder, excel_name):
                     one_hot[[unique[i] for i in range(len(unique))]] = 1
 
                     #Get post-processing measurements for the specific frame
-                    post_image_array , _ , cap_thickness, lipid_arc = create_annotations(seg_map_data[frame,:,:])
+                    post_image_array , _ , cap_thickness, lipid_arc, _ = create_annotations(seg_map_data[frame,:,:])
 
                     #Append important variables for each frame
                     one_hot_list = one_hot.tolist()
@@ -151,14 +151,14 @@ def count_frames_excel(path, segs_folder, excel_name):
                     continue
 
     #Create Excel file
-    #counts_per_frame.to_excel('./{}.xlsx'.format(excel_name))
+    counts_per_frame.to_excel('./{}.xlsx'.format(excel_name))
 
 if __name__ == "__main__":
 
     num_classes = 13
 
     path = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
-    excel_name = 'new_automatic_measures'
+    excel_name = 'manual_segs_automatic_measurements'
 
     seg_files = os.listdir(path)
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')

@@ -88,7 +88,7 @@ def build_excel_frames(path_dir, segs_dir, excel_name):
         one_hot_list.insert(2, belonging_set)
 
         #Post-processing results
-        post_image_array , _ , cap_thickness, lipid_arc = create_annotations(seg_map_data[0])
+        post_image_array , _ , cap_thickness, lipid_arc, _ = create_annotations(seg_map_data[0])
 
         one_hot_list.append(lipid_arc)
         one_hot_list.append(cap_thickness)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
     path_preds = 'Z:/grodriguez/CardiacOCT/predicted_results_model3_2d'
     preds_list = sorted(os.listdir(path_preds))[:-3]
-    name_excel = 'new_manual_vs_automatic_fct_arc'
+    name_excel = 'new_pred_measurements'
 
     build_excel_frames(path_preds, preds_list, name_excel)
     #build_excel_pullbacks(path_preds, name_excel)
