@@ -19,19 +19,18 @@ def count_distance_to_centre(region, centre_of_lumen, dists, only_angle = True):
 
 def compute_new_dices(orig_lipid, pred_lipid):
 
-    #Instead of computing the DICE pixel-level, we check whether if a bin (360 bins in total) 
+    #Instead of computing the DICE pixel-level, we check whether if a bin (180 bins in total) 
     # contains or does not contain lipid. We obtain the new confusion matrix with those results 
     # comparing the manual and predicted segmentations
 
-    bins = 360
+    bins = 180
 
     tp = 0
-    tn = 0
     fp = 0
     fn = 0
 
     if all(i == 0 for i in orig_lipid) and all(i == 0 for i in pred_lipid):
-        return np.nan
+        return np.nan, tp, fp, fn
 
     for angle in range(bins):
 
@@ -43,9 +42,6 @@ def compute_new_dices(orig_lipid, pred_lipid):
 
         elif angle in orig_lipid and angle in pred_lipid:
             tp += 1
-        
-        elif angle not in orig_lipid and angle not in pred_lipid:
-            tn += 1
 
     try:
         dice_score = 2*tp / (tp + fp + tp + fn)
@@ -53,8 +49,7 @@ def compute_new_dices(orig_lipid, pred_lipid):
     except ZeroDivisionError:
         dice_score = np.nan
 
-    return dice_score
-    
+    return dice_score, tp, fp, fn
 
 def create_annotations(image, bin_size = 2):    
 

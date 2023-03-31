@@ -143,17 +143,15 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 
 Inspired by the approaches in the study by [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1), we calculated the DICE scores for the lipid arc. This way, we obtain a more insightful measure to asses the model performance (the previous DICE were computed pixel-label). The following table shows these DICE scores for the test set using the prediction given by the three 2D models that we have up to now. An average over the DICE scores for each frame is shown.
 
-Model | Lipid arc DICE |
+Model | Lipid arc fram-level | Lipid arc pullback-level
 | ------------- | -------------- 
-| Model 1 | 0.666
-| Model 2 | 0.759
-| Model 3 | 0.767
+| Model 1 | 0.666 | 0.797
+| Model 2 | 0.759 | 0.832
+| Model 3 | 0.767 | 0.827
 
 ### Post processing results
 
 For the post-processing measurements, we perfomed a Bland-Altman analysis in order to find the agreement between manual and automatic segmentations.
-
-(Include more metrics, analysis later on)
 
 | Model  | FCT (mean diff / SD) (µm) | Lipid arc (mean diff / SD) (º)
 | ------------- | -------------- | -------------- 
@@ -165,7 +163,7 @@ For the post-processing measurements, we perfomed a Bland-Altman analysis in ord
 ## TODO:
  - See manual measurements in detail
  - Solve problem with DA 
- - Do training with the selective volumes (3 frames or k-neighbors approach)
- - Figure out post-processing techniques for lipid arc and cap thickness measurements (using dynammic programming + semantic segmentation of lipid, lumen, intima, etc). 
- For this, check [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1) and [Wang et al. (2012)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3370980/)
+ - Do training with the selective volumes (3 frames and/or k-neighbors approach)
+ - Get ideas from [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1) and [Wang et al. (2012)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3370980/) for maybe more exact post processing measurements.
+ - Dive into probability maps for uncertainty estimation
 
