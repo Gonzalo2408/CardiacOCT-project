@@ -25,7 +25,7 @@ Since the manually labelling of OCT frames is a very time consuming task for ann
 We show the regions of interest (ROIs) that the algorithm segments. With the aim to understand better the dataset, we obtained the distribution for each ROI among the three datasets that were used in the study. These values can be seen in the following table. 
 
 | ROI  | First dataset (frames/pullbacks)(%) | Second dataset (frames/pullbacks) (%) | Third dataset (frames/pullbacks)(%) | Fourth dataset (frames/pullbacks)(%) | Test set (frames/pullbacks)(%)
-| ------------- | ------------- | ------------- | ------------- | -------------
+| ------------- | ------------- | ------------- | ------------- | ------------- | -------------
 | Lumen  | - | - | - | - | -
 | Guidewire  | - | - | - | - | -
 | Wall | - | - | - | - | -
