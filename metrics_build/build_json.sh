@@ -8,5 +8,5 @@
 
 python build_results.py \
     --results_folder "Z:/grodriguez/CardiacOCT/predicted_results_model3_2d" \
-    --mode "pullback" \
+    --mode "frame" \
     --new_json_file "Z:/grodriguez/CardiacOCT/metrics_build/pullback_model_3_test.json"

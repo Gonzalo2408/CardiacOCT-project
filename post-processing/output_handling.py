@@ -297,11 +297,12 @@ def create_annotations(image, bin_size = 2):
             id2m = id1_argmin[id1m]
 
             #Spacing depends on size of image (checked on DCM metadata)
-            if im_insize == 1024:
-                conv_fact = 0.68
+            # if im_insize == 1024:
+            #     conv_fact = 1
 
-            else:
-                conv_fact = 1
+            # else:
+            #     conv_fact = 1
+            conv_fact = 1
 
             id1_min = np.sqrt(id1_min)*1000/conv_fact
             thickness = id1_min[id1m]/100

@@ -58,7 +58,7 @@ def count_pullback_excel(path, segs_folder, excel_name):
     counts_per_pullback.to_excel('./{}.xlsx'.format(excel_name))
 
 
-def count_frames_excel(path, segs_folder, excel_name):
+def count_frames_excel(path, segs_folder, excel_name, save_image=False):
 
     counts_per_frame = pd.DataFrame(columns = ['pullback', 'dataset', 'set', 'frame',  'background',
                                                'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 'media',
@@ -80,40 +80,37 @@ def count_frames_excel(path, segs_folder, excel_name):
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
         dataset = annots.loc[annots['Patient'] == patient_name]['Dataset'].values[0]
 
-        if belonging_set == 'Training':
-            continue
-    
-        else:
+        for frame in range(len(seg_map_data)):
 
             one_hot = np.zeros(num_classes)
 
-            for frame in range(len(seg_map_data)):
+            #Add labels that occur in each case (in this case, it's either 0 or 1, becuase we are doing it per frame)
+            if frame in frames_list:
+                unique, _ = np.unique(seg_map_data[frame,:,:], return_counts=True)
+                unique = unique.astype(int)
 
-                #Add labels that occur in each case (in this case, it's either 0 or 1, becuase we are doing it per frame)
-                if frame in frames_list:
-                    unique, _ = np.unique(seg_map_data[frame,:,:], return_counts=True)
-                    unique = unique.astype(int)
+                one_hot[[unique[i] for i in range(len(unique))]] = 1
 
-                    one_hot[[unique[i] for i in range(len(unique))]] = 1
+                #Get post-processing measurements for the specific frame
+                post_image_array , _ , cap_thickness, lipid_arc, _ = create_annotations(seg_map_data[frame,:,:])
 
-                    #Get post-processing measurements for the specific frame
-                    post_image_array , _ , cap_thickness, lipid_arc, _ = create_annotations(seg_map_data[frame,:,:])
+                #Append important variables for each frame
+                one_hot_list = one_hot.tolist()
+                one_hot_list.insert(0, pullback_name)
+                one_hot_list.insert(1, dataset)
+                one_hot_list.insert(2, belonging_set)
+                one_hot_list.insert(3, frame)
+                one_hot_list.append(cap_thickness)
+                one_hot_list.append(lipid_arc)
 
-                    #Append important variables for each frame
-                    one_hot_list = one_hot.tolist()
-                    one_hot_list.insert(0, pullback_name)
-                    one_hot_list.insert(1, dataset)
-                    one_hot_list.insert(2, belonging_set)
-                    one_hot_list.insert(3, frame)
-                    one_hot_list.append(cap_thickness)
-                    one_hot_list.append(lipid_arc)
+                counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
 
-                    counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
+                if save_image == True:
 
                     post_image_array = np.uint8(post_image_array*255)
 
                     #Only save images that contain lipid
-                    if not np.any(post_image_array) or belonging_set == 'Training':
+                    if not np.any(post_image_array):
                         continue
 
                     else:
@@ -150,6 +147,9 @@ def count_frames_excel(path, segs_folder, excel_name):
                 else:
                     continue
 
+            else:
+                continue
+
     #Create Excel file
     counts_per_frame.to_excel('./{}.xlsx'.format(excel_name))
 
@@ -157,12 +157,11 @@ if __name__ == "__main__":
 
     num_classes = 13
 
-    path = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
-    excel_name = 'manual_segs_automatic_measurements'
+    path = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 3'
+    excel_name = 'fourth_dataset_updated'
 
     seg_files = os.listdir(path)
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
-    #count_frames_excel(path_third, seg_files_3, excel_name1)
     count_frames_excel(path, seg_files, excel_name)
 

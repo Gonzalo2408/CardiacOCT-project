@@ -14,7 +14,7 @@ from output_handling import create_annotations
 
 def merge_frames_into_pullbacks(path_predicted):
 
-    #This function creates a dictionary in which the key is the pullback ID and the keys are the each file that belongs to a
+    #This function creates a dictionary in which the key is the pullback ID and the keys are each file that belongs to a
     #frame in that pullback
 
     pullbacks_origs = os.listdir(path_predicted)
@@ -45,7 +45,7 @@ def merge_frames_into_pullbacks(path_predicted):
 
 
 #Count among frames
-def build_excel_frames(path_dir, segs_dir, excel_name):
+def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
 
     counts_per_frame = pd.DataFrame(columns = ['pullback', 'frame', 'set', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
                                 'media', 'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
@@ -95,42 +95,48 @@ def build_excel_frames(path_dir, segs_dir, excel_name):
         counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
 
         
-        post_image_array = np.uint8(post_image_array*255)
 
-        #Only save images that contain lipid
-        if not np.any(post_image_array):
-            continue
+        if save_image == True:
+
+            post_image_array = np.uint8(post_image_array*255)
+
+            #Only save images that contain lipid
+            if not np.any(post_image_array):
+                continue
+
+            else:
+                #Save segmentation with lipid arc and FCT
+                color_map = {
+                    0: (0, 0, 0),
+                    1: (255, 0, 0),      # red
+                    2: (0, 255, 0),      # green
+                    3: (0, 0, 255),      # blue
+                    4: (255, 255, 0),    # yellow
+                    5: (255, 0, 255),    # magenta
+                    6: (0, 255, 255),    # cyan
+                    7: (128, 0, 0),      # maroon
+                    8: (0, 128, 0),      # dark green
+                    9: (0, 0, 128),      # navy
+                    10: (128, 128, 0),   # olive
+                    11: (128, 0, 128),   # purple
+                    12: (0, 128, 128),   # teal
+                }
+
+                #Convert the labels array into a color-coded image
+                h, w = seg_map_data[0].shape
+                color_img = np.zeros((h, w, 3), dtype=np.uint8)
+                for label, color in color_map.items():
+                    color_img[seg_map_data[0] == label] = color
+                seg_image = Image.fromarray(color_img)
+
+                post_proc_image = Image.fromarray(post_image_array)
+            
+                #Overlay image
+                seg_image.paste(post_proc_image, (0,0), post_proc_image)
+                seg_image.save('Z:/grodriguez/CardiacOCT/post-processing/post-proc-imgs-model3-2d/{}_frame{}.png'.format(pullback_name, n_frame))
 
         else:
-            #Save segmentation with lipid arc and FCT
-            color_map = {
-                0: (0, 0, 0),
-                1: (255, 0, 0),      # red
-                2: (0, 255, 0),      # green
-                3: (0, 0, 255),      # blue
-                4: (255, 255, 0),    # yellow
-                5: (255, 0, 255),    # magenta
-                6: (0, 255, 255),    # cyan
-                7: (128, 0, 0),      # maroon
-                8: (0, 128, 0),      # dark green
-                9: (0, 0, 128),      # navy
-                10: (128, 128, 0),   # olive
-                11: (128, 0, 128),   # purple
-                12: (0, 128, 128),   # teal
-            }
-
-            #Convert the labels array into a color-coded image
-            h, w = seg_map_data[0].shape
-            color_img = np.zeros((h, w, 3), dtype=np.uint8)
-            for label, color in color_map.items():
-                color_img[seg_map_data[0] == label] = color
-            seg_image = Image.fromarray(color_img)
-
-            post_proc_image = Image.fromarray(post_image_array)
-        
-            #Overlay image
-            seg_image.paste(post_proc_image, (0,0), post_proc_image)
-            seg_image.save('Z:/grodriguez/CardiacOCT/post-processing/post-proc-imgs-model3-2d/{}_frame{}.png'.format(pullback_name, n_frame))
+            continue
 
     counts_per_frame.to_excel('./{}.xlsx'.format(excel_name))
 

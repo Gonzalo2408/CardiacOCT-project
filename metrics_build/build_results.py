@@ -42,13 +42,13 @@ def mean_metrics(list_dicts):
     for d in list_dicts:
         for label, metrics in d.items():
             if label not in result:
-                result[label] = [metrics['Dice']]
+                result[label] = metrics['Dice']
 
             else:
                 result[label].append(metrics['Dice'])
 
-    for label, dices in result.items():
-        result[label] = np.nanmean(dices)
+    #for label, dices in result.items():
+        #result[label] = np.nanmean(dices)
             
     return result
 
@@ -121,7 +121,7 @@ def main(argv):
     elif args.mode == 'frame':
 
         final_dict = {}
-
+        
         for file in os.listdir(args.results_folder):
 
             if file.endswith('.nii.gz'):
@@ -145,7 +145,7 @@ def main(argv):
                 #Get DICE score from frame
                 for sub_dict in summary['results']['all']:
 
-                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results/{}'.format(file):
+                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/predicted_results_model3_2d/{}'.format(file):
                         list_dicts_per_frame.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
                         break
                     else:
@@ -154,9 +154,9 @@ def main(argv):
                 #Include frame
                 mean_result = mean_metrics(list_dicts_per_frame)
                 mean_result['frame'] = frame
+                mean_result['pullback'] = pullback_name
 
-                final_dict[pullback_name] = mean_result
-
+                final_dict[file] = mean_result
 
         #Write final dict in a json file
         with open(args.new_json_file, 'w') as f:

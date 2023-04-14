@@ -3,6 +3,7 @@ import os
 import numpy as np
 import SimpleITK as sitk
 import pandas as pd
+import argparse
 
 def create_circular_mask(h, w, center=None, radius=None):
 
@@ -18,56 +19,40 @@ def create_circular_mask(h, w, center=None, radius=None):
     mask = np.expand_dims(mask,0)
     return mask
 
-def resize_image(raw_frame):
+def resize_image(raw_frame, downsample = True):
 
-    if raw_frame.shape == (704, 704):
+    frame_image = sitk.GetImageFromArray(raw_frame)
 
-        resampled_seg_frame = raw_frame
+    if downsample == True:
+        new_shape = (704, 704)
 
     else:
+        new_shape = (1024, 1024)
 
-        frame_image = sitk.GetImageFromArray(raw_frame)
 
-        new_shape = (704, 704)
-        new_spacing = (frame_image.GetSpacing()[0]*sitk.GetArrayFromImage(frame_image).shape[1]/704,
-                            frame_image.GetSpacing()[1]*sitk.GetArrayFromImage(frame_image).shape[1]/704)
+    new_spacing = (frame_image.GetSpacing()[0]*sitk.GetArrayFromImage(frame_image).shape[1]/new_shape[0],
+                        frame_image.GetSpacing()[1]*sitk.GetArrayFromImage(frame_image).shape[1]/new_shape[0])
 
-        resampler = sitk.ResampleImageFilter()
+    resampler = sitk.ResampleImageFilter()
 
-        resampler.SetSize(new_shape)
-        resampler.SetInterpolator(sitk.sitkNearestNeighbor)
-        resampler.SetOutputSpacing(new_spacing)
+    resampler.SetSize(new_shape)
+    resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+    resampler.SetOutputSpacing(new_spacing)
 
-        resampled_seg = resampler.Execute(frame_image)
-        resampled_seg_frame = sitk.GetArrayFromImage(resampled_seg)
+    resampled_seg = resampler.Execute(frame_image)
+    resampled_seg_frame = sitk.GetArrayFromImage(resampled_seg)
 
     return resampled_seg_frame
 
+
 def main(argv):
-    """Callable entry point.
-    """
-    ##### Paths for first dataset (cluster and my PC) #####
-    #parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/scans DICOM'
-    #annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split.xlsx')
 
-    #parent_path = r'Z:\grodriguez\CardiacOCT\data-original\scans DICOM'
-    #annots = pd.read_excel('Z:/grodriguez/CardiacOCT/data-original/train_test_split.xlsx')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data', type=str)
+    args, _ = parser.parse_known_args(argv)
 
-
-    ##### Paths for second dataset (cluster and my PC) #####
-    #parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/extra scans DICOM'
-    #annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
-
-    #parent_path = r'Z:\grodriguez\CardiacOCT\data-original\extra scans DICOM'
-    #annots = pd.read_excel(r'Z:/grodriguez/CardiacOCT/data-original/train_test_split_dataset2.xlsx')
-
-
-    ##### Paths for third dataset (cluster and my PC)
-    #parent_path = r'Z:\grodriguez\CardiacOCT\data-original\scans DICOM'
-    #annots = pd.read_excel(r'Z:/grodriguez/CardiacOCT/data-original/train_test_split_final.xlsx')
-
-    parent_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/extra scans DICOM 2'
-    annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+    parent_path = args.data
+    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
     files = os.listdir(parent_path)
 
@@ -80,11 +65,11 @@ def main(argv):
         if belonging_set == 'Testing':
 
             #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs'
-            output_file_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs'
+            output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
 
         else:
             #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTr'
-            output_file_path = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTr'
+            output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTr'
 
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
         pullback_name = file.split('.')[0]
@@ -114,11 +99,11 @@ def main(argv):
                     raw_frame = series_pixel_data[frame,:,:,n_channel]
 
                     #Resize image to (704, 704)
-                    resampled_dcm_frame = resize_image(raw_frame)
+                    #resampled_dcm_frame = resize_image(raw_frame)
 
                     #Apply circular mask
-                    circular_mask = create_circular_mask(resampled_dcm_frame.shape[0], resampled_dcm_frame.shape[1], radius=346)
-                    mask_channel = np.invert(circular_mask) * resampled_dcm_frame
+                    circular_mask = create_circular_mask(raw_frame.shape[0], raw_frame.shape[1], radius=346)
+                    mask_channel = np.invert(circular_mask) * raw_frame
 
                     #Check if there are Nan values
                     if np.isnan(mask_channel).any():

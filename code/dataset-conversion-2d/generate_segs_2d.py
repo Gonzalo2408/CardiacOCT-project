@@ -3,11 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-#path_segs = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/segmentations ORIGINALS'
-#new_path_segs = r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/nnUNet_raw_data/Task502_CardiacOCT/labelsTr'
-#annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/oct_annotations_filtered.xlsx')
-
-path_segs = 'Z:/grodriguez/CardiacOCT/data-original/extra segmentations ORIGINALS 2'
+path_segs = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS'
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
@@ -25,28 +21,28 @@ def create_circular_mask(h, w, center=None, radius=None):
 
     return mask
 
-def resize_image(raw_frame):
-    
-    if raw_frame.shape == (704, 704):
+def resize_image(raw_frame, downsample = True):
 
-        resampled_seg_frame = raw_frame
+    frame_image = sitk.GetImageFromArray(raw_frame)
+
+    if downsample == True:
+        new_shape = (704, 704)
 
     else:
+        new_shape = (1024, 1024)
 
-        frame_image = sitk.GetImageFromArray(raw_frame)
 
-        new_shape = (704, 704)
-        new_spacing = (frame_image.GetSpacing()[0]*sitk.GetArrayFromImage(frame_image).shape[1]/704,
-                            frame_image.GetSpacing()[1]*sitk.GetArrayFromImage(frame_image).shape[1]/704)
+    new_spacing = (frame_image.GetSpacing()[0]*sitk.GetArrayFromImage(frame_image).shape[1]/new_shape[0],
+                        frame_image.GetSpacing()[1]*sitk.GetArrayFromImage(frame_image).shape[1]/new_shape[0])
 
-        resampler = sitk.ResampleImageFilter()
+    resampler = sitk.ResampleImageFilter()
 
-        resampler.SetSize(new_shape)
-        resampler.SetInterpolator(sitk.sitkNearestNeighbor)
-        resampler.SetOutputSpacing(new_spacing)
+    resampler.SetSize(new_shape)
+    resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+    resampler.SetOutputSpacing(new_spacing)
 
-        resampled_seg = resampler.Execute(frame_image)
-        resampled_seg_frame = sitk.GetArrayFromImage(resampled_seg)
+    resampled_seg = resampler.Execute(frame_image)
+    resampled_seg_frame = sitk.GetArrayFromImage(resampled_seg)
 
     return resampled_seg_frame
 
@@ -74,10 +70,10 @@ for filename in os.listdir(path_segs):
     belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
 
     if belonging_set == 'Testing':
-        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/labelsTs'
+        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/labelsTs'
 
     else:
-        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/labelsTr'
+        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/labelsTr'
 
     pullback_name = filename.split('.')[0]
     print('Checking ', pullback_name)
@@ -104,9 +100,21 @@ for filename in os.listdir(path_segs):
                 continue
 
             raw_frame = orig_seg_pixel_array[frame,:,:]
+            spacing = annots.loc[annots['Pullback'] == pullback_name]['Spacing'].values[0]
 
             #Check if resize is neeeded (shape should be (704, 704))
-            resampled_seg_frame = resize_image(raw_frame)
+            if raw_frame.shape == (1024, 1024) and spacing == 0.006842619:
+                resampled_seg_frame = resize_image(raw_frame)
+
+            elif raw_frame.shape == (1024, 1024) and spacing == 0.009775171:
+                resampled_seg_frame = raw_frame[160:864, 160:864]
+
+            elif raw_frame.shape == (704, 704) and (spacing == 0.014224751 or spacing == 0.014935988):
+                resampled_seg_frame = resize_image(raw_frame, False)
+                resampled_seg_frame = resampled_seg_frame[160:864, 160:864]
+
+            else:
+                resampled_seg_frame = raw_frame
 
             #Apply mask to both seg and image
             circular_mask = create_circular_mask(resampled_seg_frame.shape[0], resampled_seg_frame.shape[1], radius=346)
