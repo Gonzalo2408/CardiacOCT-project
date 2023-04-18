@@ -9,7 +9,7 @@ import os
 import sys
 
 sys.path.insert(1, 'Z:/grodriguez/CardiacOCT/post-processing')
-from output_handling import create_annotations
+from output_handling import create_annotations_lipid, create_annotations_calcium
 
 def count_pullback_excel(path, segs_folder, excel_name):
 
@@ -63,7 +63,7 @@ def count_frames_excel(path, segs_folder, excel_name, save_image=False):
     counts_per_frame = pd.DataFrame(columns = ['pullback', 'dataset', 'set', 'frame',  'background',
                                                'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 'media',
                                                'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
-                                               'rupture', 'cap_thickness', 'lipid_arc'])
+                                               'rupture', 'cap_thickness', 'lipid_arc', 'calcium_depth', 'calcium_arc', 'calcium_thickness'])
 
     for file in segs_folder:
 
@@ -80,6 +80,9 @@ def count_frames_excel(path, segs_folder, excel_name, save_image=False):
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
         dataset = annots.loc[annots['Patient'] == patient_name]['Dataset'].values[0]
 
+        if belonging_set == 'Training':
+            continue
+
         for frame in range(len(seg_map_data)):
 
             one_hot = np.zeros(num_classes)
@@ -92,7 +95,8 @@ def count_frames_excel(path, segs_folder, excel_name, save_image=False):
                 one_hot[[unique[i] for i in range(len(unique))]] = 1
 
                 #Get post-processing measurements for the specific frame
-                post_image_array , _ , cap_thickness, lipid_arc, _ = create_annotations(seg_map_data[frame,:,:])
+                post_image_array , _ , cap_thickness, lipid_arc, _ = create_annotations_lipid(seg_map_data[frame,:,:])
+                post_image_array, _, calcium_depth, calcium_arc, calcium_thickness, _ = create_annotations_calcium(seg_map_data[frame,:,:])
 
                 #Append important variables for each frame
                 one_hot_list = one_hot.tolist()
@@ -102,6 +106,9 @@ def count_frames_excel(path, segs_folder, excel_name, save_image=False):
                 one_hot_list.insert(3, frame)
                 one_hot_list.append(cap_thickness)
                 one_hot_list.append(lipid_arc)
+                one_hot_list.append(calcium_depth)
+                one_hot_list.append(calcium_arc)
+                one_hot_list.append(calcium_thickness)
 
                 counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
 
@@ -157,8 +164,8 @@ if __name__ == "__main__":
 
     num_classes = 13
 
-    path = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 3'
-    excel_name = 'fourth_dataset_updated'
+    path = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
+    excel_name = 'updated_test_set_measures_with_calcium'
 
     seg_files = os.listdir(path)
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')

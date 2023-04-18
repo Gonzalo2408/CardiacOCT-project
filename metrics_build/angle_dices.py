@@ -8,7 +8,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 sys.path.insert(1, 'Z:/grodriguez/CardiacOCT/post-processing')
-from output_handling import create_annotations, compute_new_dices
+from output_handling import create_annotations_lipid, create_annotations_calcium, compute_new_dices
 
 def merge_frames_into_pullbacks(path_predicted):
 
@@ -38,7 +38,7 @@ def merge_frames_into_pullbacks(path_predicted):
 
     return pullbacks_dict
 
-def get_dice_frame_level(orig_path, pred_path, excel_name):
+def get_dice_frame_level(orig_path, pred_path, excel_name, region):
 
     orig_segs = os.listdir(orig_path)
 
@@ -71,12 +71,20 @@ def get_dice_frame_level(orig_path, pred_path, excel_name):
         pred_img = sitk.ReadImage(os.path.join(pred_path, seg))
         pred_img_data = sitk.GetArrayFromImage(pred_img)[0]
 
-        #Get lipid IDs for both cases
-        _, _, _, _, orig_lipid_ids = create_annotations(orig_img_data)
-        _, _, _, _, pred_lipid_ids = create_annotations(pred_img_data)
+        #Get IDs for both cases
+        if region == 'lipid':
+            _, _, _, _, orig_ids = create_annotations_lipid(orig_img_data)
+            _, _, _, _, pred_ids = create_annotations_lipid(pred_img_data)
+
+        elif region == 'calcium':
+            _, _, _, _, _, orig_ids = create_annotations_calcium(orig_img_data)
+            _, _, _, _, _, pred_ids = create_annotations_calcium(pred_img_data)
+
+        else:
+            raise ValueError('Please, select a valid type (lipid or calcium)')
 
         #Compute new DICE for lipid
-        dice_score, _, _, _, _ = compute_new_dices(orig_lipid_ids, pred_lipid_ids)
+        dice_score, _, _, _ = compute_new_dices(orig_ids, pred_ids)
 
         list_data.append(pullback_name)
         list_data.append(n_frame)
@@ -87,7 +95,7 @@ def get_dice_frame_level(orig_path, pred_path, excel_name):
     new_excel_data.to_excel('./{}.xlsx'.format(excel_name))
 
 
-def get_dice_pullback_level(orig_path, pred_path, excel_name):
+def get_dice_pullback_level(orig_path, pred_path, excel_name, region):
 
     pullback_dict = merge_frames_into_pullbacks(pred_path)
     new_excel_data = pd.DataFrame(columns=['pullback', 'DICE'])
@@ -124,11 +132,20 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name):
             pred_img = sitk.ReadImage(os.path.join(pred_path, frame))
             pred_img_data = sitk.GetArrayFromImage(pred_img)[0]
 
-            _, _, _, _, orig_lipid_ids = create_annotations(orig_img_data)
-            _, _, _, _, pred_lipid_ids = create_annotations(pred_img_data)
+            #Get IDs for both cases
+            if region == 'lipid':
+                _, _, _, _, orig_ids = create_annotations_lipid(orig_img_data)
+                _, _, _, _, pred_ids = create_annotations_lipid(pred_img_data)
+
+            elif region == 'calcium':
+                _, _, _, _, _, orig_ids = create_annotations_calcium(orig_img_data)
+                _, _, _, _, _, pred_ids = create_annotations_calcium(pred_img_data)
+
+            else:
+                raise ValueError('Please, select a valid type (lipid or calcium)')
 
             #Sum all the TP, TN, FP, FN over a full pullback to get the DICE per pullback
-            _, tp, fp, fn = compute_new_dices(orig_lipid_ids, pred_lipid_ids)
+            _, tp, fp, fn = compute_new_dices(orig_ids, pred_ids)
             tp_total += tp
             fp_total += fp
             fn_total += fn
@@ -151,12 +168,12 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name):
 
 if __name__ == "__main__":
 
-    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/labelsTs'
-    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/predicted_results_model2_2d'
+    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/old labelsTs'
+    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/predicted_results_model3_2d'
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    excel_file = 'lipid_angle_dices_model2_pullback'
+    excel_file = 'calcium_arc_model3_old_test_set'
 
-    #get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file)
+    get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'calcium')
 
-    get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file)
+    #get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'calcium')

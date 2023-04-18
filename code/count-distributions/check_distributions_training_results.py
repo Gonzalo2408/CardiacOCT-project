@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import sys
 from PIL import Image
 sys.path.insert(1, 'Z:/grodriguez/CardiacOCT/post-processing')
-from output_handling import create_annotations
+from output_handling import create_annotations_lipid, create_annotations_calcium
 
 
 def merge_frames_into_pullbacks(path_predicted):
@@ -49,7 +49,7 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
 
     counts_per_frame = pd.DataFrame(columns = ['pullback', 'frame', 'set', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
                                 'media', 'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
-                                'rupture', 'lipid arc', 'cap_thickness'])
+                                'rupture', 'lipid arc', 'cap_thickness', 'calcium_depth', 'calcium_arc', 'calcium_thickness'])
 
 
     for file in segs_dir:
@@ -88,13 +88,16 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
         one_hot_list.insert(2, belonging_set)
 
         #Post-processing results
-        post_image_array , _ , cap_thickness, lipid_arc, _ = create_annotations(seg_map_data[0])
+        post_image_array, _ , cap_thickness, lipid_arc, _ = create_annotations_lipid(seg_map_data[0])
+        post_image_array, _ , calcium_depth, calcium_arc, calcium_thickness, _ = create_annotations_calcium(seg_map_data[0])
+
 
         one_hot_list.append(lipid_arc)
         one_hot_list.append(cap_thickness)
+        one_hot_list.append(calcium_depth)
+        one_hot_list.append(calcium_arc)
+        one_hot_list.append(calcium_thickness)
         counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
-
-        
 
         if save_image == True:
 
@@ -190,9 +193,9 @@ if __name__ == "__main__":
 
     num_classes = 13
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    path_preds = 'Z:/grodriguez/CardiacOCT/predicted_results_model3_2d'
+    path_preds = 'Z:/grodriguez/CardiacOCT/predicted_results_model1_2d'
     preds_list = sorted(os.listdir(path_preds))[:-3]
-    name_excel = 'new_pred_measurements'
+    name_excel = 'new_pred_measurements_with_cal_model1'
 
     build_excel_frames(path_preds, preds_list, name_excel)
     #build_excel_pullbacks(path_preds, name_excel)
