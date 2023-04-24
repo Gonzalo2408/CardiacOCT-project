@@ -82,42 +82,39 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 
 ### Results of best cross-validation model
 
-| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 3D sparse model
-| ------------- | -------------- | -------------- | -------------- | -------------- 
-| Lumen  | 0.975 | 0.979 | 0.987
-| Guidewire  | 0.917 | 0.923 | 0.946
-| Wall | 0.879 | 0.89 | 0.899
-| Lipid | 0.467 | 0.485 | 0.519
-| Calcium | 0.389 | 0.42 | 0.51
-| Media | 0.74 | 0.758 | 0.767
-| Catheter | 0.979 | 0.982 | 0.992
-| Sidebranch | 0.414 | 0.449 | 0.536
-| Red thrombus | 0.3 | 0.301 | 0.373
-| White thrombus | 0.231 | 0.211 | 0.233
-| Dissection | 0.017 | 0.00002 | 0
-| Plaque rupture | 0.33 | 0.256 | 0.32
-
-
-In this case, we see a noticeable increase in the last 2D model, specially for calcium. 
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | 3D sparse model
+| ------------- | -------------- | -------------- | -------------- | -------------- | --------------
+| Lumen  | 0.977 | 0.979 | 0.987 | 0.987 |
+| Guidewire  | 0.919 | 0.924 | 0.947 | 0.946 |
+| Wall | 0.883 | 0.892 | 0.901 | 0.899 |
+| Lipid | 0.491 | 0.517 | 0.569 | 0.578 |
+| Calcium | 0.426 | 0.447 | 0.589 | 0.604 |
+| Media | 0.746 | 0.762 | 0.772 | 0.765 |
+| Catheter | 0.981 | 0.984 | 0.992 | 0.992 |
+| Sidebranch | 0.441 | 0.461 | 0.533 | 0.535 |
+| Red thrombus | 0.436 | 0.463 | 0.479 | 0.486 |
+| White thrombus | 0.321 | 0.33 | 0.378 | 0.393 |
+| Dissection | 0.06 | 0.0004 | 0 | 0 |
+| Plaque rupture | 0.471 | 0.429 | 0.542 | 0.527 |
 
 
 ### Results on test set (frame-level)
 
 
-| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 3D model sparse
-| ------------- | -------------- | -------------- | -------------- | -------------- 
-| Lumen  | 0.973 | 0.974 | 0.981
-| Guidewire  | 0.928 | 0.93 | 0.941
-| Wall | 0.872 | 0.889 | 0.893
-| Lipid | 0.415 | 0.465 | 0.553
-| Calcium | 0.258 | 0.258 | 0.507
-| Media | 0.736 | 0.746 | 0.773
-| Catheter | 0.987 | 0.988 | 0.99
-| Sidebranch | 0.521 | 0.554 | 0.599
-| Red thrombus | 0 | 0.032 | 0.093
-| White thrombus | 0 | 0 | 0
-| Dissection | 0 | 0 | NaN
-| Plaque rupture | 0.321 | 0.368 | 0.377
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | 3D sparse model
+| ------------- | -------------- | -------------- | -------------- | -------------- | --------------
+| Lumen  | 0.976 | 0.978 | 0.981 |0.981 |
+| Guidewire  | 0.926 | 0.926 | 0.949 | 0.95 | 
+| Wall | 0.87 | 0.883 | 0.89 | 0.892 |
+| Lipid | 0.5 | 0.594 | 0.596 | 0.617 |
+| Calcium | 0.283 | 0.292 | 0.544 | 0.531 |
+| Media | 0.756 | 0.767 | 0.784 | 0.787 |
+| Catheter | 0.988 | 0.988 | 0.989 | 0.989
+| Sidebranch | 0.518 | 0.564 | 0.592 | 0.542
+| Red thrombus | 0 | 0.039 | 0.094 | 0.324 
+| White thrombus | 0 | NaN | 0 | 0
+| Dissection | NaN | NaN | NaN | NaN
+| Plaque rupture | 0.48 | 0.587 | 0.605 | 0.607
 
 Note that for the test set, there are no frames with white thrombus or dissections, meaning that the best prediction for these regions would be NaN (i.e no false positives with white thrombus or dissection). Again, we see a great increase in lipid and calcium from the second dataset to the third dataset. We think that the different pre-processing techniques may have played an important role in the outcome of the third model
 
@@ -144,11 +141,23 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 
 Inspired by the approaches in the study by [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1), we calculated the DICE scores for the lipid arc. This way, we obtain a more insightful measure to asses the model performance (the previous DICE were computed pixel-label). The following table shows these DICE scores for the test set using the prediction given by the three 2D models that we have up to now. An average over the DICE scores for each frame is shown.
 
-Model | Lipid arc fram-level | Lipid arc pullback-level
+Model | Lipid arc frame-level | Lipid arc pullback-level
 | ------------- | -------------- | --------------
-| Model 1 | 0.666 | 0.797
-| Model 2 | 0.759 | 0.832
+| Model 1 | 0.666 | 0.804
+| Model 2 | 0.759 | 0.834
 | Model 3 | 0.767 | 0.827
+| Model 4 | 0.767 | 0.827
+
+### Calcium arc DICE
+
+Similar as with the lipid arc, we computed the DICE for the detected arc of the biggest calcium region that appears in the frame. We also computed the DICE per frame and per pullback.
+
+Model | Lipid arc frame-level | Lipid arc pullback-level
+| ------------- | -------------- | --------------
+| Model 1 | 0.541 | 0.613
+| Model 2 | 0.605 | 0.607
+| Model 3 | 0.661 | 0.694
+| Model 4 | 0.767 | 0.827
 
 ### Post processing results
 
