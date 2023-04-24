@@ -12,7 +12,7 @@ annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_fi
 path_segs = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
 #annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
-def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
+def generate_new_volume(image, n_frame, n_frames_to_sample = 1):
 
     # TO DO##
     # Add the case in which two annotated frames are very close to each other.
@@ -21,25 +21,24 @@ def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
     rows, cols, n_slices = image.shape
 
     #Check if annot is in first slice (we take frames after only)
-    if n_frame - n_frames_to_sample < 0:
-        frames = np.arange(n_frame, n_frames_to_sample+3)
-        frames_to_sample = frames
+    if n_frame - n_frames_to_sample <= 0:
+        frames = np.arange(n_frames_to_sample, n_frames_to_sample+3)
         
     #Check if annot is at the end of the 3D volume
-    elif n_frame + n_frames_to_sample > n_slices:
-        frames = np.arange((-n_frames_to_sample-3), n_frame)
-        frames_to_sample = frames + n_frame
+    elif n_frame + n_frames_to_sample >= n_slices:
+        frames = np.arange(-n_frames_to_sample-2, n_frames_to_sample)
 
-    frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
+    else:
+        frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
+
     frames_to_sample = frames + n_frame
-
     sub_volume = np.zeros((rows, cols, len(frames_to_sample)))
 
     for i in range(len(frames_to_sample)):
 
         sub_volume[:, :, i] = image[:, :, frames_to_sample[i]]
 
-    return sub_volume
+    return sub_volume, frames_to_sample
 
 def generate_cluster_volume(image, n_frame, frames_list, list_skips, k=30):
 
@@ -147,7 +146,7 @@ def main(argv):
     a = 0
 
     split_data_pd = pd.DataFrame(columns = ['Pullback', 'Shape volume', 'Nº split', 
-                                        'Frame(s) with annots', 'Starting frame', 
+                                        'Starting frame', 
                                         'Ending frame', 'Annotated frames'])
 
     for filename in os.listdir(path_segs):
@@ -190,6 +189,7 @@ def main(argv):
         else:
             orig_seg = sitk.ReadImage(path_segs + '/' + filename)
             orig_seg_pixel_array = sitk.GetArrayFromImage(orig_seg)
+            spacing = annots.loc[annots['Pullback'] == pullback_name]['Spacing'].values[0]
 
             frame_data = np.zeros((orig_seg_pixel_array.shape[0], 704, 704))
 
@@ -197,7 +197,20 @@ def main(argv):
 
                 if frame in frames_list:
 
-                    resampled_pixel_data = resize_image(orig_seg_pixel_array[frame,:,:])
+                    #Check if resize is neeeded (shape should be (704, 704))
+                    if orig_seg_pixel_array[frame,:,:].shape == (1024, 1024) and spacing == 0.006842619:
+                        resampled_pixel_data = resize_image(orig_seg_pixel_array[frame,:,:])
+
+                    elif orig_seg_pixel_array[frame,:,:].shape == (1024, 1024) and spacing == 0.009775171:
+                        resampled_pixel_data = orig_seg_pixel_array[frame,:,:][160:864, 160:864]
+
+                    elif orig_seg_pixel_array[frame,:,:].shape == (704, 704) and (spacing == 0.014224751 or spacing == 0.014935988):
+                        resampled_pixel_data = resize_image(orig_seg_pixel_array[frame,:,:], False)
+                        resampled_pixel_data = resampled_pixel_data[160:864, 160:864]
+
+                    else:
+                        resampled_pixel_data = orig_seg_pixel_array[frame,:,:]
+
                     circular_mask = create_circular_mask(resampled_pixel_data.shape[0], resampled_pixel_data.shape[1], radius=346)
                     mask_frame = np.invert(circular_mask) * resampled_pixel_data
 
@@ -229,34 +242,33 @@ def main(argv):
 
                 else:
                     
-                    sub_volume, frame_to_sample, list_neighbors = generate_cluster_volume(frame_data_T, frame, frames_list, list_skips)
+                    sub_volume, frames_to_sample = generate_new_volume(frame_data_T, frame)
 
-                    #Get only "big" volumes
-                    if sub_volume.shape[2] < 30:
-                        continue
+                    # #Get only "big" volumes
+                    # if sub_volume.shape[2] < 30:
+                    #     continue
                     
-                    else:
+                    # else:
 
-                        #Fix spacing and direction
-                        final_seg = sitk.GetImageFromArray(sub_volume.astype(np.int32))
-                        final_seg.SetSpacing((1.0, 1.0, 1.0))
-                        final_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
+                    #Fix spacing and direction
+                    final_seg = sitk.GetImageFromArray(sub_volume.astype(np.int32))
+                    final_seg.SetSpacing((1.0, 1.0, 1.0))
+                    final_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
 
-                        sitk.WriteImage(final_seg, new_path_segs + '/' + patient_name + '_{}_split{}_{}.nii.gz'.format(n_pullback, n_split, "%03d" % id ))
-                        
-                        #Create new Excel file to see how is the sampling working
-                        frame_info_to_pd = []
-                        frame_info_to_pd.append(pullback_name)
-                        frame_info_to_pd.append(sub_volume.shape)
-                        frame_info_to_pd.append(n_split)
-                        frame_info_to_pd.append(frame_to_sample)
-                        frame_info_to_pd.append(frame_to_sample[0])
-                        frame_info_to_pd.append(frame_to_sample[-1])
-                        frame_info_to_pd.append(len(list_neighbors))
-                        
-                        split_data_pd = split_data_pd.append(pd.Series(frame_info_to_pd, index=split_data_pd.columns[:len(frame_info_to_pd)]), ignore_index=True)
+                    sitk.WriteImage(final_seg, new_path_segs + '/' + patient_name + '_{}_split{}_{}.nii.gz'.format(n_pullback, n_split, "%03d" % id ))
+                    
+                    #Create new Excel file to see how is the sampling working
+                    frame_info_to_pd = []
+                    frame_info_to_pd.append(pullback_name)
+                    frame_info_to_pd.append(sub_volume.shape)
+                    frame_info_to_pd.append(n_split)
+                    frame_info_to_pd.append(frames_to_sample[0])
+                    frame_info_to_pd.append(frames_to_sample[-1])
+                    frame_info_to_pd.append(len(frames_to_sample))
+                    
+                    split_data_pd = split_data_pd.append(pd.Series(frame_info_to_pd, index=split_data_pd.columns[:len(frame_info_to_pd)]), ignore_index=True)
 
-                        n_split += 1
+                    n_split += 1
 
         a += 1
         if a > 2:

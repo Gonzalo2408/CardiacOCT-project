@@ -111,18 +111,18 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
                 #Save segmentation with lipid arc and FCT
                 color_map = {
                     0: (0, 0, 0),
-                    1: (255, 0, 0),      # red
-                    2: (0, 255, 0),      # green
-                    3: (0, 0, 255),      # blue
-                    4: (255, 255, 0),    # yellow
-                    5: (255, 0, 255),    # magenta
-                    6: (0, 255, 255),    # cyan
-                    7: (128, 0, 0),      # maroon
-                    8: (0, 128, 0),      # dark green
-                    9: (0, 0, 128),      # navy
-                    10: (128, 128, 0),   # olive
-                    11: (128, 0, 128),   # purple
-                    12: (0, 128, 128),   # teal
+                    1: (255, 0, 0),      #red
+                    2: (0, 255, 0),      #green
+                    3: (0, 0, 255),      #blue
+                    4: (255, 255, 0),    #yellow
+                    5: (255, 0, 255),    #magenta
+                    6: (0, 255, 255),    #cyan
+                    7: (128, 0, 0),      #maroon
+                    8: (0, 128, 0),      #dark green
+                    9: (0, 0, 128),      #navy
+                    10: (128, 128, 0),   #olive
+                    11: (128, 0, 128),   #purple
+                    12: (0, 128, 128),   #teal
                 }
 
                 #Convert the labels array into a color-coded image
@@ -193,9 +193,10 @@ if __name__ == "__main__":
 
     num_classes = 13
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    path_preds = 'Z:/grodriguez/CardiacOCT/predicted_results_model1_2d'
-    preds_list = sorted(os.listdir(path_preds))[:-3]
-    name_excel = 'new_pred_measurements_with_cal_model1'
+    #path_preds = 'Z:/grodriguez/CardiacOCT/predicted_results_model4_2d'
+    path_preds = r'Z:\grodriguez\CardiacOCT\data-2d\results\nnUNet\2d\Task504_CardiacOCT\nnUNetTrainerV2__nnUNetPlansv2.1\cv_niftis_postprocessed'
+    preds_list = sorted(os.listdir(path_preds))[:-1]
+    name_excel = 'new_val_pred_measurements_with_cal_model4'
 
     build_excel_frames(path_preds, preds_list, name_excel)
     #build_excel_pullbacks(path_preds, name_excel)

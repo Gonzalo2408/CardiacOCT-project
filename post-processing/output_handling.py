@@ -51,7 +51,7 @@ def compute_new_dices(orig_lipid, pred_lipid):
 
     return dice_score, tp, fp, fn
 
-def get_new_thickness(center, image):
+def get_new_thickness_calcium(center, image):
 
     n_rows, n_cols = image.shape
     center_x = center[0]
@@ -170,7 +170,7 @@ def create_annotations_lipid(image, bin_size = 2):
 
         lipid_ids = [0,0]
 
-        return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0, lipid_ids
+        return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, -99, -99, lipid_ids
 
     else:
     
@@ -205,7 +205,7 @@ def create_annotations_lipid(image, bin_size = 2):
                     if hist_count_guide[n] > 0:
                         thickness_bin[n] = -1
                         
-            return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0, lipid_ids
+            return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, -99, -99, lipid_ids
 
         # Merge labels and generate new image (new labels: lipid + wall, calcium, catheter, rest)
         new_image = np.copy(merged_img).astype('int16')
@@ -473,17 +473,17 @@ def create_annotations_calcium(image, bin_size = 2):
         for n in range(guide_pixels.shape[0]):
             dist_guide[n, 0] = np.degrees(
                 np.arctan2((guide_pixels[n, 0] - vessel_com[0]), (guide_pixels[n, 1] - vessel_com[1])))
-        hist_count_tube, bins_tube = np.histogram(dist_guide[:, 0], n_bins, (-180, 180))
+        hist_count_guide, bins_guide = np.histogram(dist_guide[:, 0], n_bins, (-180, 180))
 
         # thickness per lipid/calcium bin
-        thickness_bin = np.zeros(bins_tube.shape[0] - 1)
+        thickness_bin = np.zeros(bins_guide.shape[0] - 1)
         for n in range(thickness_bin.shape[0] - 1):
-            if hist_count_tube[n] > 0:
+            if hist_count_guide[n] > 0:
                 thickness_bin[n] = -1
 
         ids = [0,0]
 
-        return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0, 0, ids
+        return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, -99, -99, -99, ids
 
     else:
     
@@ -508,7 +508,7 @@ def create_annotations_calcium(image, bin_size = 2):
         hist_count_guide, _ = np.histogram(dist_guide[:, 0], n_bins, (-180, 180))
         hist_count_calcium, bins_cal = np.histogram(dist_calcium[:, 1], n_bins, (-180, 180))
 
-        ids = np.where(hist_count_calcium)[0]
+        ids = np.where(hist_count_calcium > 20)[0]
         region_bins = bins_cal
 
         if ids.size == 0:
@@ -516,12 +516,11 @@ def create_annotations_calcium(image, bin_size = 2):
             thickness_bin = np.zeros(n_bins)
 
             for n in range(thickness_bin.shape[0] - 1):
-                    if hist_count_tube[n] > 0:
+                    if hist_count_guide[n] > 0:
                         thickness_bin[n] = -1
 
-            print('size 0')
                         
-            return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, 0, 0, 0, ids
+            return np.zeros((im_insize, im_insize), np.uint8), thickness_bin, -99, -99, -99, ids
 
         # Merge labels and generate new image (new labels: lipid + wall, calcium, catheter, rest)
         new_image = np.copy(image).astype('int16')
@@ -700,7 +699,6 @@ def create_annotations_calcium(image, bin_size = 2):
                     thickness_bin[n] = -1
 
         
-
         # Pil manipulations
         overlay = np.zeros((image.shape[0],image.shape[1]), np.uint8) 
         pil_image = Image.fromarray(overlay)
@@ -714,7 +712,7 @@ def create_annotations_calcium(image, bin_size = 2):
         img1 = ImageDraw.Draw(pil_image)   
 
         # thickness calcium
-        max_dist, max_value = get_new_thickness(vessel_com, image)
+        max_dist, max_value = get_new_thickness_calcium(vessel_com, image)
         max_dist = max_dist/0.1
 
         img1.line((max_value[0][1], max_value[0][0], max_value[1][1], max_value[1][0]), fill = 13, width = 3)

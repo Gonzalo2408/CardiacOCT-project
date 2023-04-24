@@ -70,7 +70,7 @@ def main():
     modalities = ('Red', 'Green', 'Blue')
 
     generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, modalities=modalities, dataset_description=dataset_description,
-                        labels={0:'background', 1:'lumen', 2:'guidewire', 3:'   wall', 4:'lipid', 5:'calcium', 
+                        labels={0:'background', 1:'lumen', 2:'guidewire', 3:'wall', 4:'lipid', 5:'calcium', 
                         6:'media', 7:'catheter', 8: 'sidebranch', 9: 'rthrombus', 10:'wthrombus', 11:'dissection', 12:'rupture'}, 
                         dataset_name=task_name, license='hands off!')
 

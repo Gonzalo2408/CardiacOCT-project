@@ -168,12 +168,12 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name, region):
 
 if __name__ == "__main__":
 
-    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/old labelsTs'
-    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/predicted_results_model3_2d'
+    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/labelsTs'
+    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/predicted_results_model2_2d_updated'
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    excel_file = 'calcium_arc_model3_old_test_set'
+    excel_file = 'lipid_arc_model2_new_test_set_pullback'
 
-    get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'calcium')
+    get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'lipid')
 
     #get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'calcium')

@@ -80,9 +80,6 @@ def count_frames_excel(path, segs_folder, excel_name, save_image=False):
         belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
         dataset = annots.loc[annots['Patient'] == patient_name]['Dataset'].values[0]
 
-        if belonging_set == 'Training':
-            continue
-
         for frame in range(len(seg_map_data)):
 
             one_hot = np.zeros(num_classes)
@@ -164,8 +161,8 @@ if __name__ == "__main__":
 
     num_classes = 13
 
-    path = 'Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS'
-    excel_name = 'updated_test_set_measures_with_calcium'
+    path = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 3'
+    excel_name = 'updated_dataset_measures_with_calcium_extra3'
 
     seg_files = os.listdir(path)
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')

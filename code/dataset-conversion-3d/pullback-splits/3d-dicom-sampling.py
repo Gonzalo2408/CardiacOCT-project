@@ -8,7 +8,7 @@ import argparse
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 #annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
-def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
+def generate_new_volume(image, n_frame, n_frames_to_sample = 1):
 
     # TO DO##
     # Add the case in which two annotated frames are very close to each other.
@@ -17,18 +17,17 @@ def generate_new_volume(image, n_frame, n_frames_to_sample = 2):
     rows, cols, n_slices = image.shape
 
     #Check if annot is in first slice (we take frames after only)
-    if n_frame - n_frames_to_sample < 0:
-        frames = np.arange(n_frame, n_frames_to_sample+3)
-        frames_to_sample = frames
+    if n_frame - n_frames_to_sample <= 0:
+        frames = np.arange(n_frames_to_sample, n_frames_to_sample+3)
         
     #Check if annot is at the end of the 3D volume
-    elif n_frame + n_frames_to_sample > n_slices:
-        frames = np.arange((-n_frames_to_sample-3), n_frame)
-        frames_to_sample = frames + n_frame
+    elif n_frame + n_frames_to_sample >= n_slices:
+        frames = np.arange(-n_frames_to_sample-2, n_frames_to_sample)
 
-    frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
+    else:
+        frames = np.arange(-n_frames_to_sample, n_frames_to_sample+1)
+
     frames_to_sample = frames + n_frame
-
     sub_volume = np.zeros((rows, cols, len(frames_to_sample)))
 
     for i in range(len(frames_to_sample)):
@@ -186,12 +185,12 @@ def main(argv):
 
             for frame in range(len(series_pixel_data)):
 
-                resized_image_pixel_data = resize_image(series_pixel_data[frame,:,:,i])
+                #resized_image_pixel_data = resize_image(series_pixel_data[frame,:,:,i])
 
                 #Circular mask as preprocessing (remove Abbott watermark)
-                circular_mask = create_circular_mask(resized_image_pixel_data.shape[0], resized_image_pixel_data.shape[1], radius=346)
+                circular_mask = create_circular_mask(series_pixel_data[frame,:,:,i].shape[0], series_pixel_data[frame,:,:,i].shape[1], radius=346)
 
-                channel_pixel_data[frame,:,:] = np.invert(circular_mask) * resized_image_pixel_data
+                channel_pixel_data[frame,:,:] = np.invert(circular_mask) * series_pixel_data[frame,:,:,i]
 
                 #Check if there are Nan values
                 if np.isnan(channel_pixel_data[frame,:,:]).any():
@@ -212,24 +211,22 @@ def main(argv):
                 else:
                     
                     #Get volume that contains neighboring annotations
-                    sub_volume, _ = generate_cluster_volume(channel_pixel_data_T, frame, frames_list, list_skips)
+                    sub_volume = generate_new_volume(channel_pixel_data_T, frame)
 
                     #Get only "big" volumes
-                    if sub_volume.shape[2] < 30:
-                        continue
+                    #if sub_volume.shape[2] < 30:
+                        #continue
                     
-                    else:
+                    #Fix spacing and direction
+                    print('Writing NIFTI file...')
+                    final_image = sitk.GetImageFromArray(sub_volume.astype(np.uint8))
+                    final_image.SetSpacing((1.0, 1.0, 1.0))
+                    final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
+                    filename_path = new_path_imgs + '/' + patient_name + '_{}_split{}_{}_000{}.nii.gz'.format(n_pullback, n_split, "%03d" % id, i)
 
-                        #Fix spacing and direction
-                        print('Writing NIFTI file...')
-                        final_image = sitk.GetImageFromArray(sub_volume.astype(np.uint8))
-                        final_image.SetSpacing((1.0, 1.0, 1.0))
-                        final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-                        filename_path = new_path_imgs + '/' + patient_name + '_{}_split{}_{}_000{}.nii.gz'.format(n_pullback, n_split, "%03d" % id, i)
+                    sitk.WriteImage(final_image, filename_path)
 
-                        sitk.WriteImage(final_image, filename_path)
-
-                        n_split += 1
+                    n_split += 1
 
         a += 1
         if a > 2:
