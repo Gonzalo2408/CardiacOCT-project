@@ -72,6 +72,10 @@ For more information on the nnUNet architecture and processes, see the [original
 
 ## Post-processing
 
+For the post-processing, we desgined algrithms that perform measurements on the calcium and lipid regions:
+
+
+
 For the post-processing techniques, an algorithm that automatically measures the fibrous cap thickness (FCT) and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a FCT < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient.
 
 ![Figure 2. Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right)](assets/post_proc_intro_image.png)
@@ -123,18 +127,18 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 
 | ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 3D model sparse
 | ------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.981 | 0.981 | 0.986
-| Guidewire  | 0.929 | 0.931 | 0.942
-| Wall | 0.885 | 0.9 | 0.903
-| Lipid | 0.649 | 0.67 | 0.655
-| Calcium | 0.43 | 0.498 | 0.598
-| Media | 0.77 | 0.779 | 0.799
-| Catheter | 0.987 | 0.988 | 0.990
-| Sidebranch | 0.586 | 0.646 | 0.708
-| Red thrombus | 0 | 0.122 | 0.094
+| Lumen  | 0.981 | 0.982 | 0.985
+| Guidewire  | 0.927 | 0.927 | 0.95
+| Wall | 0.87 | 0.896 | 0.9
+| Lipid | 0.691 | 0.709 | 0.694
+| Calcium | 0.502 | 0.523 | 0.58
+| Media | 0.784 | 0.786 | 0.799
+| Catheter | 0.988 | 0.988 | 0.989
+| Sidebranch | 0.67 | 0.725 | 0.764
+| Red thrombus | 0 | 0.088 | 0.094
 | White thrombus | 0 | NaN | 0
-| Dissection | 0 | NaN | NaN
-| Plaque rupture | 0.316 | 0.37 | 0.378 
+| Dissection | NaN | NaN | NaN
+| Plaque rupture | 0.303 | 0.369 | 0.378 
 
 
 ### Lipid arc DICE
@@ -146,34 +150,47 @@ Model | Lipid arc frame-level | Lipid arc pullback-level
 | Model 1 | 0.666 | 0.804
 | Model 2 | 0.759 | 0.834
 | Model 3 | 0.767 | 0.827
-| Model 4 | 0.767 | 0.827
+| Model 4 | 0.768 | 0.842
 
 ### Calcium arc DICE
 
 Similar as with the lipid arc, we computed the DICE for the detected arc of the biggest calcium region that appears in the frame. We also computed the DICE per frame and per pullback.
 
-Model | Lipid arc frame-level | Lipid arc pullback-level
+Model | Calcium arc frame-level | Calcium arc pullback-level
 | ------------- | -------------- | --------------
 | Model 1 | 0.541 | 0.613
 | Model 2 | 0.605 | 0.607
 | Model 3 | 0.661 | 0.694
-| Model 4 | 0.767 | 0.827
+| Model 4 | 0.638 | 0.703
 
 ### Post processing results
 
-For the post-processing measurements, we perfomed a Bland-Altman analysis in order to find the agreement between manual and automatic segmentations.
+For the post-processing results, we report the Bland-Altman analysis and intra-class correlation (ICC) for the measurements on the predictions and the manual measurements.
 
-| Model  | FCT (mean diff / SD) (µm) | Lipid arc (mean diff / SD) (º)
-| ------------- | -------------- | -------------- 
-| 1  | 37.96 ± [230, -150] | 10.57 ± [80, -60]
-| 2  | 35.88 ± [250,  -180] | 6.06 ± [68, -56]
-| 3  | 28.51 ± [190,  -130] | 1.71 ± [54, -50]
+#### Lipid measurements
+
+| Model  | FCT (mean diff / SD) (µm) | Lipid arc (mean diff / SD) (º) | FCT ICC(2,1) | Lipid arc ICC(2,1)
+| ------------- | -------------- | -------------- | -------------- | -------------- 
+| 1  | 29.71 ± 72.36 | 5.87 ± 30.32 | 0.821 | 0.877
+| 2  | 18.1 ± 74.11 | 1.17 ± 24.64 | 0.825 | 0.914
+| 3  | 37.66 ± 95.63 | -2.25 ± 22.04 | 0.714 | 0.932
+| 4  | 28.72 ± 95.52 | -2.7 ± 22.46 | 0.73 |0.929
+
+
+#### Calcium measurements
+
+
+| Model  | Depth (mean diff / SD) (µm) | Calcium arc (mean diff / SD) (º) | Thickness (mean diff /SD) (µm) | Depth ICC(2,1) | Calcium arc ICC(2,1) | Thickness ICC(2,1)
+| ------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- 
+| 1  | -15.22 ± 70.21 | -6.26 ± 13.69 | -92.39 ± 223.31 | 0.748 | 0.898 | 0.757 
+| 2  | -7.5 ± 42.14 | -6.58 ± 14.12 | -51.79 ± 177.36 | 0.922 | 0.891 | 0.858
+| 3  | 10.38 ± 66.21 | -8.77 ± 15.33 | -77.15 ± 177.6 | 0.863 | 0.861 | 0.851
+| 3  | 11.85 ± 52.01 | -8.08 ± 13.32 | -83.04 ± 164.6 | 0.908 | 0.828 | 0.868
 
 
 ## TODO:
- - See manual measurements in detail
- - Solve problem with DA 
- - Do training with the selective volumes (3 frames and/or k-neighbors approach)
+ - Solve problem with DA
+ - Do 3D training with the selective volumes (3 frames and/or k-neighbors approach)
  - Get ideas from [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1) and [Wang et al. (2012)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3370980/) for maybe more exact post processing measurements.
  - Dive into probability maps for uncertainty estimation
 
