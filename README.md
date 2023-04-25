@@ -78,7 +78,7 @@ For the post-processing, we desgined algrithms that perform measurements on the 
 
 An algorithm that automatically measures the fibrous cap thickness (FCT: thickness of the wall that delimitates the lipid and the lumen) and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a FCT < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient.
 
-![Figure 2. Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right)](assets/post_proc_intro_image.png)
+![Figure 2. Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right)](assets/lipid_post_proc_img.png)
 
 
 ### Calcium
