@@ -132,20 +132,20 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 
 ### Results on test set (pullback-level)
 
-| ROI  | 2D model 1st dataset | 2D model 2nd dataset | 2D model 3rd dataset | 3D model sparse
-| ------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.981 | 0.982 | 0.985
-| Guidewire  | 0.927 | 0.927 | 0.95
-| Wall | 0.87 | 0.896 | 0.9
-| Lipid | 0.691 | 0.709 | 0.694
-| Calcium | 0.502 | 0.523 | 0.58
-| Media | 0.784 | 0.786 | 0.799
-| Catheter | 0.988 | 0.988 | 0.989
-| Sidebranch | 0.67 | 0.725 | 0.764
-| Red thrombus | 0 | 0.088 | 0.094
-| White thrombus | 0 | NaN | 0
-| Dissection | NaN | NaN | NaN
-| Plaque rupture | 0.303 | 0.369 | 0.378 
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | 3D sparse model
+| ------------- | -------------- | -------------- | -------------- | -------------- | --------------
+| Lumen  | 0.981 | 0.982 | 0.985 | 0.984
+| Guidewire  | 0.927 | 0.927 | 0.95 | 0.95
+| Wall | 0.87 | 0.896 | 0.9 | 0.902
+| Lipid | 0.691 | 0.709 | 0.694 | | 0.708
+| Calcium | 0.502 | 0.523 | 0.58 | 0.557
+| Media | 0.784 | 0.786 | 0.799 | 0.799
+| Catheter | 0.988 | 0.988 | 0.989 | 0.989
+| Sidebranch | 0.67 | 0.725 | 0.764 | 0.746
+| Red thrombus | 0 | 0.088 | 0.094 | 0.469
+| White thrombus | 0 | NaN | 0 | 0
+| Dissection | NaN | NaN | NaN | NaN
+| Plaque rupture | 0.303 | 0.369 | 0.378 | 0.378 
 
 
 ### Lipid arc DICE
