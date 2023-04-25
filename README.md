@@ -74,11 +74,18 @@ For more information on the nnUNet architecture and processes, see the [original
 
 For the post-processing, we desgined algrithms that perform measurements on the calcium and lipid regions:
 
+### Lipid
 
-
-For the post-processing techniques, an algorithm that automatically measures the fibrous cap thickness (FCT) and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a FCT < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient.
+An algorithm that automatically measures the fibrous cap thickness (FCT: thickness of the wall that delimitates the lipid and the lumen) and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a FCT < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient.
 
 ![Figure 2. Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right)](assets/post_proc_intro_image.png)
+
+
+### Calcium
+
+Similarly, we also developed an algorithm that performs measurements in the calcium region. The script measures the calcium depth (similar as FCT), calcium thickness (the thickness of the biggest calcium plaque, perpendicular to the lumen) and calcium arc (similar as the lipid arc). In this case, the amount of calcium would indicate that the lesion there should be prepared before treating it with a stent. These values are calcium arc > 180º (score of 2 points), thickness > 0.5 mm (1 point). Another parameter which is not included is tbe calcium length (length of the calcium in the longitudinal axis), which  has a threshold of > 5 mm (1 point). This gives a calcium score of 0-4 points. See [Fujino et al.](https://pubmed.ncbi.nlm.nih.gov/29400655/) for more information.
+
+![Figure 3. Example of nnUNet prediction (left) with the calcium measurements (right)](assets/calcium_post:proc_img.png)
 
 ## Results
 
