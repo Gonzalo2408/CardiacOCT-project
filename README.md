@@ -137,7 +137,7 @@ Note that for the test set, there are no frames with white thrombus or dissectio
 | Lumen  | 0.981 | 0.982 | 0.985 | 0.984
 | Guidewire  | 0.927 | 0.927 | 0.95 | 0.95
 | Wall | 0.87 | 0.896 | 0.9 | 0.902
-| Lipid | 0.691 | 0.709 | 0.694 | | 0.708
+| Lipid | 0.691 | 0.709 | 0.694 | 0.708
 | Calcium | 0.502 | 0.523 | 0.58 | 0.557
 | Media | 0.784 | 0.786 | 0.799 | 0.799
 | Catheter | 0.988 | 0.988 | 0.989 | 0.989
