@@ -12,7 +12,7 @@ from output_handling import create_annotations_lipid, create_annotations_calcium
 
 def merge_frames_into_pullbacks(path_predicted):
 
-    pullbacks_origs = os.listdir(path_predicted)
+    pullbacks_origs = [i for i in os.listdir(path_predicted) if '.nii.gz' in i]
     pullbacks_origs_set = []
     pullbacks_dict = {}
 
@@ -168,11 +168,11 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name, region):
 
 if __name__ == "__main__":
 
-    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/labelsTs'
-    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/predicted_results_model2_2d_updated'
+    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task506_CardiacOCT/labelsTs'
+    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model5_pseudo3d_with_maps'
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    excel_file = 'lipid_arc_model2_new_test_set_pullback'
+    excel_file = 'lipid_arc_model5_test_set_pullback'
 
     get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'lipid')
 
