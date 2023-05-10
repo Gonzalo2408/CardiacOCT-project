@@ -49,7 +49,7 @@ The general preprocessing consisted of reshaping the images to a common size, wh
 
 ### 2D approach
 
-For the 2D approach, the slices that did not contain any label were omitted. Thus, each slice for every pullback in the dataset was saved to a single NifTI file. In addition, each channel in the slice (RGB values) were saved separately as well, obtaining 3 files for each frame in the pullback. Similiary, each segmentation frame was saved in a different NifTI file. In this case, the segmentation is 1-dimensional, so there was no need to create a file for each dimension.
+For the 2D approach, the slices that did not contain any label were omitted. Thus, each slice for every pullback in the dataset was saved to a single NifTI file. In addition, each channel in the slice (RGB values) was saved separately as well, obtaining 3 files for each frame in the pullback. Similiary, each segmentation frame was saved in a different NifTI file. In this case, the segmentation is 1-dimensional, so there was no need to create a file for each dimension.
 
 For the first and second training, a linear interpolation resampler was used for both segmentations and images. In the case of the images, a circular mask with radius 340 was applied. Next, each 2D frame was converted to a pseudo 3D scan by including and extra dimension of shape 1, having a final shape of (1, 704, 704). Finally, the spacing and direction of the frame was set to (1.0, 1.0, 1.0) and (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), respectively.
 
@@ -59,8 +59,15 @@ In the fourth training, we fixed the spacing of certain images. The raw images/s
 
 ### 3D approach
 
-For the 3D version of the nnUNet, a sparse trainer was used. In this case, the loss function is computed using slices that contain annotations in each 3D volume (DC + CE loss). The frames that do not contain any label have a segmentation map that only contains -1, in order for the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model (fourth training), in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
+For the 3D version of the nnUNet, a sparse trainer was initially used. In this case, the loss function is computed using slices that contain annotations in each 3D volume (DC + CE loss). The frames that do not contain any label have a segmentation map that only contains -1, in order for the algorithm to detect unlabeled data. The preprocessing steps are very similar to the 2D model (fourth training), in which each pullback is separated into its RGB values and each volume is saved separately in different NifTI files. Then, the main difference is that now whole 3D volumes are saved, rather than single 2d frames.
 
+(Write about that didnt work and used approaches)
+
+### Pseudo 3D approach
+
+In this case, we still made use of the 2D nnUNet. However, for each frame with annotation, be sampled k frames before and k frames after in order to store some spatial information. We included these frames in the training as modalities for the frame with annotation. That is, we stored the RGB channels for each neighbour frame. If the annotation is the first frame, then the frame(s) before is simply a black image (array with 0s). A nice study by [Chu et al. (2021)](https://eurointervention.pcronline.com/article/automatic-characterisation-of-human-atherosclerotic-plaque-composition-from-intravascular-optical-coherence-tomography-using-artificial-intelligence) used a similar approach
+
+In particular, we have tried with one frame before and one after (getting a total of 9 modalities). Currently, we are sampling 7 frames before and 7 after, getting a total of 45 files for a single annotation. Moreover, for this new training, we are employing class weights for account the class imbalanace and a weighted loss function (DC loss is weighted more to account for this clas imbalance as well). This training is still under construction.
 
 ## Training
 
@@ -95,59 +102,59 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 
 ### Results of best cross-validation model
 
-| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | 3D sparse model
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.977 | 0.979 | 0.987 | 0.987 |
-| Guidewire  | 0.919 | 0.924 | 0.947 | 0.946 |
-| Wall | 0.883 | 0.892 | 0.901 | 0.899 |
-| Lipid | 0.491 | 0.517 | 0.569 | 0.578 |
-| Calcium | 0.426 | 0.447 | 0.589 | 0.604 |
-| Media | 0.746 | 0.762 | 0.772 | 0.765 |
-| Catheter | 0.981 | 0.984 | 0.992 | 0.992 |
-| Sidebranch | 0.441 | 0.461 | 0.533 | 0.535 |
-| Red thrombus | 0.436 | 0.463 | 0.479 | 0.486 |
-| White thrombus | 0.321 | 0.33 | 0.378 | 0.393 |
-| Dissection | 0.06 | 0.0004 | 0 | 0 |
-| Plaque rupture | 0.471 | 0.429 | 0.542 | 0.527 |
+| Lumen  | 0.977 | 0.979 | 0.987 | 0.987 | 0.987
+| Guidewire  | 0.919 | 0.924 | 0.947 | 0.946 | 0.947
+| Wall | 0.883 | 0.892 | 0.901 | 0.899 | 0.899
+| Lipid | 0.491 | 0.517 | 0.569 | 0.578 | 0.579
+| Calcium | 0.426 | 0.447 | 0.589 | 0.604 | 0.603
+| Media | 0.746 | 0.762 | 0.772 | 0.765 | 0.769
+| Catheter | 0.981 | 0.984 | 0.992 | 0.992 | 0.992
+| Sidebranch | 0.441 | 0.461 | 0.533 | 0.535 | 0.546
+| Red thrombus | 0.436 | 0.463 | 0.479 | 0.486 | 0.459
+| White thrombus | 0.321 | 0.33 | 0.378 | 0.393 | 0.382
+| Dissection | 0.06 | 0.0004 | 0 | 0 | 0
+| Plaque rupture | 0.471 | 0.429 | 0.542 | 0.527 | 0.554
 
 
 ### Results on test set (frame-level)
 
 
-| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | 3D sparse model
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.976 | 0.978 | 0.981 |0.981 |
-| Guidewire  | 0.926 | 0.926 | 0.949 | 0.95 | 
-| Wall | 0.87 | 0.883 | 0.89 | 0.892 |
-| Lipid | 0.5 | 0.594 | 0.596 | 0.617 |
-| Calcium | 0.283 | 0.292 | 0.544 | 0.531 |
-| Media | 0.756 | 0.767 | 0.784 | 0.787 |
-| Catheter | 0.988 | 0.988 | 0.989 | 0.989
-| Sidebranch | 0.518 | 0.564 | 0.592 | 0.542
-| Red thrombus | 0 | 0.039 | 0.094 | 0.324 
-| White thrombus | 0 | NaN | 0 | 0
-| Dissection | NaN | NaN | NaN | NaN
-| Plaque rupture | 0.48 | 0.587 | 0.605 | 0.607
+| Lumen  | 0.976 | 0.978 | 0.981 | 0.981 | 0.979
+| Guidewire  | 0.926 | 0.926 | 0.949 | 0.95 | 0.952
+| Wall | 0.87 | 0.883 | 0.89 | 0.892 | 0.891
+| Lipid | 0.5 | 0.594 | 0.596 | 0.617 | 0.622
+| Calcium | 0.283 | 0.292 | 0.544 | 0.531 | 0.554
+| Media | 0.756 | 0.767 | 0.784 | 0.787 | 0.783
+| Catheter | 0.988 | 0.988 | 0.989 | 0.989 | 0.988
+| Sidebranch | 0.518 | 0.564 | 0.592 | 0.542 | 0.578
+| Red thrombus | 0 | 0.039 | 0.094 | 0.324 | 0.111
+| White thrombus | 0 | NaN | 0 | 0 | 0
+| Dissection | NaN | NaN | NaN | NaN | NaN
+| Plaque rupture | 0.48 | 0.587 | 0.605 | 0.607 | 0.628
 
 Note that for the test set, there are no frames with white thrombus or dissections, meaning that the best prediction for these regions would be NaN (i.e no false positives with white thrombus or dissection). Again, we see a great increase in lipid and calcium from the second dataset to the third dataset. We think that the different pre-processing techniques may have played an important role in the outcome of the third model
 
 
 ### Results on test set (pullback-level)
 
-| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | 3D sparse model
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.981 | 0.982 | 0.985 | 0.984
-| Guidewire  | 0.927 | 0.927 | 0.95 | 0.95
-| Wall | 0.87 | 0.896 | 0.9 | 0.902
-| Lipid | 0.691 | 0.709 | 0.694 | 0.708
-| Calcium | 0.502 | 0.523 | 0.58 | 0.557
-| Media | 0.784 | 0.786 | 0.799 | 0.799
-| Catheter | 0.988 | 0.988 | 0.989 | 0.989
-| Sidebranch | 0.67 | 0.725 | 0.764 | 0.746
-| Red thrombus | 0 | 0.088 | 0.094 | 0.469
-| White thrombus | 0 | NaN | 0 | 0
-| Dissection | NaN | NaN | NaN | NaN
-| Plaque rupture | 0.303 | 0.369 | 0.378 | 0.378 
+| Lumen  | 0.981 | 0.982 | 0.985 | 0.984 | 0.984
+| Guidewire  | 0.927 | 0.927 | 0.95 | 0.95 | 0.952
+| Wall | 0.87 | 0.896 | 0.9 | 0.902 | 0.899
+| Lipid | 0.691 | 0.709 | 0.694 | 0.708 | 0.704
+| Calcium | 0.502 | 0.523 | 0.58 | 0.557 | 0.632
+| Media | 0.784 | 0.786 | 0.799 | 0.799 | 0.795
+| Catheter | 0.988 | 0.988 | 0.989 | 0.989 | 0.989
+| Sidebranch | 0.67 | 0.725 | 0.764 | 0.746 | 0.733
+| Red thrombus | 0 | 0.088 | 0.094 | 0.469 | 0.222
+| White thrombus | 0 | NaN | 0 | 0 | 0
+| Dissection | NaN | NaN | NaN | NaN | NaN
+| Plaque rupture | 0.303 | 0.369 | 0.378 | 0.378 | 0.389 
 
 
 ### Lipid arc DICE
@@ -160,6 +167,8 @@ Model | Lipid arc frame-level | Lipid arc pullback-level
 | Model 2 | 0.759 | 0.834
 | Model 3 | 0.767 | 0.827
 | Model 4 | 0.768 | 0.842
+| Model 5 | 0.756 | 0.835
+
 
 ### Calcium arc DICE
 
@@ -171,6 +180,7 @@ Model | Calcium arc frame-level | Calcium arc pullback-level
 | Model 2 | 0.605 | 0.607
 | Model 3 | 0.661 | 0.694
 | Model 4 | 0.638 | 0.703
+| Model 5 | 0.657 | 0.791
 
 ### Post processing results
 
@@ -183,7 +193,8 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | 1  | 29.71 ± 72.36 | 5.87 ± 30.32 | 0.821 | 0.877
 | 2  | 18.1 ± 74.11 | 1.17 ± 24.64 | 0.825 | 0.914
 | 3  | 37.66 ± 95.63 | -2.25 ± 22.04 | 0.714 | 0.932
-| 4  | 28.72 ± 95.52 | -2.7 ± 22.46 | 0.73 |0.929
+| 4  | 28.72 ± 95.52 | -2.7 ± 22.46 | 0.73 | 0.929
+| 5  | 38.81 ± 107.42 | -0.86 ± 25.67 | 0.656 | 0.911
 
 
 #### Calcium measurements
@@ -194,12 +205,12 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | 1  | -15.22 ± 70.21 | -6.26 ± 13.69 | -92.39 ± 223.31 | 0.748 | 0.898 | 0.757 
 | 2  | -7.5 ± 42.14 | -6.58 ± 14.12 | -51.79 ± 177.36 | 0.922 | 0.891 | 0.858
 | 3  | 10.38 ± 66.21 | -8.77 ± 15.33 | -77.15 ± 177.6 | 0.863 | 0.861 | 0.851
-| 3  | 11.85 ± 52.01 | -8.08 ± 13.32 | -83.04 ± 164.6 | 0.908 | 0.828 | 0.868
+| 4  | 11.85 ± 52.01 | -8.08 ± 13.32 | -83.04 ± 164.6 | 0.908 | 0.828 | 0.868
+| 5  | 14.08 ± 57.13 | -9.08 ± 17.63 | -67.35 ± 162.38 | 0.894 | 0.823 | 0.874
 
 
 ## TODO:
- - Solve problem with DA
- - Do 3D training with the selective volumes (3 frames and/or k-neighbors approach)
- - Get ideas from [Lee et al. (2022)](https://www.nature.com/articles/s41598-022-24884-1) and [Wang et al. (2012)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3370980/) for maybe more exact post processing measurements.
+ - Train pseudo 3d (7 frames before and after)
+ - Fix class weights and weighted loss
  - Dive into probability maps for uncertainty estimation
 

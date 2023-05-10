@@ -1,0 +1,13 @@
+## Uncertainty estimation
+
+Usually, neural networks are too overconfident in their results, meaning that the probability to belong to a label that the model asigns to each pixel does not always relate to the true accuracy of that label. That is why we are building some uncertainty metrics in order to see how well calibrated is our model and give more insight to clinicians. 
+
+### Probability maps
+
+The nnUNet allows to store the probability maps for each image. That is, for each pixel, we get the softmax probabilities for each label (note that these probabilities sum 1). While these already give some information on how certain the model is about a prediction, it is usually overconfident. However, we also retrieved them as you can see in the corresponding Jupyter notebook. It basically plots like a "heatmap", so the areas with more clear softmax probability are yellow, and those areas with more uncertain softmax probabilities are blue.
+
+### Calibration and temperature scaling
+
+Metrics such as the Expected Calibration Error (ECE) can give some information about the calibration of the neural network
+
+Lorem ipsum...
