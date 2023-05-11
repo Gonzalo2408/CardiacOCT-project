@@ -6,7 +6,7 @@ Usually, neural networks are too overconfident in their results, meaning that th
 
 The nnUNet allows to store the probability maps for each image. That is, for each pixel, we get the softmax probabilities for each label (note that these probabilities sum 1). While these already give some information on how certain the model is about a prediction, it is usually overconfident. However, we also retrieved them as you can see in the corresponding Jupyter notebook. It basically plots like a "heatmap", so the areas with more clear softmax probability are yellow, and those areas with more uncertain softmax probabilities are blue.
 
-![Figure 1. Example of probability map as overlay and corresponding image. It is worth noting that edges are always uncertain regions, but other tiny blue regions can be seen as well](assets/prob_map.png)
+![Figure 1. Example of probability map as overlay and corresponding image. It is worth noting that edges are always uncertain regions, but other tiny blue regions can be seen as well](/assets/prob_map.png)
 
 ### Calibration and temperature scaling
 
