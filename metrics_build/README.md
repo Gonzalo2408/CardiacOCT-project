@@ -19,7 +19,7 @@ This folder contains a comparison of the Silvan's initial model and the latest m
 
 ### Statistical analysis
 
-These analyis can be seen in the **statistics** folder. An overview on the test set (both old and new test set) can be seen in the Excel file in that folder. Basically, we computed the analysis for the lipid (FCT and arc) and calcium (depth, thickness and arc), in which we compare the measurements on the predictions with the annotator measurements. We compute for each case the Bland-Altman plots (obtaining the mean difference of automated and manual measurements), intra-class correlation (ICC) and standard deviation (SD). The plots and code can be seen in the Jupyter Notebooks in that folder.
+These analyis can be seen in the **statistics** folder. An overview on the test set (both old and new test set) can be seen in the Excel file in that folder. Basically, we computed the analysis for the lipid (FCT and arc) and calcium (depth, thickness and arc), in which we compare the measurements on the predictions with the annotator measurements. We compute for each case the Bland-Altman plots (obtaining the mean difference of automated and manual measurements), intra-class correlation (ICC) and standard deviation (SD). Moreover, we obtained the confusion matrix for each case and the outliers in the measurements compared to the manual annotation The plots and code can be seen in the Jupyter Notebooks in that folder.
 
 
 
