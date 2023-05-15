@@ -54,7 +54,7 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
 
     for file in segs_dir:
 
-        if file.endswith('.npz') or file.endswith('.pkl'):
+        if 'NLDAMPH0028' not in file or file.endswith('nii.gz') == False:
             continue
 
         else:
@@ -141,7 +141,7 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
                 
                     #Overlay image
                     seg_image.paste(post_proc_image, (0,0), post_proc_image)
-                    seg_image.save('Z:/grodriguez/CardiacOCT/post-processing/post-proc-imgs-model3-2d/{}_frame{}.png'.format(pullback_name, n_frame))
+                    seg_image.save('Z:/grodriguez/CardiacOCT/post-processing/post-proc-imgs-model5/{}_frame{}.png'.format(pullback_name, n_frame))
 
             else:
                 continue
@@ -198,9 +198,9 @@ if __name__ == "__main__":
 
     num_classes = 13
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    #path_preds = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model1_pseudo3d_with_maps'
-    path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task506_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed'
-    preds_list = sorted(os.listdir(path_preds))[:-1]
+    path_preds = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model5_pseudo3d_with_maps'
+    #path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task506_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed'
+    preds_list = sorted(os.listdir(path_preds))
     name_excel = 'val_pred_measurements_with_cal_model5'
 
     build_excel_frames(path_preds, preds_list, name_excel)

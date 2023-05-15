@@ -123,18 +123,18 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 
 | ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.976 | 0.978 | 0.981 | 0.981 | 0.979
-| Guidewire  | 0.926 | 0.926 | 0.949 | 0.95 | 0.952
-| Wall | 0.87 | 0.883 | 0.89 | 0.892 | 0.891
-| Lipid | 0.5 | 0.594 | 0.596 | 0.617 | 0.622
-| Calcium | 0.283 | 0.292 | 0.544 | 0.531 | 0.554
-| Media | 0.756 | 0.767 | 0.784 | 0.787 | 0.783
-| Catheter | 0.988 | 0.988 | 0.989 | 0.989 | 0.988
-| Sidebranch | 0.518 | 0.564 | 0.592 | 0.542 | 0.578
-| Red thrombus | 0 | 0.039 | 0.094 | 0.324 | 0.111
-| White thrombus | 0 | NaN | 0 | 0 | 0
-| Dissection | NaN | NaN | NaN | NaN | NaN
-| Plaque rupture | 0.48 | 0.587 | 0.605 | 0.607 | 0.628
+| Lumen  | 0.976 | 0.978 | 0.981 | 0.981 | 0.974
+| Guidewire  | 0.928 | 0.929 | 0.951 | 0.952 | 0.952
+| Wall | 0.874 | 0.887 | 0.894 | 0.896 | 0.881
+| Lipid | 0.527 | 0.607 | 0.617 | 0.632 | 0.619
+| Calcium | 0.282 | 0.291 | 0.529 | 0.491 | 0.514
+| Media | 0.749 | 0.761 | 0.783 | 0.785 | 0.756
+| Catheter | 0.989 | 0.989 | 0.989 | 0.989 | 0.989
+| Sidebranch | 0.443 | 0.491 | 0.514 | 0.47 | 0.487
+| Red thrombus | 0 | 0.014 | 0.026 | 0.092 | 0.028
+| White thrombus | 0.198 | 0.227 | 0.288 | 0.299 | 0.037
+| Dissection | 0.0004 | 0 | 0 | 0 | 0
+| Plaque rupture | 0.343 | 0.326 | 0.252 | 0.379 | 0.314
 
 
 (Write new stuff when done predictions)
@@ -144,18 +144,18 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 
 | ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.981 | 0.982 | 0.985 | 0.984 | 0.984
-| Guidewire  | 0.927 | 0.927 | 0.95 | 0.95 | 0.952
-| Wall | 0.87 | 0.896 | 0.9 | 0.902 | 0.899
-| Lipid | 0.691 | 0.709 | 0.694 | 0.708 | 0.704
-| Calcium | 0.502 | 0.523 | 0.58 | 0.557 | 0.632
-| Media | 0.784 | 0.786 | 0.799 | 0.799 | 0.795
-| Catheter | 0.988 | 0.988 | 0.989 | 0.989 | 0.989
-| Sidebranch | 0.67 | 0.725 | 0.764 | 0.746 | 0.733
-| Red thrombus | 0 | 0.088 | 0.094 | 0.469 | 0.222
-| White thrombus | 0 | NaN | 0 | 0 | 0
-| Dissection | NaN | NaN | NaN | NaN | NaN
-| Plaque rupture | 0.303 | 0.369 | 0.378 | 0.378 | 0.389 
+| Lumen  | 0.976 | 0.982 | 0.985 | 0.984 | 0.981
+| Guidewire  | 0.928 | 0.928 | 0.951 | 0.951 | 0.952
+| Wall | 0.887 | 0.897 | 0.902 | 0.904 | 0.896
+| Lipid | 0.696 | 0.713 | 0.701 | 0.713 | 0.705
+| Calcium | 0.512 | 0.528 | 0.596 | 0.562 | 0.638
+| Media | 0.777 | 0.781 | 0.797 | 0.798 | 0.779
+| Catheter | 0.989 | 0.989 | 0.989 | 0.989 | 0.989
+| Sidebranch | 0.668 | 0.728 | 0.764 | 0.749 | 0.707
+| Red thrombus | 0 | 0.044 | 0.047 | 0.234 | 0.111
+| White thrombus | 0.137 | 0.278 | 0.21 | 0.232 | 0.035
+| Dissection | 0.0004 | 0 | 0 | 0 | 0
+| Plaque rupture | 0.202 | 0.246 | 0.252 | 0.252 | 0.259
 
 
 ### Lipid arc DICE
@@ -164,11 +164,11 @@ Inspired by the approaches in the study by [Lee et al. (2022)](https://www.natur
 
 Model | Lipid arc frame-level | Lipid arc pullback-level
 | ------------- | -------------- | --------------
-| Model 1 | 0.666 | 0.804
-| Model 2 | 0.759 | 0.834
-| Model 3 | 0.767 | 0.827
-| Model 4 | 0.768 | 0.842
-| Model 5 | 0.756 | 0.835
+| Model 1 | 0.682 | 0.806
+| Model 2 | 0.764 | 0.836
+| Model 3 | 0.783 | 0.831
+| Model 4 | 0.776 | 0.845
+| Model 5 | 0.753 | 0.835
 
 
 ### Calcium arc DICE
@@ -177,11 +177,11 @@ Similar as with the lipid arc, we computed the DICE for the detected arc of the 
 
 Model | Calcium arc frame-level | Calcium arc pullback-level
 | ------------- | -------------- | --------------
-| Model 1 | 0.541 | 0.613
-| Model 2 | 0.605 | 0.607
-| Model 3 | 0.661 | 0.694
-| Model 4 | 0.638 | 0.703
-| Model 5 | 0.657 | 0.791
+| Model 1 | 0.515 | 0.616
+| Model 2 | 0.568 | 0.606
+| Model 3 | 0.657 | 0.699
+| Model 4 | 0.589 | 0.699
+| Model 5 | 0.641 | 0.779
 
 ### Post processing results
 
@@ -191,27 +191,27 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 
 | Model  | FCT (mean diff / SD) (µm) | Lipid arc (mean diff / SD) (º) | FCT ICC(2,1) | Lipid arc ICC(2,1)
 | ------------- | -------------- | -------------- | -------------- | -------------- 
-| 1  | 29.71 ± 72.36 | 5.87 ± 30.32 | 0.821 | 0.877
-| 2  | 18.1 ± 74.11 | 1.17 ± 24.64 | 0.825 | 0.914
-| 3  | 37.66 ± 95.63 | -2.25 ± 22.04 | 0.714 | 0.932
-| 4  | 28.72 ± 95.52 | -2.7 ± 22.46 | 0.73 | 0.929
-| 5  | 38.81 ± 107.42 | -0.86 ± 25.67 | 0.656 | 0.911
+| 1  | 27.09 ± 73.69 | 13.03 ± 35.59 | 0.784 | 0.805
+| 2  | 19.54 ± 62.47 | 7.16 ± 27.98 | 0.847 | 0.875
+| 3  | 34.28 ± 90.48 | 2.77 ± 26.06 | 0.701 | 0.898
+| 4  | 26.64 ± 87.29 | 2.23 ± 25.96 | 0.735 | 0.899
+| 5  | 38.42 ± 105.46 | 2.84 ± 30.17 | 0.609 | 0.867
 
 
 #### Calcium measurements
 
 
-| Model  | Depth (mean diff / SD) (µm) | Calcium arc (mean diff / SD) (º) | Thickness (mean diff /SD) (µm) | Depth ICC(2,1) | Calcium arc ICC(2,1) | Thickness ICC(2,1)
+| Model  | Depth (mean diff / SD) (µm) | Arc (mean diff / SD) (º) | Thickness (mean diff /SD) (µm) | Depth ICC(2,1) | Calcium arc ICC(2,1) | Thickness ICC(2,1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- 
-| 1  | -15.22 ± 70.21 | -6.26 ± 13.69 | -92.39 ± 223.31 | 0.748 | 0.898 | 0.757 
-| 2  | -7.5 ± 42.14 | -6.58 ± 14.12 | -51.79 ± 177.36 | 0.922 | 0.891 | 0.858
-| 3  | 10.38 ± 66.21 | -8.77 ± 15.33 | -77.15 ± 177.6 | 0.863 | 0.861 | 0.851
-| 4  | 11.85 ± 52.01 | -8.08 ± 13.32 | -83.04 ± 164.6 | 0.908 | 0.828 | 0.868
-| 5  | 14.08 ± 57.13 | -9.08 ± 17.63 | -67.35 ± 162.38 | 0.894 | 0.823 | 0.874
+| 1  | -10.5 ± 67.99 | -9.31 ± 15.57 | -96.88 ± 215.88 | 0.751 | 0.854 | 0.755 
+| 2  | -6.07 ± 40.02 | -9.26 ± 16.88 | -48.63 ± 168.07 | 0.926 | 0.838 | 0.862
+| 3  | 10.03 ± 62.12 | -9.53 ± 14.94 | -75.83 ± 171.84 | 0.869 | 0.863 | 0.85
+| 4  | 8.28 ± 50.93 | -9.59 ± 17.71 | -79.03 ± 162.41 | 0.91 | 0.812 | 0.862
+| 5  | 14 ± 57.53 | -11.27 ± 17.48 | - 72.4 ± 156.54 | 0.887 | 0.809 | 0.871
 
 
 ## TODO:
- - Train pseudo 3d (7 frames before and after)
- - Fix class weights and weighted loss
- - Dive into probability maps for uncertainty estimation
+ - Train pseudo 3d (+- 2 frames)
+ - See training with bigger k and using grayscale (problems with OOM)
+ - Dive into probability maps for uncertainty estimation and calibration techniques
 

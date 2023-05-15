@@ -146,8 +146,8 @@ def main(argv):
                 #Get DICE score from frame
                 for sub_dict in summary['results']['all']:
                     
-                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task506_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(file):
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/predicted_results_model5_pseudo3d_with_maps/{}'.format(file):
+                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task506_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(file):
+                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/new_pullback_pred_model1/{}'.format(file):
                         list_dicts_per_frame.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
                         break
                     else:

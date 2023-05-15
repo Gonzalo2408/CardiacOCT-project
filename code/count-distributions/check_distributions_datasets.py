@@ -67,6 +67,9 @@ def count_frames_excel(path, segs_folder, excel_name, save_image=False):
 
     for file in segs_folder:
 
+        if file.endswith('nii.gz') == False or 'NLD-AMPH-0028' not in file:
+            continue
+
         print('Counting in image ', file)
 
         seg_map = sitk.ReadImage(path + '/' + file)
@@ -146,7 +149,7 @@ def count_frames_excel(path, segs_folder, excel_name, save_image=False):
                         post_proc_image = Image.fromarray(post_image_array)
                     
                         seg_image.paste(post_proc_image, (0,0), post_proc_image)
-                        seg_image.save('Z:/grodriguez/CardiacOCT/post-processing/post-proc-imgs-orig/{}_frame{}.png'.format(pullback_name, frame))
+                        seg_image.save('Z:/grodriguez/CardiacOCT/post-processing/post-proc-imgs-model5/{}_frame{}.png'.format(pullback_name, frame))
 
                 else:
                     continue
@@ -161,8 +164,8 @@ if __name__ == "__main__":
 
     num_classes = 13
 
-    path = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 3'
-    excel_name = 'updated_dataset_measures_with_calcium_extra3'
+    path = r'Z:\grodriguez\CardiacOCT\data-original\new_pullback_seg'
+    excel_name = 'new_pullback'
 
     seg_files = os.listdir(path)
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
