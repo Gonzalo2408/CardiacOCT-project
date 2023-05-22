@@ -47,9 +47,6 @@ def mean_metrics(list_dicts):
 
             else:
                 result[label].append(metrics['Dice'])
-
-    # for label, dices in result.items():
-    #     result[label] = np.nanmean(dices)
             
     return result
 
@@ -57,14 +54,16 @@ def mean_metrics(list_dicts):
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--results_folder', type=str)
     parser.add_argument('--mode', type=str)
     parser.add_argument('--new_json_file', type=str)
+    parser.add_argument('--folder', type=str)
     args, unknown = parser.parse_known_args(argv)
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+    #test_folder = "Z:/grodriguez/CardiacOCT/preds-test-set/{}".format(args.folder)
+    test_folder = "Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed"
 
-    json_results_file = args.results_folder+'/summary.json'
+    json_results_file = os.path.join(test_folder, 'summary.json')
 
     #Load raw
     with open(json_results_file) as f:
@@ -73,7 +72,7 @@ def main(argv):
     if args.mode == 'pullback':
 
         #Obtain list of frames for each pullback
-        pullbacks_dict = merge_frames_into_pullbacks(args.results_folder)
+        pullbacks_dict = merge_frames_into_pullbacks(test_folder)
 
         final_dict = {}
 
@@ -87,8 +86,8 @@ def main(argv):
                 for sub_dict in summary['results']['all']:
 
                     #Select between these according to the folder you are in!!
-                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task506_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/predicted_results_model5_pseudo3d_with_maps/{}'.format(frame):
+                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
+                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/{}/{}'.format(args.folder, frame):
 
                         #We omit the last two values since they are just a string (check in json file)
                         list_dicts_pullback.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
@@ -123,7 +122,7 @@ def main(argv):
 
         final_dict = {}
         
-        for file in os.listdir(args.results_folder):
+        for file in os.listdir(test_folder):
 
             if file.endswith('.nii.gz'):
 
@@ -146,8 +145,8 @@ def main(argv):
                 #Get DICE score from frame
                 for sub_dict in summary['results']['all']:
                     
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task506_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(file):
-                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/new_pullback_pred_model1/{}'.format(file):
+                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(file):
+                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/{}/{}'.format(args.folder, file):
                         list_dicts_per_frame.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
                         break
                     else:

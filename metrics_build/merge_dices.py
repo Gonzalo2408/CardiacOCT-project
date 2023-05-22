@@ -33,7 +33,7 @@ def merge_frames_into_pullbacks(path_predicted):
     return pullbacks_dict
 
 
-path = 'Z:/grodriguez/CardiacOCT/preds-test-set/new_pullback_pred_model1'
+path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps'
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 merged_pullbacks = merge_frames_into_pullbacks(path)
 num_classes = 13
@@ -68,8 +68,8 @@ for pullback in merged_pullbacks.keys():
 
         for frame in merged_pullbacks[pullback]:
 
-            seg_map_data_pred = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/preds-test-set/new_pullback_pred_model1/{}'.format(frame)))[0]
-            seg_map_data_orig = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task508_CardiacOCT/labelsTs/{}'.format(frame)))[0]
+            seg_map_data_pred = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps/{}'.format(frame)))[0]
+            seg_map_data_orig = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task507_CardiacOCT/labelsTs/{}'.format(frame)))[0]
 
             rows, cols = seg_map_data_orig.shape
 
@@ -99,5 +99,5 @@ for pullback in merged_pullbacks.keys():
     final_dict[pullback_name] = dices_dict
 
 
-with open('./pullback_model_1_test_dice.json', 'w') as f:
+with open('./pullback_model6_test_dice.json', 'w') as f:
     json.dump(final_dict, f, indent=4)

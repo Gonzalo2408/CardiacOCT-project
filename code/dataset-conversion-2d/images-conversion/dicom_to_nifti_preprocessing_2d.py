@@ -48,11 +48,12 @@ def resize_image(raw_frame, downsample = True):
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str)
+    parser.add_argument('--data', type=str, default=r'Z:\grodriguez\CardiacOCT\data-original\new_pullback')
     args, _ = parser.parse_known_args(argv)
 
+    #/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx
     parent_path = args.data
-    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+    annots = pd.read_excel(r'Z:\grodriguez\CardiacOCT\excel-files\train_test_split_final.xlsx')
 
     files = os.listdir(parent_path)
 
@@ -64,12 +65,12 @@ def main(argv):
 
         if belonging_set == 'Testing':
 
-            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTs'
-            output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
+            output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
+            #output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
 
         else:
-            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task503_CardiacOCT/imagesTr'
-            output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTr'
+            output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTr'
+            #output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTr'
 
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
         pullback_name = file.split('.')[0]

@@ -19,17 +19,40 @@ def create_circular_mask(h, w, center=None, radius=None):
     mask = np.expand_dims(mask,0)
     return mask
 
+def sample_around(image, frame, n_channel, k):
+
+    neighbors = np.arange(frame-k, frame+k+1)
+
+    frames_around = np.zeros((image.shape[1], image.shape[2], len(neighbors)))
+
+    for i in range(len(neighbors)):
+
+        if neighbors[i] < 0 or neighbors[i] >= image.shape[0]:
+
+            frames_around[:,:,i] = np.zeros((image.shape[1], image.shape[2]))
+
+        else:
+            frames_around[:,:,i] = image[neighbors[i],:,:, n_channel]
+
+    return frames_around
 
 def main(argv):
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/scans-DICOM')
+    parser.add_argument('--task', type=str, default='Task507_CardiacOCT')
+    parser.add_argument('--k', type=int, default=2)
     args, _ = parser.parse_known_args(argv)
 
     parent_path = args.data
+    
+    
     annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
     files = os.listdir(parent_path)
+
+    #Frames we want to sample around annotation 
+    print('We are sampling {} frames before and {} frames after each annotation'.format(args.k, args.k))
 
     for file in files:
 
@@ -39,16 +62,18 @@ def main(argv):
 
         if belonging_set == 'Testing':
 
-            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task506_CardiacOCT/imagesTs'
-            output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task506_CardiacOCT/imagesTs'
+            output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/imagesTs'.format(args.task)
+            #output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/imagesTs'.format(args.task)
 
         else:
-            #output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task506_CardiacOCT/imagesTr'
-            output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task506_CardiacOCT/imagesTr'
+            
+            output_file_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/imagesTr'.format(args.task)
+            #output_file_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/imagesTr'.format(args.task)
 
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
         pullback_name = file.split('.')[0]
         n_pullback = int(annots.loc[annots['Pullback'] == pullback_name]['Nº pullback'].values[0])
+
         print('Reading image ', file)
 
         #Load the files to create a list of slices
@@ -67,55 +92,36 @@ def main(argv):
 
                 if frame in frames_list:
 
-                    if os.path.exists(output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, n_channel)):
-                        print('File already exists')
-                        continue
+                    count = 0
 
-                    #Get frames before and after as modality
-                    raw_frame = series_pixel_data[frame,:,:,n_channel]
-                    
-                    if frame == 0:
-                        raw_frame_before = np.zeros((series_pixel_data[frame,:,:,n_channel].shape))
-                        raw_frame_after = series_pixel_data[frame+1,:,:,n_channel]
+                    frames_around = sample_around(series_pixel_data, frame, n_channel, args.k)
 
-                    elif frame + 1 == len(series_pixel_data):
-                        raw_frame_before = series_pixel_data[frame-1,:,:,n_channel]
-                        raw_frame_after = np.zeros((series_pixel_data[frame,:,:,n_channel].shape))
+                    for new_frame in range(frames_around.shape[2]):
 
-                    else:
-                        raw_frame_before = series_pixel_data[frame-1,:,:,n_channel]
-                        raw_frame_after = series_pixel_data[frame+1,:,:,n_channel]
+                        if os.path.exists(output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_{}.nii.gz'.format(n_pullback, frame, "%03d" % id, "%04d" % (count+n_channel))):
+                            print('File already exists')
+                            count += 3
+                            continue
 
-                    #Apply circular mask
-                    circular_mask = create_circular_mask(raw_frame.shape[0], raw_frame.shape[1], radius=346)
-                    mask_channel = np.invert(circular_mask) * raw_frame
-                    mask_channel_before = np.invert(circular_mask) * raw_frame_before
-                    mask_channel_after = np.invert(circular_mask) * raw_frame_after
+                        else:
+                        
+                            #Apply circular mask
+                            circular_mask = create_circular_mask(frames_around[:,:,new_frame].shape[0], frames_around[:,:,new_frame].shape[1], radius=346)
+                            mask_channel = np.invert(circular_mask) * frames_around[:,:,new_frame]
 
-                    #Check if there are Nan values
-                    if np.isnan(mask_channel).any() or np.isnan(mask_channel_before).any() or np.isnan(mask_channel_after).any():
-                        raise ValueError('NaN detected')
+                            #Check if there are Nan values
+                            if np.isnan(mask_channel).any():
+                                raise ValueError('NaN detected')
 
-
-                    final_image = sitk.GetImageFromArray(mask_channel)
-                    final_image.SetSpacing((1.0, 1.0, 999.0))
-                    final_image.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-                    sitk.WriteImage(final_image, output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, n_channel))
-
-                    final_image_before = sitk.GetImageFromArray(mask_channel_before)
-                    final_image_before.SetSpacing((1.0, 1.0, 999.0))
-                    final_image_before.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-                    sitk.WriteImage(final_image_before, output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, 3+n_channel))
-
-                    final_image_after = sitk.GetImageFromArray(mask_channel_after)
-                    final_image_after.SetSpacing((1.0, 1.0, 999.0))
-                    final_image_after.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-                    sitk.WriteImage(final_image_after, output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_000{}.nii.gz'.format(n_pullback, frame, "%03d" % id, 6+n_channel))
+                            final_image_after = sitk.GetImageFromArray(mask_channel)
+                            final_image_after.SetSpacing((1.0, 1.0, 999.0))
+                            final_image_after.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
+                            sitk.WriteImage(final_image_after, output_file_path + '/' + patient_name.replace("-", "") + '_{}_frame{}_{}_{}.nii.gz'.format(n_pullback, frame, "%03d" % id, "%04d" % (count+n_channel)))
+                            count += 3
 
         print('Done. Saved {} frames from pullback {} \n'.format(len(frames_list), pullback_name))
         print('###########################################\n')
 
-        
 if __name__ == '__main__':
     r = main(sys.argv)
     if r is not None:

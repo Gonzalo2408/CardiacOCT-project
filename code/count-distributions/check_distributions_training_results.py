@@ -54,7 +54,7 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
 
     for file in segs_dir:
 
-        if 'NLDAMPH0028' not in file or file.endswith('nii.gz') == False:
+        if file.endswith('nii.gz') == False:
             continue
 
         else:
@@ -198,10 +198,10 @@ if __name__ == "__main__":
 
     num_classes = 13
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    path_preds = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model5_pseudo3d_with_maps'
-    #path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task506_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed'
+    path_preds = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps'
+    #path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed'
     preds_list = sorted(os.listdir(path_preds))
-    name_excel = 'val_pred_measurements_with_cal_model5'
+    name_excel = 'test_pred_measurements_with_cal_model6'
 
     build_excel_frames(path_preds, preds_list, name_excel)
     #build_excel_pullbacks(path_preds, name_excel)

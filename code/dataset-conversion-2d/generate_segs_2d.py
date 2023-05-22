@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-path_segs = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS'
+path_segs = 'Z:/grodriguez/CardiacOCT/data-original/new-pullback-seg'
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
@@ -70,10 +70,10 @@ for filename in os.listdir(path_segs):
     belonging_set = annots.loc[annots['Patient'] == patient_name]['Set'].values[0]
 
     if belonging_set == 'Testing':
-        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/labelsTs'
+        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task508_CardiacOCT/labelsTs'
 
     else:
-        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/labelsTr'
+        new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task508_CardiacOCT/labelsTr'
 
     pullback_name = filename.split('.')[0]
     print('Checking ', pullback_name)

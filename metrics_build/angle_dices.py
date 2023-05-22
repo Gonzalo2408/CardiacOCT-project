@@ -48,9 +48,6 @@ def get_dice_frame_level(orig_path, pred_path, excel_name, region):
 
         list_data = []
 
-        if 'NLDAMPH0028' not in seg:
-            continue
-
         print('Case ', seg)
 
         #Obtain format of pullback name as in the beginning
@@ -172,11 +169,11 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name, region):
 if __name__ == "__main__":
 
     orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task507_CardiacOCT/labelsTs'
-    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model5_pseudo3d_with_maps'
+    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps'
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    excel_file = 'calcium_model5_test_pullback_new_pullback'
+    excel_file = 'calcium_model6_test_pullback'
 
     get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'calcium')
 
-    #get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'calcium')
+    #get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'lipid')
