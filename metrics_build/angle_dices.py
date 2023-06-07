@@ -30,11 +30,11 @@ def merge_frames_into_pullbacks(path_predicted):
         pullbacks_dict[pullbacks_origs_set[i]] = frames_from_pullback
 
     #Remove last 3 key-value pairs (they are not frames)
-    keys = list(pullbacks_dict.keys())[-3:]
-    for key in keys:
-        pullbacks_dict[key].pop()
-        if not pullbacks_dict[key]:
-            pullbacks_dict.pop(key)
+    # keys = list(pullbacks_dict.keys())[-3:]
+    # for key in keys:
+    #     pullbacks_dict[key].pop()
+    #     if not pullbacks_dict[key]:
+    #         pullbacks_dict.pop(key)
 
     return pullbacks_dict
 
@@ -168,12 +168,12 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name, region):
 
 if __name__ == "__main__":
 
-    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task507_CardiacOCT/labelsTs'
-    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps'
+    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task508_CardiacOCT/labelsTs'
+    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model7_pseudo3d_with_maps'
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    excel_file = 'calcium_model6_test_pullback'
+    excel_file = 'lipid_model7_test_frame'
 
-    get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'calcium')
+    #get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'lipid')
 
-    #get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'lipid')
+    get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file, 'lipid')

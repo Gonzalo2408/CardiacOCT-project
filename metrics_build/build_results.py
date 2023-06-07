@@ -60,8 +60,8 @@ def main(argv):
     args, unknown = parser.parse_known_args(argv)
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    #test_folder = "Z:/grodriguez/CardiacOCT/preds-test-set/{}".format(args.folder)
-    test_folder = "Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed"
+    test_folder = "Z:/grodriguez/CardiacOCT/preds-test-set/{}".format(args.folder)
+    #test_folder = "Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task508_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed"
 
     json_results_file = os.path.join(test_folder, 'summary.json')
 
@@ -86,8 +86,8 @@ def main(argv):
                 for sub_dict in summary['results']['all']:
 
                     #Select between these according to the folder you are in!!
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
-                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/{}/{}'.format(args.folder, frame):
+                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task508_CardiacOCT/nnUNetTrainerV2__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(frame):
+                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/{}/{}'.format(args.folder, frame):
 
                         #We omit the last two values since they are just a string (check in json file)
                         list_dicts_pullback.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
@@ -145,8 +145,8 @@ def main(argv):
                 #Get DICE score from frame
                 for sub_dict in summary['results']['all']:
                     
-                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(file):
-                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/{}/{}'.format(args.folder, file):
+                    #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task508_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(file):
+                    if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/{}/{}'.format(args.folder, file):
                         list_dicts_per_frame.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
                         break
                     else:

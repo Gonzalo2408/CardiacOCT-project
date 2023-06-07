@@ -3,6 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 import json
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 def merge_frames_into_pullbacks(path_predicted):
 
@@ -32,8 +34,31 @@ def merge_frames_into_pullbacks(path_predicted):
 
     return pullbacks_dict
 
+def calculate_confusion_matrix(Y_true, Y_pred, labels):
 
-path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps'
+    cm = np.zeros((len(labels), len(labels)), dtype=np.int)
+
+    for i, x in enumerate(labels):
+        for j, y in enumerate(labels):
+
+            cm[i, j] = np.sum((Y_true == x) & (Y_pred == y))
+
+    return cm
+
+def dice_from_cm(cm):
+
+    assert (cm.ndim == 2)
+    assert (cm.shape[0] == cm.shape[1])
+
+    dices = np.zeros((cm.shape[0]))
+
+    for i in range(cm.shape[0]):
+        dices[i] = 2 * cm[i, i] / float(np.sum(cm[i, :]) + np.sum(cm[:, i]))
+
+    return dices
+
+
+path = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model7_pseudo3d_with_maps'
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
 merged_pullbacks = merge_frames_into_pullbacks(path)
 num_classes = 13
@@ -57,47 +82,25 @@ for pullback in merged_pullbacks.keys():
 
     dices_dict = {}
 
+    cm_total = np.zeros((num_classes, num_classes), dtype=np.int)
+
+    for frame in merged_pullbacks[pullback]:
+
+        seg_map_data_pred = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model7_pseudo3d_with_maps/{}'.format(frame)))[0]
+        seg_map_data_orig = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task508_CardiacOCT/labelsTs/{}'.format(frame)))[0]
+
+
+        labels_present = np.unique(seg_map_data_orig)
+        cm = calculate_confusion_matrix(seg_map_data_orig, seg_map_data_pred, range(13))
+        cm_total += cm
+
+    dice = dice_from_cm(cm_total)
+
     for label in range(num_classes):
-
-        print('Checking label ', label)
-
-        tp = 0
-        tn = 0
-        fp = 0
-        fn = 0
-
-        for frame in merged_pullbacks[pullback]:
-
-            seg_map_data_pred = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps/{}'.format(frame)))[0]
-            seg_map_data_orig = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task507_CardiacOCT/labelsTs/{}'.format(frame)))[0]
-
-            rows, cols = seg_map_data_orig.shape
-
-            for i in range(rows):
-                for j in range(rows):
-
-                    if seg_map_data_pred[i, j] == label and seg_map_data_orig[i, j] == label:
-                        tp += 1
-
-                    elif seg_map_data_pred[i, j] == label and seg_map_data_orig[i, j] != label:
-                        fp += 1
-                        
-                    elif seg_map_data_pred[i, j] != label and seg_map_data_orig[i, j] == label:
-                        fn += 1
-
-                    elif seg_map_data_pred[i, j] != label and seg_map_data_orig[i, j] != label:
-                        tn += 1
-
-        try:
-            dice_label = 2*tp / (tp + fp + tp + fn)
-
-        except ZeroDivisionError:
-            dice_label = "NaN"
-
-        dices_dict[str(label)] = dice_label 
+        dices_dict[str(label)] = dice[label] 
 
     final_dict[pullback_name] = dices_dict
 
 
-with open('./pullback_model6_test_dice.json', 'w') as f:
+with open('./pullback_model7_test_dice.json', 'w') as f:
     json.dump(final_dict, f, indent=4)

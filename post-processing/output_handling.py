@@ -420,12 +420,14 @@ def create_annotations_lipid(image, bin_size = 2):
         
         img1 = ImageDraw.Draw(pil_image) 
         img1.fontmode = "1"
-        fnt = ImageFont.truetype("Z:/grodriguez/CardiacOCT/post-processing/arial-unicode-ms.ttf",18)
+        #fnt = ImageFont.truetype("arial-unicode-ms.ttf",32)
+        fnt = ImageFont.truetype("/mnt/netcache/diag/grodriguez/CardiacOCT/post-processing/arial-unicode-ms.ttf",32)
+        
 
         cap_thickness = '%.0f' % thickness
         lipid_arc = '%.0f' % np.round(lipid_angle_deg)
-        img1.text((536,28),'Wall width: ' + '%.0f' % thickness + 'μm', font = fnt, fill=15)
-        img1.text((536,56),'Lipid angle: ' + '%.0f' % np.round(lipid_angle_deg) + '°', font = fnt, fill=15)
+        img1.text((500,28),'FCT: ' + '%.0f' % thickness + 'μm', font = fnt, fill=15)
+        img1.text((500,56),'Arc: ' + '%.0f' % np.round(lipid_angle_deg) + '°', font = fnt, fill=15)
         
         output_image = np.array(pil_image)
 
@@ -742,14 +744,16 @@ def create_annotations_calcium(image, bin_size = 2):
 
         img1 = ImageDraw.Draw(pil_image) 
         img1.fontmode = "1"
-        fnt = ImageFont.truetype("Z:/grodriguez/CardiacOCT/post-processing/arial-unicode-ms.ttf",18)
+        #fnt = ImageFont.truetype("arial-unicode-ms.ttf",32)
+        fnt = ImageFont.truetype("/mnt/netcache/diag/grodriguez/CardiacOCT/post-processing/arial-unicode-ms.ttf",32)
+        
 
         calcium_depth = '%.0f' % thickness
         calcium_arc = '%.0f' % np.round(region_angle_deg)
         calcium_thickness = '%.0f' % max_dist
-        img1.text((480,28),'Caclium depth: ' + '%.0f' % thickness + 'μm', font = fnt, fill=15)
-        img1.text((480,56),'Calcium thickness: ' + '%.0f' % max_dist + 'μm', font = fnt, fill=15)
-        img1.text((480,84),'Calcium angle: ' + '%.0f' % np.round(region_angle_deg) + '°', font = fnt, fill=15)
+        img1.text((420,28),'Depth: ' + '%.0f' % thickness + 'μm', font = fnt, fill=15)
+        img1.text((420,56),'Thickness: ' + '%.0f' % max_dist + 'μm', font = fnt, fill=15)
+        img1.text((420,84),'Arc: ' + '%.0f' % np.round(region_angle_deg) + '°', font = fnt, fill=15)
         
         output_image = np.array(pil_image)
 

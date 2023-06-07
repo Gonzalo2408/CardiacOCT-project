@@ -44,13 +44,54 @@ def merge_frames_into_pullbacks(path_predicted):
     return pullbacks_dict
 
 
+def create_image_png(measurement_img, original_seg):
+
+    measurement_img = np.uint8(measurement_img*255)
+
+    #Save segmentation with lipid arc and FCT
+    color_map = {
+        0: (0, 0, 0),
+        1: (255, 0, 0),      #red
+        2: (0, 255, 0),      #green
+        3: (0, 0, 255),      #blue
+        4: (255, 255, 0),    #yellow
+        5: (255, 0, 255),    #magenta
+        6: (0, 255, 255),    #cyan
+        7: (128, 0, 0),      #maroon
+        8: (0, 128, 0),      #dark green
+        9: (0, 0, 128),      #navy
+        10: (128, 128, 0),   #olive
+        11: (128, 0, 128),   #purple
+        12: (0, 128, 128),   #teal
+    }
+
+    #Convert the labels array into a color-coded image
+    h, w = original_seg[0].shape
+    color_img = np.zeros((h, w, 3), dtype=np.uint8)
+    for label, color in color_map.items():
+        color_img[original_seg[0] == label] = color
+    seg_image = Image.fromarray(color_img)
+
+    post_proc_image = Image.fromarray(measurement_img)
+
+    #Overlay image
+    seg_image.paste(post_proc_image, (0,0), post_proc_image)
+
+    return seg_image
+
+
 #Count among frames
-def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
+def build_excel_frames(path_dir, segs_dir, excel_name, folder_to_save):
 
     counts_per_frame = pd.DataFrame(columns = ['pullback', 'frame', 'set', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
                                 'media', 'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
                                 'rupture', 'lipid arc', 'cap_thickness', 'calcium_depth', 'calcium_arc', 'calcium_thickness'])
 
+
+    os.mkdir('Z:/grodriguez/CardiacOCT/post-processing/{}/'.format(folder_to_save))
+    os.mkdir('Z:/grodriguez/CardiacOCT/post-processing/{}/TCFA'.format(folder_to_save))
+    os.mkdir('Z:/grodriguez/CardiacOCT/post-processing/{}/non-TCFA'.format(folder_to_save))
+    os.mkdir('Z:/grodriguez/CardiacOCT/post-processing/{}/calcium'.format(folder_to_save))
 
     for file in segs_dir:
 
@@ -93,8 +134,8 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
             one_hot_list.insert(2, belonging_set)
 
             #Post-processing results
-            post_image_array, _ , cap_thickness, lipid_arc, _ = create_annotations_lipid(seg_map_data[0])
-            post_image_array, _ , calcium_depth, calcium_arc, calcium_thickness, _ = create_annotations_calcium(seg_map_data[0])
+            post_image_array_lipid, _ , cap_thickness, lipid_arc, _ = create_annotations_lipid(seg_map_data[0])
+            post_image_array_calcium, _ , calcium_depth, calcium_arc, calcium_thickness, _ = create_annotations_calcium(seg_map_data[0])
 
 
             one_hot_list.append(lipid_arc)
@@ -104,49 +145,39 @@ def build_excel_frames(path_dir, segs_dir, excel_name, save_image=False):
             one_hot_list.append(calcium_thickness)
             counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
 
-            if save_image == True:
+            #Detect tcfa and calcium score (sadly cannot do calcium length yet)
+            if np.any(post_image_array_lipid):
+                tcfa = False
 
-                post_image_array = np.uint8(post_image_array*255)
+                if cap_thickness == 'nan':
+                    tcfa = False
 
-                #Only save images that contain lipid
-                if not np.any(post_image_array):
-                    continue
+                elif int(cap_thickness) < 65 and int(lipid_arc) >= 90:
+                    tcfa = True
+
+                seg_image_lipid = create_image_png(post_image_array_lipid, seg_map_data)
+                
+                if tcfa == True:
+                    seg_image_lipid.save('Z:/grodriguez/CardiacOCT/post-processing/{}/TCFA/{}_frame{}.png'.format(folder_to_save, pullback_name, n_frame))
 
                 else:
-                    #Save segmentation with lipid arc and FCT
-                    color_map = {
-                        0: (0, 0, 0),
-                        1: (255, 0, 0),      #red
-                        2: (0, 255, 0),      #green
-                        3: (0, 0, 255),      #blue
-                        4: (255, 255, 0),    #yellow
-                        5: (255, 0, 255),    #magenta
-                        6: (0, 255, 255),    #cyan
-                        7: (128, 0, 0),      #maroon
-                        8: (0, 128, 0),      #dark green
-                        9: (0, 0, 128),      #navy
-                        10: (128, 128, 0),   #olive
-                        11: (128, 0, 128),   #purple
-                        12: (0, 128, 128),   #teal
-                    }
+                    seg_image_lipid.save('Z:/grodriguez/CardiacOCT/post-processing/{}/non-TCFA/{}_frame{}.png'.format(folder_to_save, pullback_name, n_frame))
 
-                    #Convert the labels array into a color-coded image
-                    h, w = seg_map_data[0].shape
-                    color_img = np.zeros((h, w, 3), dtype=np.uint8)
-                    for label, color in color_map.items():
-                        color_img[seg_map_data[0] == label] = color
-                    seg_image = Image.fromarray(color_img)
+            if np.any(post_image_array_calcium):
+                calcium_score = 0
 
-                    post_proc_image = Image.fromarray(post_image_array)
+                if int(calcium_arc) > 180:
+                    calcium_score += 2
+
+                if int(calcium_thickness) > 0.5:
+                    calcium_score += 1
                 
-                    #Overlay image
-                    seg_image.paste(post_proc_image, (0,0), post_proc_image)
-                    seg_image.save('Z:/grodriguez/CardiacOCT/post-processing/post-proc-imgs-model5/{}_frame{}.png'.format(pullback_name, n_frame))
-
+                seg_image_calcium = create_image_png(post_image_array_calcium, seg_map_data)
+                seg_image_calcium.save('Z:/grodriguez/CardiacOCT/post-processing/{}/calcium/{}_frame{}.png'.format(folder_to_save, pullback_name, n_frame))
             else:
                 continue
 
-    counts_per_frame.to_excel('./{}.xlsx'.format(excel_name))
+    #counts_per_frame.to_excel('./{}.xlsx'.format(excel_name))
 
 #Count among pullbacks
 def build_excel_pullbacks(path_dir, excel_name):
@@ -198,10 +229,10 @@ if __name__ == "__main__":
 
     num_classes = 13
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-    path_preds = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model6_pseudo3d_with_maps'
-    #path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task507_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed'
+    path_preds = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model7_pseudo3d_with_maps'
+    #path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task508_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed'
     preds_list = sorted(os.listdir(path_preds))
-    name_excel = 'test_pred_measurements_with_cal_model6'
+    name_excel = 'val_pred_measurements_with_cal_model7'
 
-    build_excel_frames(path_preds, preds_list, name_excel)
+    build_excel_frames(path_preds, preds_list, name_excel, 'model7_measures')
     #build_excel_pullbacks(path_preds, name_excel)
