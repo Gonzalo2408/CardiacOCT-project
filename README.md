@@ -67,7 +67,7 @@ For the 3D version of the nnUNet, a sparse trainer was initially used. In this c
 
 In this case, we still made use of the 2D nnUNet. However, for each frame with annotation, be sampled k frames before and k frames after in order to store some spatial information. We included these frames in the training as modalities for the frame with annotation. That is, we stored the RGB channels for each neighbour frame. If the annotation is the first frame, then the frame(s) before is simply a black image (array with 0s). A nice study by [Chu et al. (2021)](https://eurointervention.pcronline.com/article/automatic-characterisation-of-human-atherosclerotic-plaque-composition-from-intravascular-optical-coherence-tomography-using-artificial-intelligence) used a similar approach
 
-In particular, we have tried with one frame before and one after (getting a total of 9 modalities). Currently, we are sampling 7 frames before and 7 after, getting a total of 45 files for a single annotation. Moreover, for this new training, we are employing class weights for account the class imbalanace and a weighted loss function (DC loss is weighted more to account for this clas imbalance as well). This training is still under construction.
+In particular, we have tried with k=1, k=2 and k=3. For k=2 and k=3, we employed class weights for account the class imbalanace and a weighted loss function (DC loss is weighted more to account for this clas imbalance as well). This training is still under construction.
 
 ## Training
 
@@ -92,7 +92,7 @@ An algorithm that automatically measures the fibrous cap thickness (FCT: thickne
 
 ### Calcium
 
-Similarly, we also developed an algorithm that performs measurements in the calcium region. The script measures the calcium depth (similar as FCT), calcium thickness (the thickness of the biggest calcium plaque, perpendicular to the lumen) and calcium arc (similar as the lipid arc). In this case, the amount of calcium would indicate that the lesion there should be prepared before treating it with a stent. These values are calcium arc > 180º (score of 2 points), thickness > 0.5 mm (1 point). Another parameter which is not included is tbe calcium length (length of the calcium in the longitudinal axis), which  has a threshold of > 5 mm (1 point). This gives a calcium score of 0-4 points. See [Fujino et al.](https://pubmed.ncbi.nlm.nih.gov/29400655/) for more information.
+Similarly, we also developed an algorithm that performs measurements in the calcium region. The script measures the calcium depth (similar as FCT), calcium thickness (the thickness of the biggest calcium plaque, perpendicular to the lumen) and calcium arc (similar as the lipid arc). In this case, the amount of calcium would indicate that the lesion there should be prepared before treating it with a stent. These values are calcium arc > 180º (score of 2 points), thickness > 0.5 mm (1 point). Another parameter which is not included is the calcium length (length of the calcium in the longitudinal axis), which  has a threshold of > 5 mm (1 point). This gives a calcium score of 0-4 points. See [Fujino et al.](https://pubmed.ncbi.nlm.nih.gov/29400655/) for more information.
 
 ![Figure 3. Example of nnUNet prediction (left) with the calcium measurements (right)](assets/calcium_post_proc_img.png)
 
@@ -102,45 +102,80 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 
 ### Results of best cross-validation model
 
-| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
-| ------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.977 | 0.979 | 0.987 | 0.987 | 0.987
-| Guidewire  | 0.919 | 0.924 | 0.947 | 0.946 | 0.947
-| Wall | 0.883 | 0.892 | 0.901 | 0.899 | 0.899
-| Lipid | 0.491 | 0.517 | 0.569 | 0.578 | 0.579
-| Calcium | 0.426 | 0.447 | 0.589 | 0.604 | 0.603
-| Media | 0.746 | 0.762 | 0.772 | 0.765 | 0.769
-| Catheter | 0.981 | 0.984 | 0.992 | 0.992 | 0.992
-| Sidebranch | 0.441 | 0.461 | 0.533 | 0.535 | 0.546
-| Red thrombus | 0.436 | 0.463 | 0.479 | 0.486 | 0.459
-| White thrombus | 0.321 | 0.33 | 0.378 | 0.393 | 0.382
-| Dissection | 0.06 | 0.0004 | 0 | 0 | 0
-| Plaque rupture | 0.471 | 0.429 | 0.542 | 0.527 | 0.554
+#### 2D model
+
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4
+| ------------- | -------------- | -------------- | -------------- | --------------
+| Lumen  | 0.977 | 0.979 | 0.987 | 0.987 
+| Guidewire  | 0.919 | 0.924 | 0.947 | 0.946 
+| Wall | 0.883 | 0.892 | 0.901 | 0.899 
+| Lipid | 0.491 | 0.517 | 0.569 | 0.578
+| Calcium | 0.426 | 0.447 | 0.589 | 0.604
+| Media | 0.746 | 0.762 | 0.772 | 0.765
+| Catheter | 0.981 | 0.984 | 0.992 | 0.992
+| Sidebranch | 0.441 | 0.461 | 0.533 | 0.535
+| Red thrombus | 0.436 | 0.463 | 0.479 | 0.486
+| White thrombus | 0.321 | 0.33 | 0.378 | 0.393
+| Dissection | 0.06 | 0.0004 | 0 | 0
+| Plaque rupture | 0.471 | 0.429 | 0.542 | 0.527
+
+#### Pseudo 3D models
+
+| ROI  | Model 5 (k=1) | Model 6 (k=2) | Model 7 (k=3)
+| ------------- | -------------- | -------------- | --------------
+| Lumen  | 0.987 | 0.986 | 0.987
+| Guidewire  | 0.947 | 0.941 | 0.941
+| Wall | 0.899 | 0.89 | 0.891
+| Lipid | 0.579 | 0.583 | 0.581
+| Calcium | 0.603 | 0.598 | 0.58
+| Media | 0.769 | 0.76 | 0.759
+| Catheter | 0.992 | 0.991 | 0.991
+| Sidebranch | 0.546 | 0.532 | 0.532
+| Red thrombus | 0.459 | 0.455 | 0.454
+| White thrombus | 0.382 | 0.418 | 0.404
+| Dissection | 0 | 0.247 | 0.293
+| Plaque rupture | 0.5541 | 0.512 | 0.523
 
 
 ### Results on test set (frame-level)
 
-
-| ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
-| ------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| Lumen  | 0.976 | 0.978 | 0.981 | 0.981 | 0.974
-| Guidewire  | 0.928 | 0.929 | 0.951 | 0.952 | 0.952
-| Wall | 0.874 | 0.887 | 0.894 | 0.896 | 0.881
-| Lipid | 0.527 | 0.607 | 0.617 | 0.632 | 0.619
-| Calcium | 0.282 | 0.291 | 0.529 | 0.491 | 0.514
-| Media | 0.749 | 0.761 | 0.783 | 0.785 | 0.756
-| Catheter | 0.989 | 0.989 | 0.989 | 0.989 | 0.989
-| Sidebranch | 0.443 | 0.491 | 0.514 | 0.47 | 0.487
-| Red thrombus | 0 | 0.014 | 0.026 | 0.092 | 0.028
-| White thrombus | 0.198 | 0.227 | 0.288 | 0.299 | 0.037
-| Dissection | 0.0004 | 0 | 0 | 0 | 0
-| Plaque rupture | 0.343 | 0.326 | 0.252 | 0.379 | 0.314
+#### 2D models
 
 
-(Write new stuff when done predictions)
+| ROI  | Model 1 | Model 2 | Model 3 | Model 4 
+| ------------- | -------------- | -------------- | -------------- | --------------
+| Lumen  | 0.976 | 0.978 | 0.981 | 0.981 
+| Guidewire  | 0.928 | 0.929 | 0.951 | 0.952
+| Wall | 0.874 | 0.887 | 0.894 | 0.896 
+| Lipid | 0.527 | 0.607 | 0.617 | 0.632
+| Calcium | 0.282 | 0.291 | 0.529 | 0.491 
+| Media | 0.749 | 0.761 | 0.783 | 0.785 
+| Catheter | 0.989 | 0.989 | 0.989 | 0.989
+| Sidebranch | 0.443 | 0.491 | 0.514 | 0.47 |
+| Red thrombus | 0 | 0.014 | 0.026 | 0.092
+| White thrombus | 0.198 | 0.227 | 0.288 | 0.299
+| Dissection | 0.0004 | 0 | 0 | 0
+| Plaque rupture | 0.343 | 0.326 | 0.252 | 0.379
+
+#### Pseudo 3D models
+
+| ROI  | Model 5 (k=1) | Model 6 (k=2) | Model 5 (k=3)
+| ------------- | -------------- | -------------- | -------------- 
+| Lumen  | 0.974 | 0.977 | 0.978
+| Guidewire  | 0.952 | 0.948 | 0.948
+| Wall | 0.881 | 0.889 | 0.887
+| Lipid | 0.619 | 0.642 | 0.642
+| Calcium | 0.514 | 0.487 | 0.535
+| Media | 0.756 | 0.775 | 0.773
+| Catheter | 0.989 | 0.988 | 0.988
+| Sidebranch | 0.487 | 0.5 | 0.5
+| Red thrombus | 0.028 | 0.047 | 0.05
+| White thrombus | 0.037 | 0.246 | 0.226
+| Dissection | 0 | 0 | 0
+| Plaque rupture | 0.314 | 0.261 | 0.306
 
 
-### Results on test set (pullback-level)
+<!-- ### Results on test set (pullback-level)
 
 | ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 5 (k=1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | --------------
@@ -155,7 +190,7 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 | Red thrombus | 0 | 0.044 | 0.047 | 0.234 | 0.111
 | White thrombus | 0.137 | 0.278 | 0.21 | 0.232 | 0.035
 | Dissection | 0.0004 | 0 | 0 | 0 | 0
-| Plaque rupture | 0.202 | 0.246 | 0.252 | 0.252 | 0.259
+| Plaque rupture | 0.202 | 0.246 | 0.252 | 0.252 | 0.259 -->
 
 
 ### Lipid arc DICE
@@ -168,7 +203,9 @@ Model | Lipid arc frame-level | Lipid arc pullback-level
 | Model 2 | 0.764 | 0.836
 | Model 3 | 0.783 | 0.831
 | Model 4 | 0.776 | 0.845
-| Model 5 | 0.753 | 0.835
+| Model 5 | 0.754 | 0.835
+| Model 6 | 0.762 | 0.834
+| Model 7 | 0.762 | 0.832
 
 
 ### Calcium arc DICE
@@ -182,6 +219,8 @@ Model | Calcium arc frame-level | Calcium arc pullback-level
 | Model 3 | 0.657 | 0.699
 | Model 4 | 0.589 | 0.699
 | Model 5 | 0.641 | 0.779
+| Model 6 | 0.589 | 0.698
+| Model 7 | 0.605 | 0.669
 
 ### Post processing results
 
@@ -196,6 +235,8 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | 3  | 34.28 ± 90.48 | 2.77 ± 26.06 | 0.701 | 0.898
 | 4  | 26.64 ± 87.29 | 2.23 ± 25.96 | 0.735 | 0.899
 | 5  | 38.42 ± 105.46 | 2.84 ± 30.17 | 0.609 | 0.867
+| 6  | 32.88 ± 120.9 | -2.11 ± 29.13 | 0.577 | 0.877
+| 7  | 33.96 ± 95.8 | -2.42 ± 26.04 | 0.679 | 0.899 
 
 
 #### Calcium measurements
@@ -207,11 +248,14 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | 2  | -6.07 ± 40.02 | -9.26 ± 16.88 | -48.63 ± 168.07 | 0.926 | 0.838 | 0.862
 | 3  | 10.03 ± 62.12 | -9.53 ± 14.94 | -75.83 ± 171.84 | 0.869 | 0.863 | 0.85
 | 4  | 8.28 ± 50.93 | -9.59 ± 17.71 | -79.03 ± 162.41 | 0.91 | 0.812 | 0.862
-| 5  | 14 ± 57.53 | -11.27 ± 17.48 | - 72.4 ± 156.54 | 0.887 | 0.809 | 0.871
+| 5  | 14 ± 57.53 | -11.27 ± 17.48 | -72.4 ± 156.54 | 0.887 | 0.809 | 0.871
+| 5  | 4.59 ± 56.41 | -7.11 ± 18.09 | -41.22 ± 160.03 | 0.889 | 0.832 | 0.878
+| 5  | 3.82 ± 43.59 | -7.86 ± 16.91 | -56.54 ± 179.65 | 0.93 | 0.847 | 0.845
 
 
 ## TODO:
- - Train pseudo 3d (+- 2 frames)
- - See training with bigger k and using grayscale (problems with OOM)
- - Dive into probability maps for uncertainty estimation and calibration techniques
+ - Train pseudo 3d (+- 7 frames and grayscale)
+ - Probability maps and uncertainty estimation: see losses functions and correlation with DICE
+ - Model architecure and weights to see feature map (explainability)
+ - More post processing: connected component analysis and morph operations
 
