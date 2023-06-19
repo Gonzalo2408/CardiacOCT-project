@@ -24,7 +24,7 @@ The statistical analyis on lipid (arc and FCT) and calcium (arc, thickness and d
  - Correlation + plot
  - Outliers: using either Z-score or Tukey approaches.z
 
- The Excel file and the results with this can be seen in the [statistics](/code/info-files/statistics) folder
+ The Excel file and the results with this can be seen in the [statistics](/info-files/statistics) folder
 
 
 
