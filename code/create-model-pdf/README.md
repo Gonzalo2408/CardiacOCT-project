@@ -8,5 +8,5 @@ In this folder, a summary of a model prediction is generated as pdf. An overview
  - Calcium arc, thickness and depth for the predicted segmentation
  - Table that compare TCFA, calcium score, sidebranch, white and red thrombus, dissection and plaque rupture for the manual and predicted annotations.
 
-![Figure 1. Example of model report](assets/model_pdf_example.png)
+![Figure 1. Example of model report](/assets/model_pdf_example.png)
 
