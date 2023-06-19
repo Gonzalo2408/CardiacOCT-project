@@ -4,6 +4,7 @@ import SimpleITK as sitk
 import os
 import pandas as pd
 import sys
+import argparse
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
@@ -95,14 +96,18 @@ def reliability_diagram(x, y):
 
 def main(argv):
 
-    preds_path = r'Z:\grodriguez\CardiacOCT\preds-test-set\predicted_results_model4_2d_with_maps'
-    orig_path = r'Z:\grodriguez\CardiacOCT\data-2d\nnUNet_raw_data\Task504_CardiacOCT\labelsTs'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--preds_path', type=str, default='Z:/grodriguez/CardiacOCT/preds-test-set/model7_preds')
+    args, _ = parser.parse_known_args(argv)
 
-    preds_list = os.listdir(preds_path)
+    orig_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task512_CardiacOCT/labelsTs'
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+
+    preds_list = os.listdir(args.preds_path)
     orig_list = os.listdir(orig_path)
 
     num_classes = 13
-    error_pd = pd.DataFrame(columns=['frame', 'ece', 'sce'])
+    error_pd = pd.DataFrame(columns=['pullback', 'frame', 'ece', 'sce'])
 
     for orig in orig_list:
 
@@ -119,9 +124,9 @@ def main(argv):
         npz_file = [npz for npz in files_for_frame if npz.endswith('npz')][0]
         nifti_file = [nifti for nifti in files_for_frame if nifti.endswith('nii.gz')][0]
 
-        orig_seg = sitk.ReadImage(r'Z:\grodriguez\CardiacOCT\data-2d\nnUNet_raw_data\Task504_CardiacOCT\labelsTs\{}'.format(nifti_file))
+        orig_seg = sitk.ReadImage(os.path.join(orig_path, nifti_file))
         orig_seg_data = sitk.GetArrayFromImage(orig_seg)[0]
-        prob_map = np.load(r'Z:\grodriguez\CardiacOCT\preds-test-set\predicted_results_model4_2d_with_maps\{}'.format(npz_file))
+        prob_map = np.load(os.path.join(args.preds_path, npz_file))
 
         print('Checking ', nifti_file, npz_file)
         
@@ -131,7 +136,23 @@ def main(argv):
 
         _, _, ece = calculate_ece(true_seg_crop.reshape(-1), prob_img.reshape(prob_img.shape[1]**2, num_classes))
         _, _, sce = calculate_sce(true_seg_crop.reshape(-1), prob_img.reshape(prob_img.shape[1]**2, num_classes))
-        error_list.append(nifti_file)
+
+        #Obtain format of pullback name (it's different than in the dataset counting)
+        filename = nifti_file.split('_')[0]
+        first_part = filename[:3]
+        second_part = filename[3:-4]
+        third_part = filename[-4:]
+        patient_name = '{}-{}-{}'.format(first_part, second_part, third_part)
+
+        #Obtain pullback name
+        n_pullback = nifti_file.split('_')[1]
+        pullback_name = annots[(annots['Nº pullback'] == int(n_pullback)) & (annots['Patient'] == patient_name)]['Pullback'].values[0]
+
+        #Obtain nº frame
+        n_frame = nifti_file.split('_')[2][5:]
+        
+        error_list.append(pullback_name)
+        error_list.append(n_frame)
         error_list.append(ece)
         error_list.append(sce)
 
@@ -139,7 +160,7 @@ def main(argv):
 
         error_pd = error_pd.append(pd.Series(error_list, index=error_pd.columns[:len(error_list)]), ignore_index=True)
 
-    error_pd.to_excel('./calibration_errors.xlsx')
+    error_pd.to_excel('Z:/grodriguez/CardiacOCT/info-files/uncertainty/calibration_errors.xlsx')
 
 
 if __name__ == '__main__':

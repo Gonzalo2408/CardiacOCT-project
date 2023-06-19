@@ -16,7 +16,7 @@ gt_segs_path = 'Z:/grodriguez/CardiacOCT/data-3d/nnUNet_preprocessed/Task504_Car
 files_npz = os.listdir(npz_path)
 files_npz_cropped = os.listdir(cropped_npz_path)
 files_gt = os.listdir(gt_segs_path)
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
 
 print('Changing npz files')
 for file in files_npz:
@@ -57,27 +57,3 @@ for file in files_npz:
 
         else:
             continue
-
-
-# print('Changing gt segmentations files')
-# for file in files_gt:
-
-#     print('Checking ', file)
-
-#     gt_seg = sitk.ReadImage(gt_segs_path + '/' + file)
-#     gt_seg_data = sitk.GetArrayFromImage(gt_seg)
-
-#     for frame in range(len(gt_seg_data)):
-
-#         if np.all(gt_seg_data[frame,:,:] == 0):
-#             gt_seg_data[frame,:,:] = -1*np.ones((704, 704))
-
-#         else:
-#             continue
-
-    
-#     new_gt_seg = sitk.GetImageFromArray(gt_seg_data.astype(np.int32))
-#     new_gt_seg.SetSpacing((1.0, 1.0, 1.0))
-#     new_gt_seg.SetDirection((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
-#     sitk.WriteImage(new_gt_seg, new_gt_segs_path + '/' + file)
-

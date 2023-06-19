@@ -9,7 +9,7 @@ import sys
 #annots = pd.read_excel(r'/mnt/netcache/diag/grodriguez/CardiacOCT/data/oct_annotations_filtered.xlsx')
 
 path_segs = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 2'
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
 
 def create_circular_mask(h, w, center=None, radius=None):
 

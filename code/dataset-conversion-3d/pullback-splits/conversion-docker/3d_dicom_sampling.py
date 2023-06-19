@@ -5,8 +5,8 @@ import SimpleITK as sitk
 import pandas as pd
 import argparse
 
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
-#annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+#annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
 
 def generate_new_volume(image, n_frame, n_frames_to_sample = 1):
 
@@ -136,8 +136,6 @@ def main(argv):
 
     files = os.listdir(args.data)
 
-    a = 0
-
     for filename in files:
         
         print('Loading DICOM {} ...'.format(filename))
@@ -223,10 +221,6 @@ def main(argv):
                     sitk.WriteImage(final_image, filename_path)
 
                     n_split += 1
-
-        a += 1
-        if a > 2:
-            break
 
         print('Done \n')
         print('########################################### \n')

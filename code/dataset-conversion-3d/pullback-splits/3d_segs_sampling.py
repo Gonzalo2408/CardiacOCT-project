@@ -8,9 +8,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
 path_segs = 'Z:/grodriguez/CardiacOCT/data-original/extra-segmentations-ORIGINALS 3'
-#annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/excel-files/train_test_split_final.xlsx')
+#annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
 
 def generate_new_volume(image, n_frame, n_frames_to_sample = 1):
 
@@ -267,7 +267,7 @@ def main(argv):
 
                         n_split += 1
 
-    split_data_pd.to_excel(r'Z:\grodriguez\CardiacOCT\excel-files\pseudo_volumes_data4.xlsx')
+    split_data_pd.to_excel(r'Z:\grodriguez\CardiacOCT\info-files\pseudo_volumes_data4.xlsx')
 
 if __name__ == '__main__':
     r = main(sys.argv)

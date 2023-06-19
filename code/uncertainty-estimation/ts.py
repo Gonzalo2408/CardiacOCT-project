@@ -143,7 +143,7 @@ def main(argv):
     model = torch.load(model_path)
 
     val_image_paths = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task504_CardiacOCT/imagesTs'
-    val_mask_paths = 'Z:/grodriguez/CardiacOCT/preds-test-set/predicted_results_model4_2d'
+    val_mask_paths = 'Z:/grodriguez/CardiacOCT/preds-test-set/model7_preds'
 
     val_image_list = [os.path.join(val_image_paths, file_name) for file_name in os.listdir(val_image_paths)]
     val_mask_list =  [os.path.join(val_mask_paths, file_name) for file_name in os.listdir(val_mask_paths)]
