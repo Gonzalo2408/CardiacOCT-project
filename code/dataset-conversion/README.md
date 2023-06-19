@@ -1,12 +1,17 @@
-## 2D dataset conversion
+## Dataset conversion
 
-In this folder, the original dataset is converted into 2D slices for the 2D training with the mentioned preprocessing steps (resampling + circular mask). Morevoer, each slice is saved as a pseudo-volume by adding an extra empty dimension. Further sanity checks for NaN values or new weird labels are also included.
+This folder contains the scripts that perform the dataset conversion to a format that can be recognized and manipulated by the nnUNet. We distinguish between two cases:
 
-For the images conversion, this is submitted to the SOL cluster using a Docker container since this takes longer to convert (~2 hours for the latest dataset). 
+## 2D case
 
+In this folder, the original dataset is converted into 2D slices for the 2D training. The preprocessing steps (resampling + circular mask) are performed in these files, for both DICOMs and segmentations files. 
+
+There is a further script to perform the dataset conversion for the lipid training (i.e all labels that are not lipid are considered background and lipid is the foreground)
 
 ![Figure 1. Preprocessing framework for the 2D slices](/assets/2d_dataset_conversion.png)
 
-### Additional scripts
+## Pseudo 3D case
 
-The scripts such as generate_json_dataset.py or file_and_folder_operations.py are only used to create the .json file with the dataset information in a fast way. This .json file is needed for each training for the nnUNet.
+With this conversion, we aim to solve the problems with the 3D training while also keeping spatial in formation.
+
+As explained in the introduction, we sampled the k neighbours before and after each annotated framed for the training. Essentially, we can use this neighbour frames as new modalities for every annotated frame. We basically keep the annotated frame and sample k frames before and after. If one of this neighbours is out of range, we just use a empty array, so we always have every annotated frame in the middle of the generated volume.
