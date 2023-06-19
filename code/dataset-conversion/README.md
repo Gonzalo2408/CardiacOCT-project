@@ -6,7 +6,7 @@ This folder contains the scripts that perform the dataset conversion to a format
 
 In this folder, the original dataset is converted into 2D slices for the 2D training. The preprocessing steps (resampling + circular mask) are performed in these files, for both DICOMs and segmentations files. 
 
-There is a further script to perform the dataset conversion for the lipid training (i.e all labels that are not lipid are considered background and lipid is the foreground)
+There is a further script to perform the dataset conversion for the lipid training (i.e all labels that are not lipid are considered background and lipid is the foreground).
 
 ![Figure 1. Preprocessing framework for the 2D slices](/assets/2d_dataset_conversion.png)
 
