@@ -22,9 +22,9 @@ The statistical analyis on lipid (arc and FCT) and calcium (arc, thickness and d
  - Bland-Altman plots: plus mean difference and standard deviation for manual and automated measurements
  - Intra-class correlation (ICC)
  - Correlation + plot
- - Outliers: using either Z-score or Tukey approaches.
+ - Outliers: using either Z-score or Tukey approaches.z
 
- The Excel file and the results with this can be seen in the [statistics](info-files/statistics) folder
+ The Excel file and the results with this can be seen in the [statistics](/code/info-files/statistics) folder
 
 
 
