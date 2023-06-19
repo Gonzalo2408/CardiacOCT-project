@@ -11,7 +11,7 @@ The nnUNet returns many different metrics for each image we have in our dataset 
 
  These DICEs are computed by seeing each pixel. However, for the lipid and calcium, we are also interested in their respectives arc. That is why we computed the DICE scores for the lipid arc, as in [Lee et al](https://www.nature.com/articles/s41598-022-24884-1). The way to do this is to look into the post-processing measurements. For each bin that is generated in a frame (there are 360 bins), each one can either contain lipid/calcium or not. By using this, we can find the confusion matrix for both predicted segmentation and manual segmentation (we basically see which bins occur in one case and the other). This way we can get a better estimate on how good or bad are the lipid and calcium segmentations, adding more clinical value to the segmentation of these. Similarly as with the other DICE scores, we provide the lipid and calcium arc DICE both frame and pullback-wise. The script that performs this task is **get_angle_dices.py**.
 
- The results can be seen in the Excel files in the [metrics](info-files) folder in this repository
+ The results can be seen in the Excel files in the [metrics](/info-files/metrics) folder in this repository
 
 
 ### Statistical analysis
