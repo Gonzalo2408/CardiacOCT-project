@@ -117,7 +117,7 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 #### 2D models
 
 | ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 8 (grayscale)
-| ------------- | -------------- | -------------- | -------------- | --------------
+| ------------- | -------------- | -------------- | -------------- | -------------- | --------------
 | Lumen  | 0.977 | 0.979 | 0.987 | 0.987 | 0.985
 | Guidewire  | 0.919 | 0.924 | 0.947 | 0.946 | 0.933
 | Wall | 0.883 | 0.892 | 0.901 | 0.899 | 0.884
@@ -134,7 +134,7 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 #### Pseudo 3D models
 
 | ROI  | Model 5 (k=1) | Model 6 (k=2) | Model 7 (k=3) | Model 9 (k=7 grayscale)
-| ------------- | -------------- | -------------- | --------------
+| ------------- | -------------- | -------------- | -------------- | --------------
 | Lumen  | 0.987 | 0.986 | 0.987
 | Guidewire  | 0.947 | 0.941 | 0.941
 | Wall | 0.899 | 0.89 | 0.891
@@ -155,7 +155,7 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 
 
 | ROI  | Model 1 | Model 2 | Model 3 | Model 4 | Model 8 (grayscale)
-| ------------- | -------------- | -------------- | -------------- | --------------
+| ------------- | -------------- | -------------- | -------------- | -------------- | --------------
 | Lumen  | 0.976 | 0.979 | 0.981 | 0.980 | 0.977
 | Guidewire  | 0.929 | 0.929 | 0.952 | 0.953 | 0.941
 | Wall | 0.876 | 0.888 | 0.896 | 0.898 | 0.885 
@@ -172,7 +172,7 @@ We obtained several metrics (accuracy, recall, jaccard, etc), but we only diplay
 #### Pseudo 3D models
 
 | ROI  | Model 5 (k=1) | Model 6 (k=2) | Model 5 (k=3) | Model 9 (k=7 grayscale)
-| ------------- | -------------- | -------------- | -------------- 
+| ------------- | -------------- | -------------- | -------------- | -------------- 
 | Lumen  | 0.974 | 0.978 | 0.978
 | Guidewire  | 0.952 | 0.949 | 0.949
 | Wall | 0.879 | 0.89 | 0.888
