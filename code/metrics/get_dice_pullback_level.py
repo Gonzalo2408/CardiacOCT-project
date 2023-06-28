@@ -12,9 +12,9 @@ from utils.counts_utils import merge_frames_into_pullbacks
 from utils.metrics_utils import calculate_confusion_matrix, dice_from_cm
 
 
-path = r'Z:\grodriguez\CardiacOCT\preds-test-set\model8_preds'
+path = r'Z:\grodriguez\CardiacOCT\preds-test-set\model9_preds'
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
-json_file_name = 'model8_pullback_level'
+json_file_name = 'model9_pullback_level'
 
 merged_pullbacks = merge_frames_into_pullbacks(path)
 
@@ -45,7 +45,7 @@ for pullback in merged_pullbacks.keys():
 
         #Load original and pred segmentation
         seg_map_data_pred = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(path, frame)))[0]
-        seg_map_data_orig = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task512_CardiacOCT/labelsTs/{}'.format(frame)))[0]
+        seg_map_data_orig = sitk.GetArrayFromImage(sitk.ReadImage('Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task513_CardiacOCT/labelsTs/{}'.format(frame)))[0]
 
         #Sum cm for each frame so at the end we get the CM for the whole pullback
         cm = calculate_confusion_matrix(seg_map_data_orig, seg_map_data_pred, range(13))       

@@ -52,11 +52,11 @@ def get_dice_frame_level(orig_path, pred_path, excel_name):
         pred_img_data = sitk.GetArrayFromImage(pred_img)[0]
 
         #Get IDs for both cases
-        _, _, _, _, orig_ids_lipid = create_annotations_lipid(orig_img_data)
-        _, _, _, _, pred_ids_lipid = create_annotations_lipid(pred_img_data)
+        _, _, _, _, orig_ids_lipid = create_annotations_lipid(orig_img_data, font = 'mine')
+        _, _, _, _, pred_ids_lipid = create_annotations_lipid(pred_img_data, font = 'mine')
 
-        _, _, _, _, _, orig_ids_calcium = create_annotations_calcium(orig_img_data)
-        _, _, _, _, _, pred_ids_calcium = create_annotations_calcium(pred_img_data)
+        _, _, _, _, _, orig_ids_calcium = create_annotations_calcium(orig_img_data, font = 'mine')
+        _, _, _, _, _, pred_ids_calcium = create_annotations_calcium(pred_img_data, font = 'mine')
 
         #Compute new DICE for lipid
         dice_score_lipid, _, _, _ = compute_arc_dices(orig_ids_lipid, pred_ids_lipid)
@@ -143,10 +143,14 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name):
         #Compute new DICE for lipids in a pullback
         try:
             dice_score_pullback_lipid = 2*tp_total_lipid / (tp_total_lipid + fp_total_lipid + tp_total_lipid + fn_total_lipid)
-            dice_score_pullback_calcium = 2*tp_total_calcium / (tp_total_calcium + fp_total_calcium + tp_total_calcium + fn_total_calcium)
 
         except ZeroDivisionError:
             dice_score_pullback_lipid = np.nan 
+
+        try:
+            dice_score_pullback_calcium = 2*tp_total_calcium / (tp_total_calcium + fp_total_calcium + tp_total_calcium + fn_total_calcium)
+
+        except ZeroDivisionError:
             dice_score_pullback_calcium = np.nan 
 
         print('Lipid', dice_score_pullback_lipid)
@@ -162,12 +166,12 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name):
 
 if __name__ == "__main__":
 
-    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task512_CardiacOCT/labelsTs'
-    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/model8_preds'
+    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task513_CardiacOCT/labelsTs'
+    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/model9_preds'
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
-    excel_file = 'model8_pullback_level_arc'
+    excel_file = 'model9_frame_level_arc'
 
-    get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file)
+    #get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file)
 
-    #get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file)
+    get_dice_frame_level(orig_test_segs_path, pred_test_segs_path, excel_file)

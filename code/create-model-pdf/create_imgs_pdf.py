@@ -4,14 +4,16 @@ import os
 import SimpleITK as sitk
 import pandas as pd
 import argparse
+import cv2
 import sys
+import skimage
 from matplotlib.backends.backend_pdf import PdfPages
 sys.path.insert(1, '/mnt/netcache/diag/grodriguez/CardiacOCT/code/utils')
 from postprocessing import create_annotations_lipid, create_annotations_calcium
 from counts_utils import create_image_png
 
 def detect_tcfa(fct, arc):
-    """CHecks if a frame contains a TCFA or not
+    """Checks if a frame contains a TCFA or not
 
     Args:
         fct (int): fibrous cap thickness
@@ -87,12 +89,54 @@ def find_labels(seg):
 
     return sb, rt, wt, scad, rupture
 
+def morph_operation(img):
+    """Performs closing morphological operation (we only perfom this on certain labels)
+
+    Args:
+        img (np.array): array with segmentation
+
+    Returns:
+        np.array np.array: array with closing operation
+    """    
+    cols, rows = img.shape
+    to_process = np.zeros((cols, rows))
+    orig_split = np.zeros((cols, rows))
+
+    for col in range(cols):
+        for row in range(rows):
+
+            #Do only morph operation in wall, lipid, calcium and intima
+            if img[col, row] == 3:
+                to_process[col, row] = 3
+
+            elif img[col, row] == 4:
+                to_process[col, row] = 4
+
+            elif img[col, row] == 5:
+                to_process[col, row] = 5
+
+            elif img[col, row] == 6:
+                to_process[col, row] = 6
+                
+            else:
+                to_process[col, row] = 0
+                orig_split[col, row] = img[col, row]
+
+    kernel = skimage.morphology.disk(5)
+    closing = cv2.morphologyEx(to_process, cv2.MORPH_CLOSE, kernel)
+
+    #Merge processed regions with the remaining (which are in the original array)
+    final = closing + orig_split
+
+    return final
+
 
 def main(argv):
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--preds', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/model7_preds')
     parser.add_argument('--pdf_name', type=str)
+    parser.add_argument('--morph_op', type=bool, default=False)
     args, _ = parser.parse_known_args(argv)
     
     raw_imgs_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/scans-DICOM'
@@ -102,7 +146,10 @@ def main(argv):
 
     test_set = annots[annots['Set'] == 'Testing']['Pullback'].tolist()
 
-    pdf = PdfPages('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/models_reports{}.pdf'.format(args.pdf_name))
+    pdf = PdfPages('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/models_reports/{}.pdf'.format(args.pdf_name))
+
+    if args.morph_op:
+        print('Performing closing morphological operation')
 
     for file in test_set:
 
@@ -119,8 +166,6 @@ def main(argv):
         patient_name = annots.loc[annots['Pullback'] == file]['Patient'].values[0]
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
 
-        spacing = annots.loc[annots['Pullback'] == file]['Spacing'].values[0]
-
         for frame in frames_list:
 
             #Get corresponding prediction for a given model (in args.preds)
@@ -129,21 +174,25 @@ def main(argv):
                 continue
                 
             pred_seg = sitk.ReadImage(os.path.join(args.preds, pred_seg_name))
-            pred_seg_data = sitk.GetArrayFromImage(pred_seg)
+            pred_seg_data = sitk.GetArrayFromImage(pred_seg)[0]
 
-            #Reading seg
+            #Perform or don't perform morphological closing
+            if args.morph_op:
+                pred_seg_data = morph_operation(pred_seg_data)
+
+            #Reading orig seg
             seg = sitk.ReadImage(os.path.join(segs_path, pred_seg_name))
-            seg_to_plot = sitk.GetArrayFromImage(seg)
+            seg_to_plot = sitk.GetArrayFromImage(seg)[0]
             
             #Get raw frame and seg
             raw_img_to_plot = image_data[frame,:,:,:]
 
             #Lipid and calcium measurements (both preds and original seg)
-            lipid_img_pred, _ , fct_pred, lipid_arc_pred, _ = create_annotations_lipid(pred_seg_data[0])
-            calcium_img_pred, _ , _, cal_arc_pred, cal_thickness_pred, _ = create_annotations_calcium(pred_seg_data[0])
+            lipid_img_pred, _ , fct_pred, lipid_arc_pred, _ = create_annotations_lipid(pred_seg_data)
+            calcium_img_pred, _ , _, cal_arc_pred, cal_thickness_pred, _ = create_annotations_calcium(pred_seg_data)
 
-            _, _ , fct_orig, lipid_arc_orig, _ = create_annotations_lipid(seg_to_plot[0])
-            _, _ , _, cal_arc_orig, cal_thickness_orig, _ = create_annotations_calcium(seg_to_plot[0])
+            _, _ , fct_orig, lipid_arc_orig, _ = create_annotations_lipid(seg_to_plot)
+            _, _ , _, cal_arc_orig, cal_thickness_orig, _ = create_annotations_calcium(seg_to_plot)
 
             #Detect TCFA
             tcfa_pred = detect_tcfa(fct_pred, lipid_arc_pred)
@@ -154,12 +203,12 @@ def main(argv):
             cal_score_orig = calcium_score(cal_arc_orig, cal_thickness_orig)
 
             #Get values for table
-            sb_orig, rt_orig, wt_orig, scad_orig, rupture_orig = find_labels(seg_to_plot[0])
-            sb_pred, rt_pred, wt_pred, scad_pred, rupture_pred = find_labels(pred_seg_data[0])
+            sb_orig, rt_orig, wt_orig, scad_orig, rupture_orig = find_labels(seg_to_plot)
+            sb_pred, rt_pred, wt_pred, scad_pred, rupture_pred = find_labels(pred_seg_data)
 
             #Change segmentation colors
-            final_orig_seg = create_image_png(seg_to_plot[0])
-            final_pred_seg = create_image_png(pred_seg_data[0])
+            final_orig_seg = create_image_png(seg_to_plot)
+            final_pred_seg = create_image_png(pred_seg_data)
 
             fig, axes = plt.subplots(2, 3, figsize=(50,50), constrained_layout = True)
 

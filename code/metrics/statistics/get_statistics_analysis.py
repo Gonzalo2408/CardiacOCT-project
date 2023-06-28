@@ -216,8 +216,8 @@ def find_outliers(manual_values, automatic_values, sheet, score):
 
 def main(argv):
 
-    excel_name = 'measures_analysis_model8'
-    models = ['model 1', 'model 2', 'model 3', 'model 4', 'model 5', 'model 6', 'model 7', 'model 8']
+    excel_name = 'measures_analysis_model9'
+    models = ['model 1', 'model 2', 'model 3', 'model 4', 'model 5', 'model 6', 'model 7', 'model 8', 'model 9']
 
     types_cal = ['Depth', 'Arc', 'Thickness']
     thresh_cal = [-1, 180, 500]

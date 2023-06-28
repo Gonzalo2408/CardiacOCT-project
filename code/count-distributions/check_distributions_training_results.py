@@ -84,8 +84,8 @@ if __name__ == "__main__":
 
     num_classes = 13
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
-    #path_preds = r'Z:\grodriguez\CardiacOCT\preds-test-set\model8_preds'
-    path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task512_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed'
-    excel_name = 'new_frames8_train'
+    #path_preds = r'Z:\grodriguez\CardiacOCT\preds-test-set\model9_preds'
+    path_preds = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task513_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed'
+    excel_name = 'new_frames9_train'
 
     count_frames_excel_preds(path_preds, excel_name, annots)
