@@ -8,6 +8,8 @@ RUN pip install --upgrade numpy
 RUN pip install --upgrade SimpleITK
 RUN pip install --upgrade pandas
 RUN pip install --upgrade openpyxl
+RUN pip install --upgrade opencv-python
+RUN pip install --upgrade scikit-image
 
 WORKDIR /home/user
 USER user

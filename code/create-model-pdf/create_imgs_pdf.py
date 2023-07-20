@@ -134,15 +134,15 @@ def morph_operation(img):
 def main(argv):
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--orig', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task601_CardiacOCT/labelsTs')
     parser.add_argument('--preds', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/model7_preds')
     parser.add_argument('--pdf_name', type=str)
     parser.add_argument('--morph_op', type=bool, default=False)
     args, _ = parser.parse_known_args(argv)
     
-    raw_imgs_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/scans-DICOM'
-    segs_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task512_CardiacOCT/labelsTs'
+    raw_imgs_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/DICOM'
 
-    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
 
     test_set = annots[annots['Set'] == 'Testing']['Pullback'].tolist()
 
@@ -181,7 +181,7 @@ def main(argv):
                 pred_seg_data = morph_operation(pred_seg_data)
 
             #Reading orig seg
-            seg = sitk.ReadImage(os.path.join(segs_path, pred_seg_name))
+            seg = sitk.ReadImage(os.path.join(args.orig, pred_seg_name))
             seg_to_plot = sitk.GetArrayFromImage(seg)[0]
             
             #Get raw frame and seg

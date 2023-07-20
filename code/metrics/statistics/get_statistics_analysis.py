@@ -216,8 +216,9 @@ def find_outliers(manual_values, automatic_values, sheet, score):
 
 def main(argv):
 
-    excel_name = 'measures_analysis_model9'
-    models = ['model 1', 'model 2', 'model 3', 'model 4', 'model 5', 'model 6', 'model 7', 'model 8', 'model 9']
+    excel_name = 'measures_analysis_rgb_final'
+    #models = ['model 1', 'model 2', 'model 3', 'model 4', 'model 5', 'model 6', 'model 7', 'model 8', 'model 9']
+    models = ['0', '1', '2', '3', '4', 'best', 'last']
 
     types_cal = ['Depth', 'Arc', 'Thickness']
     thresh_cal = [-1, 180, 500]
@@ -225,10 +226,12 @@ def main(argv):
     types_lipid = ['FCT', 'Lipid arc']
     thresh_lipid = [65, 90]
 
-    measurements_calcium = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\manual_vs_automatic_measures.xlsx', sheet_name='Calcium new test set')
-    measurements_lipid = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\manual_vs_automatic_measures.xlsx', sheet_name='Lipid new test set')
+    save = False
 
-    #Getting measures in calcium for every model
+    measurements_calcium = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\second_split\model_rgb_script_measures_with_cal.xlsx', sheet_name='Calcium')
+    measurements_lipid = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\second_split\model_rgb_script_measures_with_cal.xlsx', sheet_name='Lipid')
+
+    # #Getting measures in calcium for every model
     for measure_type in types_cal:
 
         print('Getting {} data'.format(measure_type))
@@ -248,7 +251,7 @@ def main(argv):
 
             #Append all values into a list
             analysis_list = []
-            analysis_list.append(i+1)
+            analysis_list.append(models[i])
             analysis_list.append(fp)
             analysis_list.append(fn)
             analysis_list.append(md)
@@ -290,7 +293,7 @@ def main(argv):
 
             #Append all values into a list
             analysis_list = []
-            analysis_list.append(i+1)
+            analysis_list.append(models[i])
             analysis_list.append(fp)
             analysis_list.append(fn)
             analysis_list.append(md)
@@ -312,24 +315,26 @@ def main(argv):
                 analysis_region.to_excel(writer, sheet_name=measure_type)
 
 
-    #Save scatter plots and bland altman for every region in calcium and model
-    print('Saving plots for calcium')
-    for measure_type, thresh in zip(types_cal, thresh_cal):
-            
-        for i in range(len(models)):
-            manual, ai, _, _ = get_data_filtered(measurements_calcium, '{} test set'.format(measure_type), '{} {}'.format(measure_type, models[i]))
-            scatter_data_save_png(manual, ai, thresh, '{} {}'.format(measure_type, models[i]), '{}_{}'.format(measure_type.lower(), models[i]))
-            save_bland_altman(manual, ai, measure_type, '{}_{}'.format(measure_type.lower(), models[i]))
 
-    
-    print('Saving plots for lipid')
-    #Save scatter plots and bland altman for every region in calcium and model
-    for measure_type, thresh in zip(types_lipid, thresh_lipid):
-            
-        for i in range(len(models)):
-            manual, ai, _, _ = get_data_filtered(measurements_lipid, '{} test set'.format(measure_type), '{} {}'.format(measure_type, models[i]))
-            scatter_data_save_png(manual, ai, thresh, '{} {}'.format(measure_type, models[i]), '{}_{}'.format(measure_type.lower(), models[i].replace(' ','_')))
-            save_bland_altman(manual, ai, measure_type, '{}_{}'.format(measure_type.lower(), models[i]))
+    if save == True:
+        #Save scatter plots and bland altman for every region in calcium and model
+        print('Saving plots for calcium')
+        for measure_type, thresh in zip(types_cal, thresh_cal):
+                
+            for i in range(len(models)):
+                manual, ai, _, _ = get_data_filtered(measurements_calcium, '{} test set'.format(measure_type), '{} {}'.format(measure_type, models[i]))
+                scatter_data_save_png(manual, ai, thresh, '{} {}'.format(measure_type, models[i]), '{}_{}'.format(measure_type.lower(), models[i]))
+                save_bland_altman(manual, ai, measure_type, '{}_{}'.format(measure_type.lower(), models[i]))
+
+        
+        print('Saving plots for lipid')
+        #Save scatter plots and bland altman for every region in calcium and model
+        for measure_type, thresh in zip(types_lipid, thresh_lipid):
+                
+            for i in range(len(models)):
+                manual, ai, _, _ = get_data_filtered(measurements_lipid, '{} test set'.format(measure_type), '{} {}'.format(measure_type, models[i]))
+                scatter_data_save_png(manual, ai, thresh, '{} {}'.format(measure_type, models[i]), '{}_{}'.format(measure_type.lower(), models[i].replace(' ','_')))
+                save_bland_altman(manual, ai, measure_type, '{}_{}'.format(measure_type.lower(), models[i]))
         
 
 if __name__ == '__main__':

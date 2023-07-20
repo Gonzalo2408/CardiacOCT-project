@@ -10,15 +10,14 @@ from conversion_utils import create_circular_mask, rgb_to_grayscale
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/scans-DICOM')
+    parser.add_argument('--data', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/DICOM')
     parser.add_argument('--task', type=str, default='Task512_CardiacOCT')
     parser.add_argument('--grayscale', type=bool, default=False)
     args, _ = parser.parse_known_args(argv)
 
-
     parent_path = args.data
     
-    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
 
     files = os.listdir(parent_path)
 
@@ -67,8 +66,8 @@ def main(argv):
                             continue
                     
                     #Apply circular mask
-                    circular_mask = create_circular_mask(gray_img[:,:,frame].shape[0], gray_img[:,:,frame].shape[1], radius=346)
-                    mask_channel = np.invert(circular_mask) * gray_img[:,:,frame]
+                    circular_mask = create_circular_mask(gray_img[frame,:,:].shape[0], gray_img[frame,:,:].shape[1], radius=346)
+                    mask_channel = np.invert(circular_mask) * gray_img[frame,:,:]
 
                     #Check if there are Nan values
                     if np.isnan(mask_channel).any():

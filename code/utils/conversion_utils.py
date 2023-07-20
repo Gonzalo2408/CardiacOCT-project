@@ -1,6 +1,8 @@
 import numpy as np
 import SimpleITK as sitk
 import cv2
+from matplotlib.colors import ListedColormap
+import base64
 
 def create_circular_mask(h, w, center=None, radius=None):
     """Apply the circular mask to remove the Abbott watermark
@@ -90,16 +92,35 @@ def rgb_to_grayscale(img):
     return gray_img 
 
 
+def decode_rgb() -> ListedColormap:
+    
+    golden = b'AAAABQEACQEADQEADwEAEQIAEgIAFAIAFgIAGAMAGgMAGwMAHQMAHgMAIAQAIQQAIwQAJgQAJwUAKQUAKgUALAUALQYALwYAMAYAMwcBN' \
+            b'QgBNggBOAkBOQoBOwoBPAsBPgwBQA0BQg4BQw4BRA8BRhABRxEBSREBShIBTBMBThQBUBUBURYBUhcBVBgBVRkBVxkBWBoBWhsBXBwCXh' \
+            b'0CXx0CYB4CYh8CYyACZCECZiMCZyQCaSUCayYCbCcCbSgCbykCcCoCcisCcywCdC0Cdi4CeC8CejACezECfDMCfTQCfzUCgTYCgjcDgzg' \
+            b'DhDkDhToDhzsDiTwDij0Diz4EjEAEjUEEj0IEkEMEkUQEkkUElEYFlkgFl0kFmEkFmUoFm0wFnE0GnU4GnlAGn1EGoVIGo1MHpFQIpVUI' \
+            b'plcIp1gJqFoJqFwJqV0Jql8Kq2AKq2IKrGMLrWQLrmULr2cMr2kMsGsMsmwNs20Ns28NtHANtXIOtnMOt3QPt3YPuHcPunoQu3sQu3sQv' \
+            b'HwRvX4Rvn8Sv4ASwIESwYITwoQUw4UUw4YVxIgWxYkWx4oXyIsYyIwYyY0Yyo8Zy5AZy5EZzZIazpMbz5Yb0Jcc0Zgc0pkd05oe1Jsf1Z' \
+            b'0g1Z4g1p8h16Ai2KEj2KMl2aQm2qYn26co3Kgp3qop36sq4Kwr4a0s4a4t4rAu47Iv5LMw5bQx5bUy5rYz57g06Lk16bo36rs567w6674' \
+            b'87L8+7MFA7MJC7cNF7cRG7cVI7sdL7shM78lP78pR78tT8MxV8M5X8c9Y8dFa8dJc8tNf8tRh89Vj89Zl89dn9Nlp9Nls9Npv9Npx9dt0' \
+            b'9d139d569d599t+A9uCC9uGE9+KI9+KL9+KN9+OQ+OST+eSW+eWZ+eab+uee+uih+uij+umn++uq++ys++yv/O2z/O20/O62/O+5/O+7/' \
+            b'PC+/PDB/PHD/PLG/PLI/PPK/PPN/PTP/PTR/PXU/PbW/PbY/Pfb/Pje/Png/Prj/Prl/Prn/Pvq/Pzt'
+    
+    #colormap = ListedColormap(colors=[tuple(row) for row in np.frombuffer(base64.b64decode(golden), dtype=np.ubyte).reshape((256, 3)) / 256.0])
+    array = [tuple(row) for row in np.frombuffer(base64.b64decode(golden), dtype=np.ubyte).reshape((256, 3)) / 256.0]
+    
+    return array
+
 
 def check_uniques(raw_unique, new_unique, frame):
     """We looked for weird labels that appeared in the segmentation during the conversion
 
     Args:
-        raw_unique (_type_): unique labels of the original segmentation
-        new_unique (_type_): unique labels of the processed segmentation
+        raw_unique (np.array): unique labels of the original segmentation
+        new_unique (np.array): unique labels of the processed segmentation
+        frame (int): frame we are currently checking
 
     Returns:
-        _type_: _description_
+        bool: True if everything is fine
     """    
  
     #Both should contain same amount of labels

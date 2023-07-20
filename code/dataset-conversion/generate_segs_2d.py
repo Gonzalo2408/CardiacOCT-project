@@ -2,21 +2,17 @@ import SimpleITK as sitk
 import os
 import numpy as np
 import pandas as pd
-import argparse
 import sys
 sys.path.append("..") 
-from utils.counts_utils import create_circular_mask, resize_image, check_uniques
+from utils.conversion_utils import create_circular_mask, resize_image, check_uniques
 
 def main(argv):
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='Z:/grodriguez/CardiacOCT/data-original/segmentations-ORIGINALS')
-    parser.add_argument('--task', type=str, default='Task512_CardiacOCT')
-    args, _ = parser.parse_known_args(argv)
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
+    data = 'Z:/grodriguez/CardiacOCT/data-original/SEGMENTATIONS'
+    task = 'Task601_CardiacOCT'
 
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
-
-    for filename in os.listdir(args.data):
+    for filename in os.listdir(data):
 
         #Geting patient ID from pullback
         patient_name = "-".join(filename.split('.')[0].split('-')[:3])
@@ -24,10 +20,10 @@ def main(argv):
 
         #Output folder
         if belonging_set == 'Testing':
-            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/labelsTs'.format(args.task)
+            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/labelsTs'.format(task)
 
         else:
-            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/labelsTr'.format(args.task)
+            new_path_segs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/{}/labelsTr'.format(task)
 
 
         pullback_name = filename.split('.')[0]
@@ -38,7 +34,7 @@ def main(argv):
         n_pullback = int(annots.loc[annots['Pullback'] == pullback_name]['Nº pullback'].values[0])
 
         #Read segmentation file
-        orig_seg = sitk.ReadImage(args.data + '/' + filename)
+        orig_seg = sitk.ReadImage(data + '/' + filename)
         orig_seg_pixel_array = sitk.GetArrayFromImage(orig_seg)
 
         # Find the frames with annotations
@@ -84,7 +80,7 @@ def main(argv):
                 unique_raw = np.unique(raw_frame)
                 unique_new = np.unique(masked_resampled_frame)
 
-                check_uniques(unique_raw, unique_new)
+                check_uniques(unique_raw, unique_new, frame)
                     
                 #Need to add extra dimension
                 final_array = np.zeros((1, 704, 704))

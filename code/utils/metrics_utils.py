@@ -48,22 +48,35 @@ def calculate_confusion_matrix(Y_true, Y_pred, labels):
 
     return cm
 
-def dice_from_cm(cm):
-    """Get DICE score from the previously obtained confusion matrix
+def metrics_from_cm(cm):
+    """Get metrics score the previously obtained confusion matrix
 
     Args:
         cm (np.array): confusion matrix with shape (num_classes, num_classes)
 
     Returns:
-        np.array: array of length num classes containing all of the DICEs computed per pullback
+        np.array: array of length num classes containing all of the DICEs, precision, 
+        recall and specificity computed per pullback
     """    
 
     assert (cm.ndim == 2)
     assert (cm.shape[0] == cm.shape[1])
 
     dices = np.zeros((cm.shape[0]))
+    precision = np.zeros((cm.shape[0]))
+    recall = np.zeros((cm.shape[0]))
+    spec = np.zeros((cm.shape[0]))
 
     for i in range(cm.shape[0]):
-        dices[i] = 2 * cm[i, i] / float(np.sum(cm[i, :]) + np.sum(cm[:, i]))
+        tp = cm[i, i]
+        fp = np.sum(cm[:, i]) - tp
+        fn =  np.sum(cm[i, :]) - tp
+        tn = np.sum(cm) - (tp + fp + fn)
 
-    return dices
+        dices[i] = 2 * tp / float(2 * tp + fp + fn)
+        precision[i] = tp / float(tp + fp)
+        recall[i] = tp / float(tp + fn)
+        spec[i] = tn / float(tn + fp)
+
+
+    return dices, precision, recall, spec

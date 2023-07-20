@@ -3,7 +3,7 @@ import SimpleITK as sitk
 import numpy as np
 
 #Folder with dataset labels
-segs_path = r'Z:\grodriguez\CardiacOCT\data-2d\nnUNet_raw_data\Task512_CardiacOCT\labelsTr'
+segs_path = r'Z:\grodriguez\CardiacOCT\data-2d\nnUNet_raw_data\Task601_CardiacOCT\labelsTr'
 segs_folder = os.listdir(segs_path)
 
 num_classes = 13
@@ -23,7 +23,7 @@ for file in segs_folder:
     label_counts[unique] += counts
         
 #Get class weight in terms of frequency in the dataset
-total_pixels = 704 * 704 * 1846
+total_pixels = 704 * 704 * 1810
 class_weights = total_pixels / (13 * label_counts)
 
 print("Class weights:")

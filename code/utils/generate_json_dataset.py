@@ -62,17 +62,17 @@ def generate_dataset_json(output_file: str, imagesTr_dir: str, imagesTs_dir: str
 
 
 def main():
-    target_base = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task513_CardiacOCT'
-    target_imagesTr = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task513_CardiacOCT/imagesTr'
-    target_imagesTs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task513_CardiacOCT/imagesTs'
-    task_name = 'Task513_CardiacOCT'
-    dataset_description = 'Semantic segmentation of intracoronary OCT pullbacks with pseudo 3D images (7 frames before and after and grayscale images)'
-    modalities = ('G')
+    target_base = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task601_CardiacOCT'
+    target_imagesTr = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task601_CardiacOCT/imagesTr'
+    target_imagesTs = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task601_CardiacOCT/imagesTs'
+    task_name = 'Task601_CardiacOCT'
+    dataset_description = 'Semantic segmentation of intracoronary OCT pullbacks 2D (04/07/2023 split)'
+    modalities = ('R', 'G', 'B')
 
-    k = 7
-    modalities = []
-    for i in range(-k, k+1):
-        modalities.append('G{}'.format(i))
+    # k = 7
+    # modalities = []
+    # for i in range(-k, k+1):
+    #     modalities.append('G{}'.format(i))
 
     generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, modalities=modalities, dataset_description=dataset_description,
                         labels={0:'background', 1:'lumen', 2:'guidewire', 3:'wall', 4:'lipid', 5:'calcium', 

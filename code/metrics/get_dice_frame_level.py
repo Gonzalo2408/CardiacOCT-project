@@ -6,11 +6,10 @@ sys.path.append("..")
 from utils.metrics_utils import mean_metrics
 
 
-json_file_name = "model9_frame_level_val"
-folder = "model9_preds"
-annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
-#test_folder = "Z:/grodriguez/CardiacOCT/preds-test-set/{}".format(folder)
-test_folder = 'Z:/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task513_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed'
+json_file_name = "model_rgb_2d_last"
+folder = "model_rgb_2d_last"
+annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
+test_folder = "Z:/grodriguez/CardiacOCT/preds_second_split/{}".format(folder)
 
 
 json_results_file = os.path.join(test_folder, 'summary.json')
@@ -44,8 +43,7 @@ for file in os.listdir(test_folder):
         #Get DICE score from frame
         for sub_dict in summary['results']['all']:
             
-            if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/results/nnUNet/2d/Task513_CardiacOCT/nnUNetTrainer_V2_Loss_CEandDice_Weighted__nnUNetPlansv2.1/cv_niftis_postprocessed/{}'.format(file):
-            #if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds-test-set/{}/{}'.format(folder, file):
+            if sub_dict['test'] == '/mnt/netcache/diag/grodriguez/CardiacOCT/preds_second_split/{}/{}'.format(folder, file):
                 list_dicts_per_frame.append({k: v for i, (k, v) in enumerate(sub_dict.items()) if i < len(sub_dict) - 2})
                 break
             else:
@@ -59,5 +57,5 @@ for file in os.listdir(test_folder):
         final_dict[file] = mean_result
 
 #Write final dict in a json file
-with open("Z:/grodriguez/CardiacOCT/info-files/metrics/{}.json".format(json_file_name), 'w') as f:
+with open("Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}.json".format(json_file_name), 'w') as f:
     json.dump(final_dict, f, indent=4)

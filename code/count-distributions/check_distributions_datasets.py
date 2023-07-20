@@ -48,11 +48,11 @@ def count_frames_excel_dataset(path, excel_name, annots):
         num_classes = 13
 
         for frame in range(len(seg_map_data)):
-            
-            one_hot = np.zeros(num_classes)
 
             #Add labels that occur in each case (in this case, it's either 0 or 1)
             if frame in frames_list:
+
+                one_hot = np.zeros(num_classes)
 
                 unique, _ = np.unique(seg_map_data[frame,:,:], return_counts=True)
                 unique = unique.astype(int)
@@ -61,8 +61,8 @@ def count_frames_excel_dataset(path, excel_name, annots):
                 one_hot[[unique[i] for i in range(len(unique))]] = 1
 
                 #Get post-processing measurements for the specific frame
-                _, _ , cap_thickness, lipid_arc, _ = create_annotations_lipid(seg_map_data[frame,:,:])
-                _, _, calcium_depth, calcium_arc, calcium_thickness, _ = create_annotations_calcium(seg_map_data[frame,:,:])
+                _, _ , cap_thickness, lipid_arc, _ = create_annotations_lipid(seg_map_data[frame,:,:], font='mine')
+                _, _, calcium_depth, calcium_arc, calcium_thickness, _ = create_annotations_calcium(seg_map_data[frame,:,:], font='mine')
 
                 #Append important variables that we want to display in the Excel file
                 one_hot_list = one_hot.tolist()
@@ -86,11 +86,11 @@ def count_frames_excel_dataset(path, excel_name, annots):
 
 if __name__ == "__main__":
 
-    path = 'Z:/grodriguez/CardiacOCT/data-original/updated-pullbacks-test-segs'
-    excel_name = 'new_updated'
+    path = 'Z:/grodriguez/CardiacOCT/data-original/ISALAS'
+    excel_name = 'isalas'
 
     seg_files = os.listdir(path)
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
 
     count_frames_excel_dataset(path, excel_name, annots)
 
