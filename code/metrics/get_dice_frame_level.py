@@ -6,8 +6,8 @@ sys.path.append("..")
 from utils.metrics_utils import mean_metrics
 
 
-json_file_name = "model_rgb_2d_last"
-folder = "model_rgb_2d_last"
+json_file_name = "model_rgb_2d"
+folder = "model_rgb_2d_preds"
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
 test_folder = "Z:/grodriguez/CardiacOCT/preds_second_split/{}".format(folder)
 

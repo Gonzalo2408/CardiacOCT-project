@@ -9,7 +9,7 @@ import argparse
 import sys
 import pandas as pd
 sys.path.append("..") 
-from utils.metrics_utils import calculate_confusion_matrix, dice_from_cm
+from utils.metrics_utils import calculate_confusion_matrix, metrics_from_cm
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -24,7 +24,13 @@ def get_prob_maps_list(prob_map):
         for label in range(num_classes):
             probs_list.append(i[1][label][0])
 
-    prob_img = np.zeros((num_classes, 691, 691))
+    #WTF prob map
+    if probs_list[0].shape[0] == 690:
+        prob_img = np.zeros((num_classes, 690, 691))
+
+    else:   
+        prob_img = np.zeros((num_classes, 691, 691))
+
     _, rows, cols = prob_img.shape
 
     for i in range(rows):
@@ -37,20 +43,21 @@ def get_prob_maps_list(prob_map):
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--preds_path', type=str, default='Z:/grodriguez/CardiacOCT/preds-test-set/model8_preds')
-    parser.add_argument('--excel_name', type=str, default='model8_probs')
+    parser.add_argument('--preds_path', type=str, default='Z:/grodriguez/CardiacOCT/preds_second_split/model_rgb_2d_preds')
+    parser.add_argument('--excel_name', type=str, default='model_rgb_2d')
     args, _ = parser.parse_known_args(argv)
 
-    orig_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task512_CardiacOCT/labelsTs'
+    orig_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task602_CardiacOCT/labelsTs'
 
     orig_list = os.listdir(orig_path)
 
     df = pd.DataFrame(columns = ['Pullback', 'Frame', 'CM', 'DICE', 'Lipid prob'])
 
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
 
     for orig in orig_list:
 
+        print('Checking ', orig)
 
         #Obtain format of pullback name (it's different than in the dataset counting)
         filename = orig.split('_')[0]
@@ -77,19 +84,27 @@ def main(argv):
         #Get prob map from npz files
         prob_map = np.load(os.path.join(args.preds_path, '{}.npz'.format(orig.split('.')[0])))
 
-        print('Checking ', orig)
-        
         prob_img = get_prob_maps_list(prob_map)
         prob_img_max = np.max(prob_img, axis=0)
 
-        true_seg_crop = orig_seg_data[6:697, 6:697]
-        pred_seg_crop = pred_seg_data[6:697, 6:697]
+        #For weird case of missing pixel
+        if prob_img_max.shape == (691,691):
 
+            true_seg_crop = orig_seg_data[6:697, 6:697]
+            pred_seg_crop = pred_seg_data[6:697, 6:697]
+
+        else:
+
+            true_seg_crop = orig_seg_data[6:696, 6:697]
+            pred_seg_crop = pred_seg_data[6:696, 6:697]
+
+
+        #Get for all lipid pixels the probability of lipid
         orig_lipid = np.mean(prob_img_max[true_seg_crop == 4])
         pred_lipid = np.mean(prob_img_max[pred_seg_crop == 4])
 
-        cm = calculate_confusion_matrix(true_seg_crop, pred_seg_crop, np.arange(0,13))
-        dice_lipid = dice_from_cm(cm)[4]
+        cm = calculate_confusion_matrix(true_seg_crop, pred_seg_crop, range(13))
+        dice_lipid = metrics_from_cm(cm)[0][4]
 
         if math.isnan(orig_lipid) and math.isnan(pred_lipid):
 

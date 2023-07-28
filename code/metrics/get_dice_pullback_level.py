@@ -12,9 +12,9 @@ from utils.counts_utils import merge_frames_into_pullbacks
 from utils.metrics_utils import calculate_confusion_matrix, metrics_from_cm
 
 
-path = r'Z:\grodriguez\CardiacOCT\preds_second_split\model_rgb_2d_last'
+path = r'Z:\grodriguez\CardiacOCT\preds_second_split\model_rgb_2d_preds'
 annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
-json_file_name = 'model_rgb_2d_last_pullback_level'
+json_file_name = 'model_rgb_2d_pullback'
 
 merged_pullbacks = merge_frames_into_pullbacks(path)
 
@@ -51,7 +51,7 @@ for pullback in merged_pullbacks.keys():
         cm = calculate_confusion_matrix(seg_map_data_orig, seg_map_data_pred, range(13))       
         cm_total += cm
 
-    dice, _, _, _ = metrics_from_cm(cm_total)
+    dice, _, _, _, _, _ = metrics_from_cm(cm_total)
 
     #Create dictionary with the labels and DICEs
     for label in range(num_classes):

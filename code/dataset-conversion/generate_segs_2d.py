@@ -10,7 +10,7 @@ def main(argv):
 
     annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
     data = 'Z:/grodriguez/CardiacOCT/data-original/SEGMENTATIONS'
-    task = 'Task601_CardiacOCT'
+    task = 'Task603_CardiacOCT'
 
     for filename in os.listdir(data):
 

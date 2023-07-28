@@ -69,7 +69,7 @@ def get_dice_frame_level(orig_path, pred_path, excel_name):
 
         new_excel_data = new_excel_data.append(pd.Series(list_data, index=new_excel_data.columns[:len(list_data)]), ignore_index=True)
 
-    new_excel_data.to_excel('Z:/grodriguez/CardiacOCT/info-files/metrics/{}.xlsx'.format(excel_name))
+    new_excel_data.to_excel('Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}.xlsx'.format(excel_name))
 
 
 def get_dice_pullback_level(orig_path, pred_path, excel_name):
@@ -162,15 +162,15 @@ def get_dice_pullback_level(orig_path, pred_path, excel_name):
 
         new_excel_data = new_excel_data.append(pd.Series(list_data, index=new_excel_data.columns[:len(list_data)]), ignore_index=True)
 
-    new_excel_data.to_excel('Z:/grodriguez/CardiacOCT/info-files/metrics/{}.xlsx'.format(excel_name))
+    new_excel_data.to_excel('Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}.xlsx'.format(excel_name))
 
 if __name__ == "__main__":
 
-    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task513_CardiacOCT/labelsTs'
-    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds-test-set/model9_preds'
+    orig_test_segs_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task601_CardiacOCT/labelsTs'
+    pred_test_segs_path = 'Z:/grodriguez/CardiacOCT/preds_second_split/model_rgb_2d_preds'
 
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
-    excel_file = 'model9_frame_level_arc'
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
+    excel_file = 'rgb_2d_frame'
 
     #get_dice_pullback_level(orig_test_segs_path, pred_test_segs_path, excel_file)
 

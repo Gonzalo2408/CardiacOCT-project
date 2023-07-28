@@ -114,7 +114,7 @@ def scatter_data_save_png(manual, automatic, thresh, title, png_name):
     ax.set_xlabel('Manual')
     ax.set_ylabel('Automatic')
     ax.set_title(title)
-    fig.savefig("Z:/grodriguez/CardiacOCT/info-files/statistics/corr-plots/{}.png".format(png_name), bbox_inches='tight')
+    fig.savefig("Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/corr-plots/{}.png".format(png_name), bbox_inches='tight')
 
 
 def save_bland_altman(manual, ai, region, png_name):
@@ -126,7 +126,7 @@ def save_bland_altman(manual, ai, region, png_name):
     plt.xlabel('Mean {}'.format(region))
     plt.ylabel('{} difference (ai - manual)'.format(region))
     plt.title('{} manual vs automatic'.format(region))
-    plt.savefig("Z:/grodriguez/CardiacOCT/info-files/statistics/bland-altman/{}.png".format(png_name), bbox_inches='tight')
+    plt.savefig("Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/bland-altman/{}.png".format(png_name), bbox_inches='tight')
 
 
 
@@ -216,9 +216,9 @@ def find_outliers(manual_values, automatic_values, sheet, score):
 
 def main(argv):
 
-    excel_name = 'measures_analysis_rgb_final'
+    excel_name = 'measures_analysis_rgb_2D_new'
     #models = ['model 1', 'model 2', 'model 3', 'model 4', 'model 5', 'model 6', 'model 7', 'model 8', 'model 9']
-    models = ['0', '1', '2', '3', '4', 'best', 'last']
+    models = ['RGB 2D']
 
     types_cal = ['Depth', 'Arc', 'Thickness']
     thresh_cal = [-1, 180, 500]
@@ -226,10 +226,10 @@ def main(argv):
     types_lipid = ['FCT', 'Lipid arc']
     thresh_lipid = [65, 90]
 
-    save = False
+    save = True
 
-    measurements_calcium = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\second_split\model_rgb_script_measures_with_cal.xlsx', sheet_name='Calcium')
-    measurements_lipid = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\second_split\model_rgb_script_measures_with_cal.xlsx', sheet_name='Lipid')
+    measurements_calcium = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\second_split\measures_v2.xlsx', sheet_name='Calcium')
+    measurements_lipid = pd.read_excel(r'Z:\grodriguez\CardiacOCT\info-files\statistics\second_split\measures_v2.xlsx', sheet_name='Lipid')
 
     # #Getting measures in calcium for every model
     for measure_type in types_cal:
@@ -265,11 +265,11 @@ def main(argv):
             analysis_region = analysis_region.append(pd.Series(analysis_list, index=analysis_region.columns[:len(analysis_list)]), ignore_index=True)
 
         #Create Excel file if it's not created. Otherwise, use a new sheet in the current file to append the new values
-        if os.path.exists('Z:/grodriguez/CardiacOCT/info-files/statistics/{}.xlsx'.format(excel_name)) == False:
-            analysis_region.to_excel('Z:/grodriguez/CardiacOCT/info-files/statistics/{}.xlsx'.format(excel_name), sheet_name=measure_type)
+        if os.path.exists('Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/{}.xlsx'.format(excel_name)) == False:
+            analysis_region.to_excel('Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/{}.xlsx'.format(excel_name), sheet_name=measure_type)
 
         else:
-            with pd.ExcelWriter('Z:/grodriguez/CardiacOCT/info-files/statistics/{}.xlsx'.format(excel_name), engine='openpyxl', mode='a') as writer:  
+            with pd.ExcelWriter('Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/{}.xlsx'.format(excel_name), engine='openpyxl', mode='a') as writer:  
                 analysis_region.to_excel(writer, sheet_name=measure_type)
 
 
@@ -307,11 +307,11 @@ def main(argv):
             analysis_region = analysis_region.append(pd.Series(analysis_list, index=analysis_region.columns[:len(analysis_list)]), ignore_index=True)
 
         #Create Excel file if it's not created. Otherwise, use a new sheet in the current file to append the new values
-        if os.path.exists('Z:/grodriguez/CardiacOCT/info-files/statistics/{}.xlsx'.format(excel_name)) == False:
-            analysis_region.to_excel('Z:/grodriguez/CardiacOCT/info-files/statistics/{}.xlsx'.format(excel_name), sheet_name=measure_type)
+        if os.path.exists('Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/{}.xlsx'.format(excel_name)) == False:
+            analysis_region.to_excel('Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/{}.xlsx'.format(excel_name), sheet_name=measure_type)
 
         else:
-            with pd.ExcelWriter('Z:/grodriguez/CardiacOCT/info-files/statistics/{}.xlsx'.format(excel_name), engine='openpyxl', mode='a') as writer:  
+            with pd.ExcelWriter('Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/{}.xlsx'.format(excel_name), engine='openpyxl', mode='a') as writer:  
                 analysis_region.to_excel(writer, sheet_name=measure_type)
 
 
@@ -323,7 +323,7 @@ def main(argv):
                 
             for i in range(len(models)):
                 manual, ai, _, _ = get_data_filtered(measurements_calcium, '{} test set'.format(measure_type), '{} {}'.format(measure_type, models[i]))
-                scatter_data_save_png(manual, ai, thresh, '{} {}'.format(measure_type, models[i]), '{}_{}'.format(measure_type.lower(), models[i]))
+                scatter_data_save_png(manual, ai, thresh, '{} {}'.format(measure_type, models[i]), '{}_{}'.format(measure_type.lower(), models[i].replace(' ','_')))
                 save_bland_altman(manual, ai, measure_type, '{}_{}'.format(measure_type.lower(), models[i]))
 
         
