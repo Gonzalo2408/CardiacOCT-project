@@ -13,6 +13,11 @@ The nnUNet returns many different metrics for each image we have in our dataset 
 
  The results can be seen in the Excel files in the [metrics](/info-files/metrics/) folder in this repository.
 
+ ### Other metrics
+
+Apart from the DICE scores, metrics for detection of every label were obtained, which are obtained with teh **get_other_metrics.py**. These metrics are: Positive Predictive Value (PPV), Negative Predictive Value (NPV), sensitivity, specificity and Cohen's kappa.
+
+The results can also be seen in the Excel files in the [metrics](/info-files/metrics/) folder.
 
 ### Statistical analysis
 
