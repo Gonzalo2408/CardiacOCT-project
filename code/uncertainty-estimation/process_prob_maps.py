@@ -10,35 +10,10 @@ import sys
 import pandas as pd
 sys.path.append("..") 
 from utils.metrics_utils import calculate_confusion_matrix, metrics_from_cm
+from utils.conversion_utils import get_prob_maps_list
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def get_prob_maps_list(prob_map):
-
-    #Takes the npz file with the prob maps and creates an array of shape (num_classes, img_shape)
-    num_classes = 13
-    probs_list = []
-
-    for i in prob_map.items():
-
-        for label in range(num_classes):
-            probs_list.append(i[1][label][0])
-
-    #WTF prob map
-    if probs_list[0].shape[0] == 690:
-        prob_img = np.zeros((num_classes, 690, 691))
-
-    else:   
-        prob_img = np.zeros((num_classes, 691, 691))
-
-    _, rows, cols = prob_img.shape
-
-    for i in range(rows):
-        for j in range(cols):
-
-            prob_img[:, i, j] = np.array([probs_list[label][i, j] for label in range(num_classes)])
-
-    return prob_img
 
 def main(argv):
 
@@ -97,7 +72,6 @@ def main(argv):
 
             true_seg_crop = orig_seg_data[6:696, 6:697]
             pred_seg_crop = pred_seg_data[6:696, 6:697]
-
 
         #Get for all lipid pixels the probability of lipid
         orig_lipid = np.mean(prob_img_max[true_seg_crop == 4])

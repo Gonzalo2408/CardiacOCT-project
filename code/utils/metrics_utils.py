@@ -63,9 +63,12 @@ def metrics_from_cm(cm):
     assert (cm.shape[0] == cm.shape[1])
 
     dices = np.zeros((cm.shape[0]))
-    precision = np.zeros((cm.shape[0]))
-    recall = np.zeros((cm.shape[0]))
+    ppv = np.zeros((cm.shape[0]))
+    npv = np.zeros((cm.shape[0]))
+    sens = np.zeros((cm.shape[0]))
     spec = np.zeros((cm.shape[0]))
+    kappa = np.zeros((cm.shape[0]))
+
 
     for i in range(cm.shape[0]):
         tp = cm[i, i]
@@ -74,9 +77,11 @@ def metrics_from_cm(cm):
         tn = np.sum(cm) - (tp + fp + fn)
 
         dices[i] = 2 * tp / float(2 * tp + fp + fn)
-        precision[i] = tp / float(tp + fp)
-        recall[i] = tp / float(tp + fn)
+        ppv[i] = tp / float(tp + fp)
+        npv[i] = tn / float(tn + fn)
+        sens[i] = tp / float(tp + fn)
         spec[i] = tn / float(tn + fp)
+        kappa[i] = 2 * (tp*tn - fn*fp) / float((tp+fp)*(fp+tn) + (tp+fn)*(fn+tn))
 
 
-    return dices, precision, recall, spec
+    return dices, ppv, npv, sens, spec, kappa

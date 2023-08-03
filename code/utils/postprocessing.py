@@ -1,6 +1,7 @@
 import scipy.ndimage as sim
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+import math
 
 def count_distance_to_centre(region, centre_of_lumen, dists, only_angle = True):
     """Measures distance of each pixel in a region to the centre of the lumen. It can be returned either Euclidean or angle
@@ -388,39 +389,60 @@ def create_annotations_lipid(image, font = 'cluster', bin_size = 2):
         id1_min = np.zeros(id1_lipid.shape[0])
         id1_argmin = np.zeros(id1_lipid.shape[0]).astype('int16')
 
-        if id1_lipid.size==0 or id2_lipid.size==0:
-            thickness = np.nan
+        #Fix Nan measurements (hopefully)
+        if id2_lipid.size==0:
 
-        else:
-
-            for n in range(id1_lipid.shape[0]):
-                C = []
-                for nn in range(id2_lipid.shape[0]):
-                    C.append((id1_lipid[n,0]-id2_lipid[nn,0])**2+(id1_lipid[n,1]-id2_lipid[nn,1])**2)
-
-                id1_argmin[n] = np.argmin(C)
-                id1_min[n] = C[id1_argmin[n]]
+            min_dist = np.inf
             
-            contours3[contours3==0]=contours[contours3==0]
+            for coord1 in id1_lipid:
+                for coord2 in id2:
 
-            id1m = np.argmin(id1_min)
-            id2m = id1_argmin[id1m]
+                    distance = math.sqrt((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2)
+                    
+                    if distance < min_dist:
+                        min_dist = distance
+                        thickness = distance
 
-            #Spacing depends on size of image (checked on DCM metadata)
-            # if im_insize == 1024:
-            #     conv_fact = 1
+            id2_lipid = id2
 
-            # else:
-            #     conv_fact = 1
-            conv_fact = 1
+        if id1_lipid.size==0:
 
-            id1_min = np.sqrt(id1_min)*1000/conv_fact
-            thickness = id1_min[id1m]/100
+            min_dist = np.inf
             
-            thin_x = id1_lipid[id1m,1]
-            thin_y = id1_lipid[id1m,0]
-            thin_x2 = id2_lipid[id2m,1]
-            thin_y2 = id2_lipid[id2m,0]
+            for coord1 in id1:
+                for coord2 in id2_lipid:
+
+                    distance = math.sqrt((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2)
+                    
+                    if distance < min_dist:
+                        min_dist = distance
+                        thickness = distance
+
+            id1_lipid = id1
+        ####
+
+        for n in range(id1_lipid.shape[0]):
+            C = []
+            for nn in range(id2_lipid.shape[0]):
+                C.append((id1_lipid[n,0]-id2_lipid[nn,0])**2+(id1_lipid[n,1]-id2_lipid[nn,1])**2)
+
+            id1_argmin[n] = np.argmin(C)
+            id1_min[n] = C[id1_argmin[n]]
+        
+        contours3[contours3==0]=contours[contours3==0]
+
+        id1m = np.argmin(id1_min)
+        id2m = id1_argmin[id1m]
+
+        conv_fact = 1
+
+        id1_min = np.sqrt(id1_min)*1000/conv_fact
+        thickness = id1_min[id1m]/100
+        
+        thin_x = id1_lipid[id1m,1]
+        thin_y = id1_lipid[id1m,0]
+        thin_x2 = id2_lipid[id2m,1]
+        thin_y2 = id2_lipid[id2m,0]
         
         # thickness per lipid/calcium bin
         thickness_bin = np.zeros(bins.shape[0]-1)                
@@ -701,7 +723,6 @@ def create_annotations_calcium(image, font = 'cluster', bin_size = 2):
         if calcium_pixels.size > 0: 
             ids = np.where(hist_count_calcium > 0)[0]
 
-
         total_bins = region_bins[ids]
 
         # Calculate coordinates thinnest point
@@ -726,33 +747,60 @@ def create_annotations_calcium(image, font = 'cluster', bin_size = 2):
         id1_min = np.zeros(id1_region.shape[0])
         id1_argmin = np.zeros(id1_region.shape[0]).astype('int16')
 
-        if id1_region.size==0 or id2_region.size==0:
-            thickness = np.nan
+        #Fix NaN measurements (hopefully)
+        if id2_region.size==0:
 
-        else:
-
-            for n in range(id1_region.shape[0]):
-                C = []
-                for nn in range(id2_region.shape[0]):
-                    C.append((id1_region[n,0]-id2_region[nn,0])**2+(id1_region[n,1]-id2_region[nn,1])**2)
-
-                id1_argmin[n] = np.argmin(C)
-                id1_min[n] = C[id1_argmin[n]]
+            min_dist = np.inf
             
-            contours3[contours3==0]=contours[contours3==0]
+            for coord1 in id1_region:
+                for coord2 in id2:
 
-            id1m = np.argmin(id1_min)
-            id2m = id1_argmin[id1m]
+                    distance = math.sqrt((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2)
+                    
+                    if distance < min_dist:
+                        min_dist = distance
+                        thickness = distance
 
-            conv_fact = 1
+            id2_region = id2
 
-            id1_min = np.sqrt(id1_min)*1000/conv_fact
-            thickness = id1_min[id1m]/100
+        if id1_region.size==0:
+
+            min_dist = np.inf
             
-            thin_x = id1_region[id1m,1]
-            thin_y = id1_region[id1m,0]
-            thin_x2 = id2_region[id2m,1]
-            thin_y2 = id2_region[id2m,0]
+            for coord1 in id1:
+                for coord2 in id2_region:
+
+                    distance = math.sqrt((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2)
+                    
+                    if distance < min_dist:
+                        min_dist = distance
+                        thickness = distance
+
+            id1_region = id1
+        ####
+
+        for n in range(id1_region.shape[0]):
+            C = []
+            for nn in range(id2_region.shape[0]):
+                C.append((id1_region[n,0]-id2_region[nn,0])**2+(id1_region[n,1]-id2_region[nn,1])**2)
+
+            id1_argmin[n] = np.argmin(C)
+            id1_min[n] = C[id1_argmin[n]]
+        
+        contours3[contours3==0]=contours[contours3==0]
+
+        id1m = np.argmin(id1_min)
+        id2m = id1_argmin[id1m]
+
+        conv_fact = 1
+
+        id1_min = np.sqrt(id1_min)*1000/conv_fact
+        thickness = id1_min[id1m]/100
+        
+        thin_x = id1_region[id1m,1]
+        thin_y = id1_region[id1m,0]
+        thin_x2 = id2_region[id2m,1]
+        thin_y2 = id2_region[id2m,0]
         
         # thickness per lipid/calcium bin
         thickness_bin = np.zeros(region_bins.shape[0]-1)                

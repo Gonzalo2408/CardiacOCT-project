@@ -8,106 +8,82 @@ import argparse
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
+sys.path.append("..") 
+from utils.conversion_utils import get_prob_maps_list
 
+def calculate_ece(true, pred, prob, num_bins=10):
+    """Calculate the ECE given the true and predicted segmentations and the softmax values
 
-def get_prob_maps_list(prob_map):
+    Args:
+        true (np.array): true segmentation
+        pred (np.array): predicted segmentation
+        prob (np.array): softmax array
+        num_bins (int, optional): number of bins in which to divide the probabilities. Defaults to 10.
 
-    #Takes the npz file with the prob maps and creates an array of shape (num_classes, img_shape)
-    num_classes = 13
-    probs_list = []
-
-    for i in prob_map.items():
-
-        for label in range(num_classes):
-            probs_list.append(i[1][label][0])
-
-    prob_img = np.zeros((num_classes, 691, 691))
-    _, rows, cols = prob_img.shape
-
-    for i in range(rows):
-        for j in range(cols):
-
-            prob_img[:, i, j] = np.array([probs_list[label][i, j] for label in range(num_classes)])
-
-    return prob_img
-
-############ Code taken from https://lars76.github.io/2020/08/07/metrics-for-uncertainty-estimation.html
-def calculate_ece(y_true, y_pred, num_bins=10):
+    Returns:
+        list, list, float: list of x and y for later plotting and the ECE
+    """    
         
-    pred_y = np.argmax(y_pred, axis=-1)
-    correct = (pred_y == y_true.astype(np.float32))
-    prob_y = np.max(y_pred, axis=-1)
+    #Get all true positives
+    correct = (pred == true.astype(np.float32))
 
+    #Define bins and divide probs in those bins
     b = np.linspace(start=0, stop=1.0, num=num_bins)
-    bins = np.digitize(prob_y, bins=b, right=True)
+    bins = np.digitize(prob, bins=b, right=True)
 
     o = 0
-    for b in range(num_bins):
-        mask = bins == b
+    x = []
+    y = []
+    for i in range(num_bins):
+        #Get values correspondint to bin i
+        mask = bins == i
+
+        #Do ECE if there are values in bin
         if np.any(mask):
-            o += np.abs(np.sum(correct[mask] - prob_y[mask]))
+            o += np.abs(np.sum(correct[mask] - prob[mask]))
 
-    ece = o / y_pred.shape[0]
+            accuracy = np.mean(correct[mask])
+            conf = np.mean(prob[mask])
+            y.append(accuracy)
+            x.append(conf)
 
-    x = prob_y[mask]
-    y = correct[mask]
+        ece = o / pred.shape[0]
 
     return x, y, ece
 
-def calculate_sce(y_true, y_pred, num_bins=10):
-    
-    classes = y_pred.shape[-1]
+def reliability_diagram(x, y, ece):
+    """Plot calibration curve
 
-    o = 0
-    for cur_class in range(classes):
-        correct = (cur_class == y_true).astype(np.float32)
-        prob_y = y_pred[..., cur_class]
+    Args:
+        x (list): list with the accuracy for each bin
+        y (list): list with confidence for each bin
+        ece (float): ECE
+    """    
 
-        b = np.linspace(start=0, stop=1.0, num=num_bins)
-        bins = np.digitize(prob_y, bins=b, right=True)
-
-        for b in range(num_bins):
-            mask = bins == b
-            if np.any(mask):
-                o += np.abs(np.sum(correct[mask] - prob_y[mask]))
-
-    sce = o / (y_pred.shape[0] * classes)
-
-    x = prob_y[mask]
-    y = correct[mask]
-
-    return x, y, sce
-
-
-def reliability_diagram(x, y):
-
-    plt.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
-    plt.plot(x, y, "s-", label="CNN")
-
-    plt.xlabel("Confidence")
-    plt.ylabel("Accuracy")
-    plt.legend(loc="lower right")
-    plt.title("Reliability diagram / calibration curve")
-
-    plt.tight_layout()
+    plt.plot(x, y)
+    plt.plot([0, 1], [0, 1], linestyle='--', color='gray')  # Diagonal reference line
+    plt.xlabel('Confidence')
+    plt.ylabel('Accuracy')
+    plt.title(f'Calibration Curve (ECE = {ece:.4f})')
     plt.show()
 
-#######################################################################################
+
 
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--preds_path', type=str, default='Z:/grodriguez/CardiacOCT/preds-test-set/model7_preds')
+    parser.add_argument('--preds_path', type=str, default='Z:/grodriguez/CardiacOCT/preds_second_split/model_rgb_2d_preds')
+    parser.add_argument('--label', type=int, default=4)
+    parser.add_argument('--excel_name', type=str, default='ece_model_rgb_v2')
     args, _ = parser.parse_known_args(argv)
 
-    orig_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task512_CardiacOCT/labelsTs'
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+    orig_path = 'Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task602_CardiacOCT/labelsTs'
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
 
     preds_list = os.listdir(args.preds_path)
     orig_list = os.listdir(orig_path)
 
-    num_classes = 13
-    error_pd = pd.DataFrame(columns=['pullback', 'frame', 'ece', 'sce'])
+    error_pd = pd.DataFrame(columns=['pullback', 'frame', 'type', 'ece'])
 
     for orig in orig_list:
 
@@ -126,16 +102,67 @@ def main(argv):
 
         orig_seg = sitk.ReadImage(os.path.join(orig_path, nifti_file))
         orig_seg_data = sitk.GetArrayFromImage(orig_seg)[0]
+
+        pred_seg = sitk.ReadImage(os.path.join(args.preds_path, nifti_file))
+        pred_seg_data = sitk.GetArrayFromImage(pred_seg)[0]
         prob_map = np.load(os.path.join(args.preds_path, npz_file))
 
         print('Checking ', nifti_file, npz_file)
         
         prob_img = get_prob_maps_list(prob_map)
 
-        true_seg_crop = orig_seg_data[6:697, 6:697]
+        #Check again the case for the weird shapes
+        if prob_img.shape[1] == 690:
 
-        _, _, ece = calculate_ece(true_seg_crop.reshape(-1), prob_img.reshape(prob_img.shape[1]**2, num_classes))
-        _, _, sce = calculate_sce(true_seg_crop.reshape(-1), prob_img.reshape(prob_img.shape[1]**2, num_classes))
+            true_seg_crop = orig_seg_data[6:696, 6:697]
+            pred_seg_crop = pred_seg_data[6:696, 6:697]
+
+        else:
+            true_seg_crop = orig_seg_data[6:697, 6:697]
+            pred_seg_crop = pred_seg_data[6:697, 6:697]
+
+        #Uniques for the labels
+        labels_pred = np.unique(pred_seg_crop)
+        labels_orig = np.unique(true_seg_crop)
+
+        # So we want to compute the ECE for one label (lipid, for example). Maybe it does not make sense to compute it 
+        # in FP or FN, but this code is for that. 
+
+        if args.label in labels_pred and args.label not in labels_orig:
+            cm_type = 'FP'
+
+            #For FP, we take the pixels that contain the label we want in the predicted segmentation. We take those same pixels in the 
+            #true segmentation
+            true_label_crop = true_seg_crop[pred_seg_crop == args.label]
+            pred_label_crop = pred_seg_crop[pred_seg_crop == args.label]
+            prob_label_img = prob_img[args.label][pred_seg_crop == args.label]
+            _, _, ece = calculate_ece(true_label_crop, pred_label_crop, prob_label_img)
+
+        elif args.label in labels_orig and args.label not in labels_pred:
+            cm_type = 'FN'
+            
+            #For FN, we take instead the pixels in the true segmentation that contain the labels, and we take those same pixels in the
+            #predicted segmentation
+            true_label_crop = true_seg_crop[true_seg_crop == args.label]
+            pred_label_crop = pred_seg_crop[true_seg_crop == args.label]
+            prob_label_img = prob_img[args.label][true_label_crop == args.label]
+            _, _, ece = calculate_ece(true_label_crop, pred_label_crop, prob_label_img)
+
+        #We dont calculate anything in TN
+        elif args.label not in labels_orig and args.label not in labels_pred:
+            cm_type = 'TN'
+            ece = np.nan
+
+        #We do the same as in FN
+        else:
+            cm_type = 'TP'
+            true_label_crop = true_seg_crop[true_seg_crop == args.label]
+            pred_label_crop = pred_seg_crop[true_seg_crop == args.label]
+            prob_label_img = prob_img[args.label][true_seg_crop == args.label]
+            _, _, ece = calculate_ece(true_label_crop, pred_label_crop, prob_label_img)
+
+        print(cm_type)
+        print('ECE:', ece, '\n')
 
         #Obtain format of pullback name (it's different than in the dataset counting)
         filename = nifti_file.split('_')[0]
@@ -153,14 +180,12 @@ def main(argv):
         
         error_list.append(pullback_name)
         error_list.append(n_frame)
+        error_list.append(cm_type)
         error_list.append(ece)
-        error_list.append(sce)
-
-        #reliability_diagram(x, y)
 
         error_pd = error_pd.append(pd.Series(error_list, index=error_pd.columns[:len(error_list)]), ignore_index=True)
 
-    error_pd.to_excel('Z:/grodriguez/CardiacOCT/info-files/uncertainty/calibration_errors.xlsx')
+    error_pd.to_excel('Z:/grodriguez/CardiacOCT/info-files/uncertainty/{}.xlsx'.format(args.excel_name))
 
 
 if __name__ == '__main__':

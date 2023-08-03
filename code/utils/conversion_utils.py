@@ -184,3 +184,39 @@ def cartesian_to_polar(image):
     polar_img = polar_img.astype(np.uint32)
 
     return polar_img
+
+
+def get_prob_maps_list(prob_map):
+    """Process the npz with the probability maps into a cleaner format (i.e array with shape (num_labels, x, y))
+
+    Args:
+        prob_map (Npz object): npz with the probability maps (returned by the predict command of nnunet)
+
+    Returns:
+        np.array: Array with the specified format
+    """    
+
+    num_classes = 13
+    probs_list = []
+
+    #Read through the npz dict and get the softmax values
+    for i in prob_map.items():
+
+        for label in range(num_classes):
+            probs_list.append(i[1][label][0])
+
+    #There are some weird cases in which there is one missed pixel (i dunno)
+    if probs_list[0].shape[0] == 690:
+        prob_img = np.zeros((num_classes, 690, 691))
+
+    else:   
+        prob_img = np.zeros((num_classes, 691, 691))
+
+    _, rows, cols = prob_img.shape
+
+    for i in range(rows):
+        for j in range(cols):
+
+            prob_img[:, i, j] = np.array([probs_list[label][i, j] for label in range(num_classes)])
+
+    return prob_img
