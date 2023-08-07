@@ -23,7 +23,7 @@ class Get_Distributions:
         
         self.data_path = data_path
         self.output_filename = output_filename
-        self.data_info = pd.read_excel(data_info)
+        self.data_info = pd.read_excel('{}.xlsx'.format(data_info))
         self.num_classes = 13
 
 
@@ -99,7 +99,7 @@ class Get_Distributions:
                 one_hot_list.append(calcium_thickness)
                 counts_per_frame = counts_per_frame.append(pd.Series(one_hot_list, index=counts_per_frame.columns[:len(one_hot_list)]), ignore_index=True)
 
-        counts_per_frame.to_excel(self.output_filename)
+        counts_per_frame.to_excel('{}.xlsx'.format(self.output_filename))
 
     def get_class_weights(self):
         """Obtain the class weights for the training. IMPORTANT: data_path must be the path to the labelsTr, otherwise you dont get the true
@@ -131,7 +131,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_path', type=str)
     parser.add_argument('--output_filename', type=str)
-    parser.add_argument('--data_info', type=str, default='Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
+    parser.add_argument('--data_info', type=str, default='Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2')
     args, _ = parser.parse_known_args(argv)
 
     args = parser.parse_args()
