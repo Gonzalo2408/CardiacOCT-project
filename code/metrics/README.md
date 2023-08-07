@@ -1,35 +1,37 @@
-## Metrics and results analysis
+## Metrics 
 
 This folder contains everything related to the computed results for this study. 
 
+Now everything is computed inside a class in the **get_all_metrics.py** file, which is computed with the corresponding Shell file. The only thing that needs to be adapted is the Shell file, which has arguments:
+
+- orig_folder: folder to the original test set segmentations (i.e the labelsTs folder).
+- preds_folder_name: name of the folder that contains the predicted segmentations.
+- preds_folder: the path to preds_folder_name.
+- data_info: the path to the Excel file containing all the important data for each pullback (like frames with annots, ID, etc). It basically is the train_test_split_v2 file.
+- model_id: arbitrary ID you want to give the model for which you want to get the results. This ID will be used to give the name for all the generated JSON and Excel files.
+
+All the metrics that are obtained are explained below.
+
 ### DICE scores
 
-The nnUNet returns many different metrics for each image we have in our dataset (for train/val/test sets) and it stores them into .json files. Using the scripts in **get_dice_frame_level.py** and **get_dice_pullback_level.py** we could take the DICE scores from those .json files. The DICE scores are obtained:
+We compute different DICE scores to evaluate the model performance from others points of view:
 
- - Frame-wise: the confusion matrix is computed for each frame independently.
- - Pullback-wise: the confusion matrix is computed for a whole pullback, that is, for every frame with annotation belonging to the same pullback. With this approach, we avoid having more NaN DICEs in our results, getting a more accurate DICE.
+- Pixel DICE per frame: it is the standard DICE score, computed for each label in the dataset. When we evaluate the test set during inference, a JSON file containing several metrics for each frame in the test set is generated. In order to compute this DICE per frame, the function **dice_per_frame** reads through this JSON file and creates a more organized JSON file with the DICE for each label and each frame. Then, this JSON file is opened with Excel and the results are stored here. 
 
- These DICEs are computed by seeing each pixel. However, for the lipid and calcium, we are also interested in their respectives arc. That is why we computed the DICE scores for the lipid arc, as in [Lee et al](https://www.nature.com/articles/s41598-022-24884-1). The way to do this is to look into the post-processing measurements. For each bin that is generated in a frame (there are 360 bins), each one can either contain lipid/calcium or not. By using this, we can find the confusion matrix for both predicted segmentation and manual segmentation (we basically see which bins occur in one case and the other). This way we can get a better estimate on how good or bad are the lipid and calcium segmentations, adding more clinical value to the segmentation of these. Similarly as with the other DICE scores, we provide the lipid and calcium arc DICE both frame and pullback-wise. The script that performs this task is **get_angle_dices.py**.
+- Pixel DICE per pullback: it similar to the previous DICE score, but computed per pullback. However, this DICE score is computed directly  in the **dice_per_pullback** function, since this coefficient is not generated in the JSON file. As a results for this code, a different JSON file is created and, again, the results are stored in the Excel file.
 
- The results can be seen in the Excel files in the [metrics](/info-files/metrics/) folder in this repository.
+- Lipid/calcium arc DICE per frame: this DICE is used to evaluate the performance of the lipid arc automated measurement, which is calculated in the **get_arc_dice_per_frame** function. This DICE is computed by looking at the bins that contain lipid in both manual and automated segmentations. The results are stored in an Excel file.
 
- ### Other metrics
+- Lipid/calcium arc DICE per pullback: similar as the previous case, but the confusion matrix is calculated accross all frames with annotations in a pullback. This is computed in the **get_arc_dice_per_pullback** function. Again, an Excel file is generated.
 
-Apart from the DICE scores, metrics for detection of every label were obtained, which are obtained with teh **get_other_metrics.py**. These metrics are: Positive Predictive Value (PPV), Negative Predictive Value (NPV), sensitivity, specificity and Cohen's kappa.
 
-The results can also be seen in the Excel files in the [metrics](/info-files/metrics/) folder.
+### Other metrics
 
-### Statistical analysis
+Apart from the DICE scores, metrics for detection of every label were obtained, which are obtained with the **get_other_metrics_detection.py**. These metrics are: Positive Predictive Value (PPV), Negative Predictive Value (NPV), sensitivity, specificity and Cohen's kappa. The function **get_other_metrics_pixel.py** computes also these metrics but pixel-wise, rather than computed per detection. 
 
-The statistical analyis on lipid (arc and FCT) and calcium (arc, thickness and depth) is also performed in this folder, with the aim to compare manual and automated measurements on these regions. Essentially, we generate an Excel file with the following information:
+A JSON file with the average for each label is generated, which is then opened with Excel and stored for each model.
 
- - False Positive and False Negatives
- - Bland-Altman plots: plus mean difference and standard deviation for manual and automated measurements
- - Intra-class correlation (ICC)
- - Correlation + plot
- - Outliers: using either Z-score or Tukey approaches
 
- The Excel file and the results with this can be seen in the [statistics](/info-files/statistics/) folder.
 
 
 

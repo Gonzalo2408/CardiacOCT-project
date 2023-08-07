@@ -102,8 +102,8 @@ class Statistics:
         return  md, sd
 
 
-    def corr_plot(self, manual: pd.Series, automatic: pd.Series) -> float:
-        """Save correlation plot
+    def corr(self, manual: pd.Series, automatic: pd.Series) -> float:
+        """Get correlation
 
         Args:
             manual (pd.Series): measurements for orginials
@@ -272,7 +272,7 @@ class Statistics:
 
             #Mean diff, standard deviation, correlation, icc(2,1) and outliers
             md, sd = self.mean_sd(manual, ai)
-            corr = self.corr_plot(manual, ai)
+            corr = self.corr(manual, ai)
             icc = self.calculate_icc(manual, ai)
             _, outliers = self.find_outliers(manual, ai, 'tukey')
 
