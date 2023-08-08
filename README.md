@@ -145,6 +145,35 @@ We report the DICE (both per frame and pullback), positive predictive value (PPV
 
 #### Pseudo 3D models
 
+| ROI  | DICE per frame | DICE per pullback | PPV | NPV | Sensitivity | Specificity | Kappa
+| ------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- | --------------
+| k = 1 |
+| Lumen  | 0.985 | 0.986 | 1 | NaN | 1 | NaN | NaN
+| Guidewire  | 0.937 | 0.941 | 1 | NaN | 1 | NaN | NaN
+| Wall | 0.887 | 0.894 | 1 | NaN | 1 | NaN | NaN
+| Lipid | 0.601 | 0.69 | 0.822 | 1 | 1 | 0.81 | 0.8
+| Calcium | 0.499 | 0.575 | 0.793 | 0.95 | 0.852 | 0.927 | 0.76
+| Media | 0.768 | 0.815 | 0.985 | 0.692 | 0.98 | 0.75 | 0.703
+| Catheter | 0.99 | 0.99 | 1 | NaN | 1 | NaN | NaN
+| Sidebranch | 0.506 | 0.564 | 0.808 | 0.965 | 0.864 | 0.948 | 0.792
+| Red thrombus | 0.536 | 0.223 | 0.8 | 0.995 | 0.941 | 0.98 | 0.85
+| White thrombus | 0.178 | 0.212 | 0.6 | 0.976 | 0.545 | 0.981 | 0.55 
+| Dissection | 0 | 0 | 0 | 1 | NaN | 0.972 | 0
+| Plaque rupture | 0.072 | 0.038 | 0.25 | 0.99 | 0.667 | 0.943 | 0.337
+| k = 2 |
+| Lumen  | 0.986 | 0.987 | 1 | NaN | 1 | NaN | NaN
+| Guidewire  | 0.939 | 0.941 | 1 | NaN | 1 | NaN | NaN
+| Wall | 0.886 | 0.893 | 1 | NaN | 1 | NaN | NaN
+| Lipid | 0.597 | 0.69 | 0.816 | 1 | 1 | 0.802 | 0.791
+| Calcium | 0.505 | 0.599 | 0.797 | 0.956 | 0.87 | 0.926 | 0.773
+| Media | 0.766 | 0.814 | 0.981 | 0.667 | 0.981 | 0.667 | 0.647
+| Catheter | 0.99 | 0.99 | 1 | NaN | 1 | NaN | NaN
+| Sidebranch | 0.533 | 0.589 | 0.822 | 0.959 | 0.841 | 0.954 | 0.788
+| Red thrombus | 0.573 | 0.285 | 0.842 | 0.995 | 0.941 | 0.986 | 0.879
+| White thrombus | 0.154 | 0.165 | 0.556 | 0.971 | 0.454 | 0.981 | 0.476 
+| Dissection | 0 | 0 | 0 | 1 | NaN | 0.972 | 0
+| Plaque rupture | 0.112 | 0.06 | 0.333 | 0.995 | 0.833 | 0.953 | 0.455
+
 
 <!-- ### Results on test set (pullback-level)
 
@@ -170,7 +199,9 @@ Inspired by the approaches in the study by [Lee et al. (2022)](https://www.natur
 
 | Model | Lipid arc frame-level | Lipid arc pullback-level
 | ------------- | -------------- | --------------
-| RGB 2D | 0.711 | 0.796
+| 2D | 0.711 | 0.796
+| k = 1 | 0.725 | 0.799
+| k = 2 | 0.718 | 0.797
 
 
 
@@ -180,7 +211,9 @@ Similar as with the lipid arc, we computed the DICE for the detected arc of the 
 
 Model | Calcium arc frame-level | Calcium arc pullback-level
 | ------------- | -------------- | --------------
-| Model 1 | 0.61 | 0.678
+| 2D | 0.61 | 0.678
+| k = 1 | 0.59 | 0.667
+| k = 2 | 0.596 | 0.672
 
 
 ### Post processing results
@@ -191,7 +224,9 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 
 | Model  | FP | FN | FCT (mean diff / SD) (µm) | Lipid arc (mean diff / SD) (º) | FCT ICC(2,1) | Lipid arc ICC(2,1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- 
-| RGB 2D | 24 | 0 | 4.83 ± 74.42 | 25.36 ± 55.36 | 0.749 | 0.785
+| 2D | 24 | 0 | 4.83 ± 74.42 | 25.36 ± 55.36 | 0.749 | 0.785
+| k = 1 | 22 | 0 | 2.67 ± 77.21 | 25.46 ± 57.15 | 0.727 | 0.78
+| k = 2 | 23 | 0 | -0.97 ± 71.73 | 25.1 ± 54.55 | 0.757 | 0.745
 
 
 #### Calcium measurements
@@ -199,11 +234,13 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 
 | Model | FP | FN | Depth (mean diff / SD) (µm) | Arc (mean diff / SD) (º) | Thickness (mean diff /SD) (µm) | Depth ICC(2,1) | Calcium arc ICC(2,1) | Thickness ICC(2,1)
 | ------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- 
-| RGB 2D | 9 | 10 | 1.09 ± 68.95 | -18.11 ± 21.97 | -47.64 ± 209.13 | 0.817 | 0.902 | 0.65 
+| 2D | 9 | 10 | 1.09 ± 68.95 | -18.11 ± 21.97 | -47.64 ± 209.13 | 0.817 | 0.807 | 0.65
+| k = 1 | 11 | 9 | 15.58 ± 45.12 | -17.82 ± 20.82 | -42.6 ± 196.03 | 0.924 | 0.833 | 0.696
+| k = 2 | 12 | 7 | 29.21 ± 91.42 | -19.19 ± 22.82 | -50.94 ± 223.97 | 0.735 | 0.798 | 0.631
 
 
 ## TODO:
- - Train pseudo 3d (+- 1, 2, 3 frames
+ - Train pseudo 3d (+- 1, 2, 3 frames)
  - Probability maps and uncertainty estimation: see losses functions and correlation with DICE
  - Model architecure and weights to see feature map (explainability)
  - Clean code and keep updating files
