@@ -10,7 +10,7 @@ Figure 1 shows a similar distribution across every model and test set. It is wor
 
 ![Figure 1. Test set distribution comparison accross every model](/assets/models_dists.png)
 
-Figure 2 shows the train/test distribution. Expect for some underrepresentation in calcium and overrepresentation on sidebranch, the classes are similarly distributed across both sets. Notwithstanding, all the frames containing dissection belong to the train set, meaning that no dissections are found in the test set.
+Figure 2 shows the train/test distribution. Except for some underrepresentation in calcium and overrepresentation on sidebranch, the classes are similarly distributed across both sets. Notwithstanding, all the frames containing dissection belong to the train set, meaning that no dissections are found in the test set.
 
 ![Figure 2. Raw train/test set distribution](/assets/train_test_dists.png)
 
@@ -26,8 +26,8 @@ Here, several tables give a summary of the exact percentages of the labels distr
 
 ### Frames sheets
 
-Every model (including the train and test sets) has a sheet containing the label values for each frame, with the automated measurements for that frame. Each frame can either have a value of 0 or 1 for every label. For the measurements, if there is no lipid/calcium, the measurement will give -99.
+Every model (including the train and test sets) has a sheet containing the label values for each frame, with the automated measurements for that frame. Each frame can either have a value of 0 or 1 for every label. For the measurements, if there is no lipid/calcium, the measurement will give -99. Note that for the models, we only include the results on the test set, not the training set.
 
 ### Pullbacks sheets
 
-Similary, each model and train and test sets has a sheet with the pullback distributions. Every row corresponds to a pullback, and the total nº of frames containing every label.
+Similary, each model and train and test sets has a sheet with the pullback distributions. Every row corresponds to a pullback, and the total nº of frames containing every label. Again, we only obtain these results for the test set.
