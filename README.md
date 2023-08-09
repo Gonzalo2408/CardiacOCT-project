@@ -40,20 +40,20 @@ We show the regions of interest (ROIs) that the algorithm segments. With the aim
 | Dissection | 0.76 / 5.35 | 0.49 / 3.41 | 0.36 / 2.54 | 0.32 / 2.23 | 4.1 / 6.66
 | Plaque rupture | 7.02 / 25 | 5.59 / 21.59 | 7.09 / 20.33 | 6.44 / 19.40 | 2.56 / 13.33 -->
 
-| ROI  | Frames (train %) | Pullbacks (train %) | Frames (test %) | Pullbacks (test %)
-| ------------- | ------------- | ------------- | ------------- | ------------- 
+| ROI  | Frames (train/test %) | Pullbacks (train/test %) 
+| ------------- | ------------- | -------------  
 | Lumen  | - | - | - | - 
 | Guidewire  | - | - | - | - 
 | Wall | - | - | - | - 
-| Lipid | 48.12 | 97.74 | 51.38 | 93.33
-| Calcium | 31.44 | 84.21 | 26.6 | 86.67
-| Media | 95.69 | 100 | 93.12 | 100
+| Lipid | 48.12/46.79 | 97.74/100
+| Calcium | 31.44/24.77 | 84.21/73.33
+| Media | 95.69/94.49 | 100/100
 | Catheter | - | - | - | - | - 
-| Sidebranch | 15.91 | 89.47 |19.27 | 93.33
-| Red thrombus | 5.19 | 21.8 | 7.34 | 13.33
-| White thrombus | 4.97 | 22.56 | 4.13 | 20
-| Dissection | 0.77 | 3.01 | 0 | 0 
-| Plaque rupture | 6.24 | 19.55 | 2.75 | 6.67
+| Sidebranch | 15.91/20.18 | 89.47/100
+| Red thrombus | 5.19/7.8 | 21.8/20
+| White thrombus | 4.97/5.05 | 22.56/40
+| Dissection | 0.77/0 | 3.017/0
+| Plaque rupture | 6.24/2.75 | 19.55/13.33
 
 
 Note that the lumen, guidewire, wall and catheter are present in every frame of the datatset. Moreover, dissections were finally all included in the train set due to the very limited ammount of dissections in the dataset.
