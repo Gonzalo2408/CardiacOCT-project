@@ -8,11 +8,11 @@ This sheet shows, up to now, two plots: one for a comparison of the test set dis
 
 Figure 1 shows a similar distribution across every model and test set. It is worth pointing out, however, an overrepresentation in lipid for every model (from a bit less than 50% to 60%).
 
-![Figure 1. Test set distribution comparison accross every model](assets/models_dists.png)
+![Figure 1. Test set distribution comparison accross every model](/assets/models_dists.png)
 
 Figure 2 shows the train/test distribution. Expect for some underrepresentation in calcium and overrepresentation on sidebranch, the classes are similarly distributed across both sets. Notwithstanding, all the frames containing dissection belong to the train set, meaning that no dissections are found in the test set.
 
-![Figure 2. Raw train/test set distribution](assets/train_test_dists.png)
+![Figure 2. Raw train/test set distribution](/assets/train_test_dists.png)
 
 ### Overview
 
