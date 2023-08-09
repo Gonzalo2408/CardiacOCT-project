@@ -18,7 +18,7 @@ from utils.metrics_utils import mean_metrics, calculate_confusion_matrix, metric
 
 class Metrics:
 
-    def __init__(self, orig_folder: str, preds_folder_name: str, preds_folder:str, data_info:str, model_id:str):
+    def __init__(self, orig_folder: str, preds_folder_name: str, preds_folder: str, data_info: str, model_id: str, output_folder: str):
         """Class to get all the metrics files for a specific model
 
         Args:
@@ -35,6 +35,7 @@ class Metrics:
         self.data_info = pd.read_excel(data_info)
         self.model_id = model_id     
         self.num_classes = 13
+        self.output_folder = output_folder
 
     def get_patient_data(self, file: str) -> str:
         """Processes the name of the file so we retrieve the pullback name
@@ -99,10 +100,10 @@ class Metrics:
                 final_dict[file] = mean_result
 
         #Write final dict in a json file
-        with open("Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_dice_frame.json".format(self.model_id), 'w') as f:
+        with open(os.path.join(self.output_folder, '{}_dice_frame.json'.format(self.model_id)), 'w') as f:
             json.dump(final_dict, f, indent=4)
 
-        print('Done! Find your DICE results at Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_dice_frame.json'.format(self.model_id))
+        print('Done! Find your DICE results at ', self.output_folder)
         print('############################\n')
 
 
@@ -151,11 +152,11 @@ class Metrics:
 
             final_dict[pullback_name] = dices_dict
 
-        with open("Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_dice_pullback.json".format(self.model_id), 'w') as f:
+        with open(os.path.join(self.output_folder, '{}_dice_pullback.json'.format(self.model_id)), 'w') as f:
             json.dump(final_dict, f, indent=4)
 
 
-        print('Done! Find your DICE results at Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_dice_pullback.json'.format(self.model_id))
+        print('Done! Find your DICE results at ', self.output_folder)
         print('############################\n')
 
     def get_other_metrics_detection(self):
@@ -253,13 +254,12 @@ class Metrics:
 
             final_dict[str(label)] = metrics_dict
 
-        with open("Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_other_metrics_detection.json".format(self.model_id), 'w') as f:
+        with open(os.path.join(self.output_folder, '{}_other_metics_detection.json'.format(self.model_id)), 'w') as f:
             json.dump(final_dict, f, indent=4)
 
-        print('Done! Find your other metrics (detection) results at Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_other_metrics_detection.json'.format(self.model_id))
+        print('Done! Find your other metrics (detection) results at ', self.output_folder)
         print('############################\n')
 
-        return final_dict
     
     def get_other_metrics_pixel(self):
         """Obtain PPV, NPV, sensitivity, specificity and cohen's kappa based on pixel level
@@ -314,10 +314,10 @@ class Metrics:
 
             final_dict[str(label)] = metrics_dict
 
-        with open("Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_other_metrics_pixel.json".format(self.model_id), 'w') as f:
+        with open(os.path.join(self.output_folder, '{}_other_metrics_pixel.json'.format(self.model_id)), 'w') as f:
             json.dump(final_dict, f, indent=4)
 
-        print('Done! Find your other metrics (pixel) results at Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_other_metrics_pixel.json'.format(self.model_id))
+        print('Done! Find your other metrics (pixel) results at ', self.output_folder)
         print('############################\n')
         
 
@@ -368,9 +368,9 @@ class Metrics:
 
             new_excel_data = new_excel_data.append(pd.Series(list_data, index=new_excel_data.columns[:len(list_data)]), ignore_index=True)
 
-        new_excel_data.to_excel('Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_arc_dices_per_frame.xlsx'.format(self.model_id))
+        new_excel_data.to_excel(os.path.join(self.output_folder, '{}_arc_dices_per_frame.xlsx'.format(self.model_id)))
 
-        print('Done! Find your arc DICE results per frame at Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_arc_dices_per_frame.xlsx'.format(self.model_id))
+        print('Done! Find your arc DICE results per frame at ', self.output_folder)
         print('############################\n')
 
 
@@ -449,9 +449,9 @@ class Metrics:
 
             new_excel_data = new_excel_data.append(pd.Series(list_data, index=new_excel_data.columns[:len(list_data)]), ignore_index=True)
 
-        new_excel_data.to_excel('Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_arc_dices_per_pullback.xlsx'.format(self.model_id))
+        new_excel_data.to_excel(os.path.join(self.output_folder, '{}_arc_dices_per_pullback.xlsx'.format(self.model_id)))
 
-        print('Done! Find your arc DICE results per pullback at Z:/grodriguez/CardiacOCT/info-files/metrics/second_split/{}_arc_dices_per_pullback.xlsx'.format(self.model_id))
+        print('Done! Find your arc DICE results per pullback at ', self.output_folder)
         print('############################\n')
 
 
@@ -462,11 +462,12 @@ def main(argv):
     parser.add_argument('--preds_folder', type=str, default='Z:/grodriguez/CardiacOCT/preds_second_split')
     parser.add_argument('--data_info', type=str, default='Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
     parser.add_argument('--model_id')
+    parser.add_argument('--output_folder', type=str, default='Z:/grodriguez/CardiacOCT/info-files/metrics/second_split')
     args, _ = parser.parse_known_args(argv)
 
     args = parser.parse_args()
 
-    metrics = Metrics(args.orig_folder, args.preds_folder_name, args.preds_folder, args.data_info, args.model_id)
+    metrics = Metrics(args.orig_folder, args.preds_folder_name, args.preds_folder, args.data_info, args.model_id, args.output_folder)
 
     #Call all metrics functions (if you want to do a specific, just comment the others out)
     metrics.dice_per_frame()

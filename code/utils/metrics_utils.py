@@ -1,8 +1,9 @@
 import numpy as np
 import math
+from typing import List, Dict, Tuple
 
 
-def mean_metrics(list_dicts):
+def mean_metrics(list_dicts: List[Dict[str, int]]) -> dict:
     """Gets the mean DICE of the total pullback for each label
 
     Args:
@@ -27,7 +28,7 @@ def mean_metrics(list_dicts):
     return result
 
 
-def calculate_confusion_matrix(Y_true, Y_pred, labels):
+def calculate_confusion_matrix(Y_true: np.array, Y_pred: np.array, labels: list) -> np.array:
     """Obtain confusion matrix for full pullback
 
     Args:
@@ -48,14 +49,14 @@ def calculate_confusion_matrix(Y_true, Y_pred, labels):
 
     return cm
 
-def metrics_from_cm(cm):
+def metrics_from_cm(cm: np.array) -> Tuple[np.array, np.array, np.array, np.array, np.array, np.array]:
     """Get metrics score the previously obtained confusion matrix
 
     Args:
         cm (np.array): confusion matrix with shape (num_classes, num_classes)
 
     Returns:
-        np.array: array of length num classes containing all of the DICEs, precision, 
+        tuple: tuple with arrays of length num classes containing all of the DICEs, precision, 
         recall and specificity computed per pullback
     """    
 

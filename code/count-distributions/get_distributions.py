@@ -58,7 +58,7 @@ class Get_Distributions:
             either for the original dataset (i.e labelsTs or labelsTr folder) and the predicted segmentations (i.e in your model predictions)
         """
 
-        counts_per_frame = pd.DataFrame(columns = ['pullback', 'frame', 'set', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
+        counts_per_frame = pd.DataFrame(columns = ['pullback', 'frame', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
                                     'media', 'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
                                     'rupture', 'lipid_arc', 'cap_thickness', 'calcium_depth', 'calcium_arc', 'calcium_thickness'])
 

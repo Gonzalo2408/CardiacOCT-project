@@ -2,7 +2,7 @@ import numpy as np
 import os
 
 
-def create_image_png(segmentation):
+def create_image_png(segmentation: np.array) -> np.array:
     """Returns the raw segmentation and the measruements as an overlay, using a fixed color mapping
 
         segmentaiton (np.array): Array cotaining the raw segmentation frame
@@ -37,12 +37,12 @@ def create_image_png(segmentation):
     return color_img
 
 
-def merge_frames_into_pullbacks(path_predicted):
+def merge_frames_into_pullbacks(path_predicted: str) -> dict:
     """Creates a dictionary with the pullback as key and a list of the frames with annotations as value. The values in the list
        are just the filenames of the frames in the predicted data folder
 
     Args:
-        path_predicted (string): Path of the predicted data
+        path_predicted (str): Path of the predicted data
 
     Returns:
         dict: Dictionary

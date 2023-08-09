@@ -13,7 +13,7 @@ def main(argv):
     parser.add_argument('--data', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/DICOM')
     parser.add_argument('--task', type=str, default='Task603_CardiacOCT')
     parser.add_argument('--k', type=int, default=1)
-    parser.add_argument('--grayscale', type=bool, default=False)
+    parser.add_argument('--grayscale', action='store_true')
     args, _ = parser.parse_known_args(argv)
 
     parent_path = args.data

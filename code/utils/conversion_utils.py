@@ -1,10 +1,11 @@
 import numpy as np
 import SimpleITK as sitk
+from typing import Tuple
 import cv2
 from matplotlib.colors import ListedColormap
 import base64
 
-def create_circular_mask(h, w, center=None, radius=None):
+def create_circular_mask(h: int, w: int, center: tuple = None, radius: int = None) -> np.array:
     """Apply the circular mask to remove the Abbott watermark
 
     Args:
@@ -33,7 +34,7 @@ def create_circular_mask(h, w, center=None, radius=None):
 
 
 
-def resize_image(raw_frame, downsample = True):
+def resize_image(raw_frame: np.array, downsample: bool = True) -> np.array:
     """Resize image to (704, 704) and also checks for wrong spacing
 
     Args:
@@ -41,7 +42,7 @@ def resize_image(raw_frame, downsample = True):
         downsample (bool, optional): this checks for the case in which the shape is wrong but the spacing is correct (check script to understand better). Defaults to True.
 
     Returns:
-        np.array: _description_
+        np.array: Resampled image
     """    
 
     frame_image = sitk.GetImageFromArray(raw_frame)
@@ -70,7 +71,7 @@ def resize_image(raw_frame, downsample = True):
 
 
 
-def rgb_to_grayscale(img): 
+def rgb_to_grayscale(img: np.array) -> np.array: 
     """Converts RGB OCT scan to grayscale
 
     Args:
@@ -92,7 +93,12 @@ def rgb_to_grayscale(img):
     return gray_img 
 
 
-def decode_rgb() -> ListedColormap:
+def decode_rgb() -> np.array:
+    """String to decode the RGB values into the corresponding grayscale, provided by Abbott
+
+    Returns:
+        np.array: array with the 255 grayscale values with the corresponding RGB
+    """    
     
     golden = b'AAAABQEACQEADQEADwEAEQIAEgIAFAIAFgIAGAMAGgMAGwMAHQMAHgMAIAQAIQQAIwQAJgQAJwUAKQUAKgUALAUALQYALwYAMAYAMwcBN' \
             b'QgBNggBOAkBOQoBOwoBPAsBPgwBQA0BQg4BQw4BRA8BRhABRxEBSREBShIBTBMBThQBUBUBURYBUhcBVBgBVRkBVxkBWBoBWhsBXBwCXh' \
@@ -111,7 +117,7 @@ def decode_rgb() -> ListedColormap:
     return array
 
 
-def check_uniques(raw_unique, new_unique, frame):
+def check_uniques(raw_unique: np.array, new_unique: np.array, frame: int) -> bool:
     """We looked for weird labels that appeared in the segmentation during the conversion
 
     Args:
@@ -139,7 +145,7 @@ def check_uniques(raw_unique, new_unique, frame):
     return True
 
 
-def sample_around(image, frame, k):
+def sample_around(image: np.array, frame, int, k: int) -> np.array:
     """Get k frames around specific frame with annotation
 
     Args:
@@ -169,7 +175,7 @@ def sample_around(image, frame, k):
     return frames_around
 
 
-def cartesian_to_polar(image):
+def cartesian_to_polar(image: np.array) -> np.array:
     """Converts the OCT image/segmentation to polar coordinates (perform resizing and circular mask before this)
 
     Args:
@@ -186,7 +192,7 @@ def cartesian_to_polar(image):
     return polar_img
 
 
-def get_prob_maps_list(prob_map):
+def get_prob_maps_list(prob_map: np.lib.npyio.NpzFile) -> np.array:
     """Process the npz with the probability maps into a cleaner format (i.e array with shape (num_labels, x, y))
 
     Args:

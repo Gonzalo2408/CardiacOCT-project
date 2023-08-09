@@ -147,7 +147,7 @@ We report the DICE (both per frame and pullback), positive predictive value (PPV
 
 | ROI  | DICE per frame | DICE per pullback | PPV | NPV | Sensitivity | Specificity | Kappa
 | ------------- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- | --------------
-| k = 1 |
+| **k = 1** |
 | Lumen  | 0.985 | 0.986 | 1 | NaN | 1 | NaN | NaN
 | Guidewire  | 0.937 | 0.941 | 1 | NaN | 1 | NaN | NaN
 | Wall | 0.887 | 0.894 | 1 | NaN | 1 | NaN | NaN
@@ -160,7 +160,7 @@ We report the DICE (both per frame and pullback), positive predictive value (PPV
 | White thrombus | 0.178 | 0.212 | 0.6 | 0.976 | 0.545 | 0.981 | 0.55 
 | Dissection | 0 | 0 | 0 | 1 | NaN | 0.972 | 0
 | Plaque rupture | 0.072 | 0.038 | 0.25 | 0.99 | 0.667 | 0.943 | 0.337
-| k = 2 |
+| **k = 2** |
 | Lumen  | 0.986 | 0.987 | 1 | NaN | 1 | NaN | NaN
 | Guidewire  | 0.939 | 0.941 | 1 | NaN | 1 | NaN | NaN
 | Wall | 0.886 | 0.893 | 1 | NaN | 1 | NaN | NaN

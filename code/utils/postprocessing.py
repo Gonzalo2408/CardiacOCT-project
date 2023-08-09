@@ -2,8 +2,9 @@ import scipy.ndimage as sim
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import math
+from typing import Tuple
 
-def count_distance_to_centre(region, centre_of_lumen, dists, only_angle = True):
+def count_distance_to_centre(region: np.array, centre_of_lumen: tuple, dists: np.array, only_angle: bool = True) -> np.array:
     """Measures distance of each pixel in a region to the centre of the lumen. It can be returned either Euclidean or angle
 
     Args:
@@ -13,8 +14,8 @@ def count_distance_to_centre(region, centre_of_lumen, dists, only_angle = True):
         only_angle (bool, optional): for the case you don't want the Euclidean distance. Defaults to True.
 
     Returns:
-        _type_: _description_
-    """    
+        np.array: array containing distances from every pixel of a label to the centre of the lumen
+    """
     
     if only_angle == False:
 
@@ -28,7 +29,7 @@ def count_distance_to_centre(region, centre_of_lumen, dists, only_angle = True):
 
     return dists
 
-def compute_arc_dices(orig_lipid, pred_lipid):
+def compute_arc_dices(orig_lipid: list, pred_lipid: list) -> Tuple[float, int, int, int]:
     """Obtain lipid or calcium arc DICEs, based on the idea that every bin in the image (180 in total, around the vessel) can contain or not lipid.
        We obtain a CM for both original and predicted segmentations, allowing for this arc DICE score
 
@@ -37,7 +38,7 @@ def compute_arc_dices(orig_lipid, pred_lipid):
         pred_lipid (list): Bins that contain lipid/calcium in the predicted image
 
     Returns:
-        ints: DICE score and CM
+        tuple: DICE score, TP, FP and FN
     """    
 
     bins = 180
@@ -69,7 +70,7 @@ def compute_arc_dices(orig_lipid, pred_lipid):
 
     return dice_score, tp, fp, fn
 
-def get_new_thickness_calcium(center, image):
+def get_new_thickness_calcium(center: tuple, image: np.array) -> Tuple[float, tuple]:
     """Obtains the calcium cluster thickness computed perpendicular to the centre of the vessel
 
     Args:
@@ -143,18 +144,18 @@ def get_new_thickness_calcium(center, image):
 
         if dist > max_diff:
             max_diff = dist
-            max_value = [min_coord, max_coord]
+            max_value = (min_coord, max_coord)
 
     return max_diff, max_value
                 
 
-def create_annotations_lipid(image, font = 'cluster', bin_size = 2):   
+def create_annotations_lipid(image: np.array, font: str = 'cluster', bin_size: int = 2) -> Tuple[np.array, np.array, float, float, list]:   
     """Obtain FCT and lipid arc measurements
 
     Args:
         image (np.array): Array with image
-        font (str, optional): path to font type. Defaults to 'cluster'.
-        bin_size (int, optional): ??.
+        font (str, optional): path to font type. Defaults to 'cluster'
+        bin_size (int, optional): specifies the size of the bins you want, so you get more or less. Default is 2 (meaning there are 180 bins)
 
     Returns:
         np.array : image with plotted measurements
@@ -505,13 +506,13 @@ def create_annotations_lipid(image, font = 'cluster', bin_size = 2):
     return output_image, thickness_bin, cap_thickness, lipid_arc, lipid_ids
 
 
-def create_annotations_calcium(image, font = 'cluster', bin_size = 2):    
+def create_annotations_calcium(image: np.array, font: str = 'cluster', bin_size: int = 2) -> Tuple[np.array, np.array, float, float, float, list]:    
     """Obtain calcium arc, depth and thickness measurements
 
     Args:
         image (np.array): Array with image
         font (str, optional): path to font type. Defaults to 'cluster'
-        bin_size (int, optional): ??.
+        bin_size (int, optional): specifies the size of the bins you want, so you get more or less. Default is 2 (meaning there are 180 bins)
 
     Returns:
         np.array : image with plotted measurements

@@ -28,7 +28,7 @@ class Statistics:
 
         self.model_id = model_id
         self.output_filename = output_filename
-        self.measures_file = pd.read_excel(measures_file)
+        self.measures_file = pd.read_excel('{}.xlsx'.format(measures_file))
         self.png_path = png_path
 
     def get_data_filtered(self, test_sheet: pd.DataFrame, type_manual: str, type_ai: str, missing: int = -99) -> Tuple[pd.Series, pd.Series, int, int]:        
