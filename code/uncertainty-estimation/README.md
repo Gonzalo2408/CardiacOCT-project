@@ -8,13 +8,11 @@ For explainability purposes, the feature maps after each convolutional layer are
 
 ### Probability maps
 
-The nnUNet allows to store the probability maps for each image. That is, for each pixel, we get the softmax probabilities for each label (note that these probabilities sum 1). While these already give some information on how certain the model is about a prediction, it is usually overconfident. However, we also retrieved them as you can see in the corresponding Jupyter notebook. It basically plots like a "heatmap", so the areas with more clear softmax probability are yellow, and those areas with more uncertain softmax probabilities are blue.
+The nnUNet allows to store the probability maps for each image. That is, for each pixel, we get the softmax probabilities for each label (note that these probabilities sum 1). An example of this map can be seen below, which looks like a heatmap with the most confident areas in yellow and least confident in blue. We analyzed these probability maps from two perspectives:
+
+- By calculating the total Expected Calibration Error (ECE) in the test set.
+- By obtaining the confidence on lipid and calcium regions, considering if each frame is TP, TN, FP or FN. 
 
 ![Figure 1. Example of probability map as overlay and corresponding image. It is worth noting that edges are always uncertain regions, but other tiny blue regions can be seen as well](/assets/prob_map.png)
 
-The probability maps were analysed for each label (...)
-
-
-### Calibration
-
-Metrics such as the Expected Calibration Error (ECE) can give some information about how well the given probabilities represent the true accuracy of the model. For this project, the ECE was estimated. 
+The result on this aspect can be seen [here](info-files/uncertainty)
