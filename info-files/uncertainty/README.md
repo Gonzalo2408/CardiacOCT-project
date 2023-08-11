@@ -24,9 +24,9 @@ The reliability curves, with the total ECE in the test set, can be found below. 
 ![Figure 1. Example of probability map as overlay and corresponding image. It is worth noting that edges are always uncertain regions, but other tiny blue regions can be seen as well](/assets/ece_conf_pseudo3d_2.png) -->
 
 <p float="left">
-  <img src="/assets/ece_conf_model_2d.png" width="700" />
-  <img src="/assets/ece_conf_pseudo3d_1.png" width="700" /> 
-  <img src="/assets/ece_conf_pseudo3d_2.png" width="700" />
+  <img src="/assets/ece_conf_model_2d.png" width="500" />
+  <img src="/assets/ece_conf_pseudo3d_1.png" width="500" /> 
+  <img src="/assets/ece_conf_pseudo3d_2.png" width="500" />
 </p>
 
 ## Features file
