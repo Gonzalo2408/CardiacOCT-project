@@ -12,7 +12,7 @@ The nnUNet allows to store the probability maps for each image. That is, for eac
 
 - Expected Calibration Error (ECE) and reliability curves: the ECE was obtained for the total of the test set to analyze if the trained models are over or underconfident on their predictions. For this, we also plot the reliability curves, with the total confidences on the x-axis, and the accuracy on the y-axis.
 
--Total confidence on lipid and calcium regions: based on the idea that each frame can be TP, TN, FP and FN on predicting lipid or calcium, we studied the total confidence for each case. In the case of TP and FP, we average the confidence of the predicted lipid/calcium region. On the other hand, for FN we average the confidence of the region in the predicted segmentation that contains the lipid/calcium in the original segmentation. Finally, for TN, we do not compute any confidence values.
+- Total confidence on lipid and calcium regions: based on the idea that each frame can be TP, TN, FP and FN on predicting lipid or calcium, we studied the total confidence for each case. In the case of TP and FP, we average the confidence of the predicted lipid/calcium region. On the other hand, for FN we average the confidence of the region in the predicted segmentation that contains the lipid/calcium in the original segmentation. Finally, for TN, we do not compute any confidence values.
 
 ![Figure 1. Example of probability map as overlay and corresponding image. It is worth noting that edges are always uncertain regions, but other tiny blue regions can be seen as well](/assets/prob_map.png)
 
