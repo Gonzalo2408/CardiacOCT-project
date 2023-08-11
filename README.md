@@ -239,6 +239,17 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | k = 2 | 12 | 7 | 29.21 ± 91.42 | -19.19 ± 22.82 | -50.94 ± 223.97 | 0.735 | 0.798 | 0.631
 
 
+### Uncertainty estimation results
+
+The total Expected Calibration Error (ECE) with the reliability curves were obtained. Moreover, the confidence for lipid and calcium regions was estimated, for each model and if the prediction was TP, TN, FP or FN.
+
+| Model | ECE | Lipid confidence (FP/FN/TP) | Calcium confidence (FP/FN/TP)
+| ------------- | -------------- | -------------- | --------------
+| 2D | 0.713/-/0.903 | 0.575/0.875/0.851
+| k = 1 | 0.728/-/0.902 | 0.627/0.861/0.846
+| k = 2 | 0.723/-/0.904 | 0.599/0.861/0.833
+
+
 ## TODO:
  - Train pseudo 3d (+- 1, 2, 3 frames)
  - Probability maps and uncertainty estimation: see losses functions and correlation with DICE
