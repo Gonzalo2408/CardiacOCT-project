@@ -27,6 +27,7 @@ The reliability curves, with the total ECE in the test set, can be found below. 
   <img src="/assets/ece_conf_model_2d.png" width="500" />
   <img src="/assets/ece_conf_pseudo3d_1.png" width="500" /> 
   <img src="/assets/ece_conf_pseudo3d_2.png" width="500" />
+  <img src="/assets/ece_conf_pseudo3d_3.png" width="500" />
 </p>
 
 ## Features file

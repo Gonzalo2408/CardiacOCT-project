@@ -173,6 +173,19 @@ We report the DICE (both per frame and pullback), positive predictive value (PPV
 | White thrombus | 0.154 | 0.165 | 0.556 | 0.971 | 0.454 | 0.981 | 0.476 
 | Dissection | 0 | 0 | 0 | 1 | NaN | 0.972 | 0
 | Plaque rupture | 0.112 | 0.06 | 0.333 | 0.995 | 0.833 | 0.953 | 0.455
+| **k = 3** |
+| Lumen  | 0.985 | 0.987 | 1 | NaN | 1 | NaN | NaN
+| Guidewire  | 0.941 | 0.943 | 1 | NaN | 1 | NaN | NaN
+| Wall | 0.884 | 0.892 | 1 | NaN | 1 | NaN | NaN
+| Lipid | 0.586 | 0.692 | 0.803 | 1 | 1 | 0.784 | 0.773
+| Calcium | 0.492 | 0.593 | 0.779 | 0.949 | 0.852 | 0.921 | 0.749
+| Media | 0.771 | 0.813 | 0.99 | 0.714 | 0.981 | 0.833 | 0.754
+| Catheter | 0.99 | 0.99 | 1 | NaN | 1 | NaN | NaN
+| Sidebranch | 0.506 | 0.581 | 0.771 | 0.959 | 0.841 | 0.937 | 0.752
+| Red thrombus | 0.609 | 0.352 | 0.889 | 0.995 | 0.941 | 0.99 | 0.907
+| White thrombus | 0.176 | 0.2 | 0.667 | 0.976 | 0.545 | 0.985 | 0.581 
+| Dissection | 0 | 0 | 0 | 1 | NaN | 0.963 | 0
+| Plaque rupture | 0.057 | 0.025 | 0.278 | 0.995 | 0.833 | 0.939 | 0.391
 
 
 <!-- ### Results on test set (pullback-level)
@@ -202,6 +215,7 @@ Inspired by the approaches in the study by [Lee et al. (2022)](https://www.natur
 | 2D | 0.711 | 0.796
 | k = 1 | 0.725 | 0.799
 | k = 2 | 0.718 | 0.797
+| k = 3 | 0.705 | 0.795
 
 
 
@@ -214,6 +228,7 @@ Model | Calcium arc frame-level | Calcium arc pullback-level
 | 2D | 0.61 | 0.678
 | k = 1 | 0.59 | 0.667
 | k = 2 | 0.596 | 0.672
+| k = 3 | 0.592 | 0.669
 
 
 ### Post processing results
@@ -227,6 +242,7 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | 2D | 24 | 0 | 4.83 ± 74.42 | 25.36 ± 55.36 | 0.749 | 0.785
 | k = 1 | 22 | 0 | 2.67 ± 77.21 | 25.46 ± 57.15 | 0.727 | 0.78
 | k = 2 | 23 | 0 | -0.97 ± 71.73 | 25.1 ± 54.55 | 0.757 | 0.745
+| k = 3 | 25 | 0 | 0.3 ± 70.48 | 25.58 ± 55.63 | 0.768 | 0.736
 
 
 #### Calcium measurements
@@ -237,6 +253,7 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | 2D | 9 | 10 | 1.09 ± 68.95 | -18.11 ± 21.97 | -47.64 ± 209.13 | 0.817 | 0.807 | 0.65
 | k = 1 | 11 | 9 | 15.58 ± 45.12 | -17.82 ± 20.82 | -42.6 ± 196.03 | 0.924 | 0.833 | 0.696
 | k = 2 | 12 | 7 | 29.21 ± 91.42 | -19.19 ± 22.82 | -50.94 ± 223.97 | 0.735 | 0.798 | 0.631
+| k = 3 | 11 | 8 | 21.6 ± 80.48 | -16.93 ± 20 | -38.43 ± 225.05 | 0.791 | 0.849 | 0.633
 
 
 ### Uncertainty estimation results
@@ -248,7 +265,7 @@ The total Expected Calibration Error (ECE) with the reliability curves were obta
 | 2D | 0.0189 | 0.713/-/0.903 | 0.575/0.875/0.851
 | k = 1 | 0.0198 | 0.728/-/0.902 | 0.627/0.861/0.846
 | k = 2 | 0.0196 | 0.723/-/0.904 | 0.599/0.861/0.833
-
+| k = 3 | 0.0197 | 0.684/-/0.903 | 0.578/0.869/0.837
 
 ## TODO:
  - Train pseudo 3d (+- 1, 2, 3 frames)

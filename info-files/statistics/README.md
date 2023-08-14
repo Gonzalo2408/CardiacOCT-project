@@ -10,6 +10,9 @@ This file is manually created using the measurments obtained in the [counts](/in
 
 Each sheet in this file corresponds to one of the 5 measurements we are analyzing, plus an extra sheet contains different plots to compare each model. Below, you can find a plot example for the ICC.
 
-(Poner image cuando este)
+<p float="left">
+  <img src="/assets/icc_lipid.png" width="500" />
+  <img src="/assets/icc_cal.png" width="500" /> 
+</p>
 
 For a given sheet, each row corresponds to one model, containing the nº of FP and FN, mean difference, standard deviation, correlation, ICC(2,1), nº of outliers and a list containing all the specific frames that are outliers. These values are the one used then for the plots.
