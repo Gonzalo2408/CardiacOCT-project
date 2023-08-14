@@ -18,8 +18,8 @@ In this sheet, you will find the PPV, NPV, specificity, sensitivity and Kappa fo
 Two sheets contain the results for the lipid arc and the calcium arc DICEs respectively. Each sheet shows, on the top, an overview table with the DICEs for a type of arc (both per frame and per pullback), with a bar plot to the right to better visualize each model results. These plots can be visualized below. 
 
 <p float="left">
-  <img src="/assets/lipid_arc_dices.png" width="600" />
-  <img src="/assets/cal_arc_dices.png" width="600" /> 
+  <img src="/assets/lipid_arc_dices.png" width="500" height="500"/>
+  <img src="/assets/cal_arc_dices.png" width="500" height="500"/> 
 </p>
 
 
