@@ -8,7 +8,15 @@ In this folder, the original dataset is converted into 2D slices for the 2D trai
 
 There is a further script to perform the dataset conversion for the lipid training (i.e all labels that are not lipid are considered background and lipid is the foreground).
 
-![Figure 1. Preprocessing framework for the 2D slices](/assets/2d_dataset_conversion.png)
+<!-- ![Figure 1. Preprocessing framework ](/assets/2d_dataset_conversion.png) -->
+
+<p>
+    <img src="/assets/2d_dataset_conversion.png" alt>
+    <span style="font-style: normal;">
+        <strong>Figure 1.</strong> Preprocessing framework
+    </span>
+</p>
+
 
 ## Pseudo 3D case
 

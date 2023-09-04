@@ -2,7 +2,7 @@
 
 All the code that calculates the class weights and distributions for the different datasets are found in this folder. Now, everything is compiled in one class in the **get_distributions.py** file, which is compiled using the corresponding Shell file. The Python class compiles:
 
- - Get counts: it reads every image in the train or test set and creates an Excel file with these counts. For each frame, it gives either 0 or 1 if the label is present or not, and also it perfoms the automated measurements. 
+ - Get counts: it reads every image in the train or test set and creates an Excel file with these counts. For each frame, it gives either 0 or 1 if the label is present or not, and also it perfoms the automated measurements. In addition, the lipid and calcium sizes are also stored for later thresholding.
 
  - Get class weights: it returns the class weights for the train set, which was used for some of the trainings. The way the weights are calculated is by obtaining the ratio of the amount of pixels with a specific label to the total ammount of pixels in the training set.
 

@@ -10,3 +10,9 @@ In this folder, a summary of a model prediction is generated as pdf. An overview
 
 ![Figure 1. Example of model report](/assets/model_pdf_example.png)
 
+<p>
+    <img src="/assets/model_pdf_example.png" alt>
+    <span style="font-style: normal;">
+        <strong>Figure 1.</strong> Example of model report
+    </span>
+</p>
