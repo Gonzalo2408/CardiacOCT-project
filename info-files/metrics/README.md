@@ -6,7 +6,14 @@ The file in this folder contains all the generated metrics. Below, an explanatio
 
 This sheet contain the summary of every label in the study, except for the arc and TCFA metrics. For every model, you will find the average metrics for DICE per frame and per pullback, PPV, NPV, senstivity, specificity andf Cohen's Kappa, for every label. Moreover, a plot comparing the DICEs per frame can also be found, as can be seen below.
 
-![Figure 1. DICEs per frame for every model](/assets/dices_per_frame.png)
+<!-- ![Figure 1. DICEs per frame for every model](/assets/dices_per_frame.png) -->
+
+<figure>
+    <img src="/assets/dices_per_frame.png" alt="missing" />
+    <figcaption>
+        <strong>Figure 1.</strong> DICEs per frame for every model.
+    </figcaption>
+</figure>
 
 
 ### TCFAs
@@ -20,8 +27,10 @@ Two sheets contain the results for the lipid arc and the calcium arc DICEs respe
 <p float="left">
   <img src="/assets/lipid_arc_dices.png" width="500" height=300"/>
   <img src="/assets/cal_arc_dices.png" width="500" height="300"/> 
+  <figcaption>
+      <strong>Figure 2.</strong> Lipid and calcium ard DICEs, per frame and per pullback.
+  </figcaption>
 </p>
-
 
 Finally, on bottom left, you will find a table with the DICE for every frame and every model, and to the bottom right the arc DICE for every pullback.
 
