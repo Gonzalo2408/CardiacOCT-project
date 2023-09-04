@@ -6,8 +6,6 @@ Acute myocardial infarction (MI) remains as one of the leading causes of mortali
 
 In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a no-new UNet (nnUNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
 
-<!-- ![Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right)](assets/intro_images.png) -->
-
 <p>
     <img src="assets/intro_images.png" alt>
     <span style="font-style: normal;">
@@ -118,14 +116,24 @@ For the post-processing, we desgined algrithms that perform measurements on the 
 
 An algorithm that automatically measures the fibrous cap thickness (FCT: thickness of the wall that delimitates the lipid and the lumen) and the lipid arc was developed. A plaque is usually deemed vulnerable when a thin-cap fibroatheroma (TCFA) appears or there are either cap rupture or thrombus formation. In the case of TCFA, this occurs when there is a lipd arc ≥ 90º and a FCT < 65 µm. That is why the correct measurement of these two values is very important for the correct treatment of the patient.
 
-![Figure 2. Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right)](assets/lipid_post_proc_img.png)
+<p>
+    <img src="assets/lipid_post_proc_img.png" alt>
+    <span style="font-style: normal;">
+        <strong>Figure 2.</strong> Example of nnUNet prediction (left) with the measured lipid arc and cap thickness (right)
+    </span>
+</p>
 
 
 ### Calcium
 
 Similarly, we also developed an algorithm that performs measurements in the calcium region. The script measures the calcium depth (similar as FCT), calcium thickness (the thickness of the biggest calcium plaque, perpendicular to the lumen) and calcium arc (similar as the lipid arc). In this case, the amount of calcium would indicate that the lesion there should be prepared before treating it with a stent. These values are calcium arc > 180º (score of 2 points), thickness > 0.5 mm (1 point). Another parameter which is not included is the calcium length (length of the calcium in the longitudinal axis), which  has a threshold of > 5 mm (1 point). This gives a calcium score of 0-4 points. See [Fujino et al.](https://pubmed.ncbi.nlm.nih.gov/29400655/) for more information.
 
-![Figure 3. Example of nnUNet prediction (left) with the calcium measurements (right)](assets/calcium_post_proc_img.png)
+<p>
+    <img src="assets/calcium_post_proc_img.png" alt>
+    <span style="font-style: normal;">
+        <strong>Figure 3.</strong> Example of nnUNet prediction (left) with the calcium measurements (right)
+    </span>
+</p>
 
 
 ### Lipid and calcium thresholds
@@ -139,7 +147,23 @@ This was done by plotting the ROC curve and finding the optimal TPR/FPR. Once a 
 As XAI technique, the feature maps after each convolutional and activation step in the encoder were retrieved. This was done for the 2D and k = 3 models for a couple of representative frames for visual purposes. An example can be seen below.
 
 
+<p>
+    <img src="assets/features_2d.png" alt>
+    <span style="font-style: normal;">
+        <strong>Figure 4.</strong> Feature maps for 2D model on 4 representative predictions
+    </span>
+</p>
 
+<p>
+    <img src="assets/features_k3.png" alt>
+    <span style="font-style: normal;">
+        <strong>Figure 5.</strong> Feature maps for pseudo 3D model (k = 3) on 4 representative predictions
+    </span>
+</p>
+
+## Uncertainty estimation
+
+For uncertainty estimation, we first computed the total Expected Calibration Error (ECE) on the test set for every model predictions. After this, we retrieved the probability or confidence maps from the softmax layer. With these values, the average confidence was estimated for lipid and calcium, in order to compare confidence in TP, FP and FN. Finally, the entropy was also retrieved from these maps and correlated with the DICE coefficients of lipid and calcium, for each model and frame.
 
 
 ## Results
@@ -278,9 +302,9 @@ For the post-processing results, we report the Bland-Altman analysis and intra-c
 | k = 3 | 11 | 8 | 21.6 ± 80.48 | -16.93 ± 20 | -38.43 ± 225.05 | 0.791 | 0.849 | 0.633
 
 
-### Uncertainty estimation results
+### Average confidence on lipid and calcium
 
-The total Expected Calibration Error (ECE) with the reliability curves were obtained. Moreover, the confidence for lipid and calcium regions was estimated, for each model and if the prediction was TP, TN, FP or FN.
+The table below shows the average confidence on lipid and calcium. The results suggests that FP in both cases have quite low confidence, compared to the TP cases. However, the FN confidence in calcium is quite high.
 
 | Model | ECE | Lipid confidence (FP/FN/TP) | Calcium confidence (FP/FN/TP)
 | ------------- | -------------- | -------------- | --------------
@@ -289,11 +313,19 @@ The total Expected Calibration Error (ECE) with the reliability curves were obta
 | k = 2 | 0.0196 | 0.723/-/0.904 | 0.599/0.861/0.833
 | k = 3 | 0.0197 | 0.684/-/0.903 | 0.578/0.869/0.837
 
-## TODO:
- - Train pseudo 3d (+- 1, 2, 3 frames)
- - Probability maps and uncertainty estimation: see losses functions and correlation with DICE
- - Model architecure and weights to see feature map (explainability)
- - Clean code and keep updating files
- - Add READMEs
- - Keep writing
+### Entropy and DICE correlation
 
+An inverse correlation is shown in both cases (makes sense, since as entropy increases, the DICE should decrease). However, the correlation is stronger in calcium, despite having a bigger entropy and thus, bigger uncertainty.
+
+| Model | Entropy | Correlation
+| ------------- | -------------- | --------------
+| **Lipid** |
+| 2D | 0.291 | -0.419
+| k = 1 | 0.292 | -0.473
+| k = 2 | 0.283 | -0.463
+| k = 3 | 0.29 | -0.483
+| **Calcium** |
+| 2D | 0.388 | -0.742
+| k = 1 | 0.391 | -0.891
+| k = 2 | 0.449 | -0.79
+| k = 3 | 0.428 | -0.803
