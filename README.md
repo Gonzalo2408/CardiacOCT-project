@@ -10,7 +10,9 @@ In this project, an automatic segmentation model will be designed for intracoron
 
 <p>
     <img src="assets/intro_images.png" alt>
-    <em>Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right)</em>
+    <span style="font-style: normal;">
+        <strong>Figure 1.</strong> Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right)
+    </span>
 </p>
            
 ## Dataset
