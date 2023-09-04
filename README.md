@@ -6,7 +6,12 @@ Acute myocardial infarction (MI) remains as one of the leading causes of mortali
 
 In this project, an automatic segmentation model will be designed for intracoronary OCT scans in order to asses for plaque vulnerability and detect other abnormalities such as white or red thrombus or plaque rupture. Specifically, a no-new UNet (nnUNet) that works with sparse annotated data will be designed. Initially, the model will be trained on singles frames that contain a corresponding segmentation map, that is, the model works in a supervised manner. Next, in order to account for the sparse annotations, a 3D UNet will be trained in a semi-supervised manner. After the models have been trained, several automatic post-processing techninques for lipid arc and cap thickness measurement will be implemented. Moreover, an uncertainty estimation model will be designed in order to detect unreliable segmentations and add more value to the algorithm's output.
 
-![Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right)](assets/intro_images.png)
+<!-- ![Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right)](assets/intro_images.png) -->
+
+<p>
+    <img src="assets/intro_images.png" alt>
+    <em>Figure 1. Example of intracoronary OCT frame (left) with its corresponding manual segmentation (right)</em>
+</p>
            
 ## Dataset
 
@@ -119,6 +124,21 @@ An algorithm that automatically measures the fibrous cap thickness (FCT: thickne
 Similarly, we also developed an algorithm that performs measurements in the calcium region. The script measures the calcium depth (similar as FCT), calcium thickness (the thickness of the biggest calcium plaque, perpendicular to the lumen) and calcium arc (similar as the lipid arc). In this case, the amount of calcium would indicate that the lesion there should be prepared before treating it with a stent. These values are calcium arc > 180º (score of 2 points), thickness > 0.5 mm (1 point). Another parameter which is not included is the calcium length (length of the calcium in the longitudinal axis), which  has a threshold of > 5 mm (1 point). This gives a calcium score of 0-4 points. See [Fujino et al.](https://pubmed.ncbi.nlm.nih.gov/29400655/) for more information.
 
 ![Figure 3. Example of nnUNet prediction (left) with the calcium measurements (right)](assets/calcium_post_proc_img.png)
+
+
+### Lipid and calcium thresholds
+
+Some predicted lipid and calcium regions can be rather small and, in those cases, one could argue to not consider that lipid or calcium prediction. For this, we found an optimal threshold for lipid and calcium size, computed in the CV results for the k = 3 model. 
+
+This was done by plotting the ROC curve and finding the optimal TPR/FPR. Once a threshold was found, we checked every test set predictions for each model to find the new sensitivity and specificity values for lipid and calcium.
+
+## Feature maps
+
+As XAI technique, the feature maps after each convolutional and activation step in the encoder were retrieved. This was done for the 2D and k = 3 models for a couple of representative frames for visual purposes. An example can be seen below.
+
+
+
+
 
 ## Results
 
