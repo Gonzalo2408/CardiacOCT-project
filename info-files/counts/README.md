@@ -17,14 +17,14 @@ Figure 1 shows a similar distribution across every model and test set. It is wor
     </figcaption>
 </figure>
 
-Figure 2 shows the train/test distribution. Except for some underrepresentation in calcium and overrepresentation on sidebranch, the classes are similarly distributed across both sets. Notwithstanding, all the frames containing dissection belong to the train set, meaning that no dissections are found in the test set.
+<br> Figure 2 shows the train/test distribution. Except for some underrepresentation in calcium and overrepresentation on sidebranch, the classes are similarly distributed across both sets. Notwithstanding, all the frames containing dissection belong to the train set, meaning that no dissections are found in the test set.
 
 <!-- ![Figure 2. Raw train/test set distribution](/assets/train_test_dists.png) -->
 
 <figure>
     <img src="/assets/train_test_dists.png" alt="missing" />
     <figcaption>
-        <strong>Figure 1.</strong> Raw train/test set distribution.
+        <strong>Figure 2.</strong> Raw train/test set distribution.
     </figcaption>
 </figure>
 
