@@ -5,10 +5,12 @@ import os
 import pandas as pd
 import sys
 import argparse
+import scipy.ndimage as ndimage
 from typing import Tuple
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
+warnings.filterwarnings("ignore", category=RuntimeWarning) 
 
 class ECE_Conf:
 
@@ -82,61 +84,128 @@ class ECE_Conf:
         plt.savefig(os.path.join(path_curves, './{}.png'.format(name)))
         plt.close()
 
-    def get_confidence(self, label: int) -> Tuple[str, float]: 
+    def get_confidence(self, label: int, threshold: int) -> Tuple[str, float, float]: 
         """Obtain the average confidence for a given frame and a specific label (we are doing just lipid and calcium)
 
         Args:
             label (int): label to get the confidence
 
         Returns:
-            Tuple[str, float]: str value either being TP, TN, FP or FN, and the average confidence on that frame
+            Tuple[str, float, float]: str value either being TP, TN, FP or FN, the average confidence on that frame and the total entropy per case
         """        
 
         #Uniques for the labels
         labels_pred = np.unique(self.pred)
         labels_orig = np.unique(self.true)
 
-        #For FP, we take the pixels that contain the label we want in the predicted segmentation
-        if label in labels_pred and label not in labels_orig:
-            cm_type = 'FP'
-            prob_label_img = self.prob_img[label][self.pred == label]
-            conf = np.mean(prob_label_img)
+        #Get entropy for each pixel
+        entropy = - np.nansum(self.prob_img * np.log2(self.prob_img + 1e-10), axis=0)
 
-        #For FN, we take the pixels in the predicted segmentation that correspond to the label in the true segmentation
-        elif label in labels_orig and label not in labels_pred:
+
+        #For FN, we take the pixels in the predicted segmentation that correspond to the label in the true segmentation. For entropy, we take that
+        #on the predicted seg that corresponds to lipid/calcium in the manual seg
+        if label in labels_orig and label not in labels_pred:
             cm_type = 'FN'
-            prob_label_img = np.max(self.prob_img, axis=0)[self.true == label]
-            conf = np.mean(prob_label_img)
+            conf_vals = np.mean(np.max(self.prob_img, axis=0)[self.true == label])
+            entropy_vals = np.mean(entropy[self.true == label])
+            return cm_type, conf_vals, entropy_vals
+
 
         #We dont calculate anything in TN
         elif label not in labels_orig and label not in labels_pred:
-            cm_type = 'TN'
-            conf = np.nan
+            return 'TN', np.nan, np.nan
+        
+        #For FP, we take the pixels that contain the label we want in the predicted segmentation. As entropy, we take that of the lipid/calcium region
+        elif label in labels_pred and label not in labels_orig:
+            cm_type = 'FP'
+            label_map = (self.pred == label).astype(int)
+            labeled_array, num_features = ndimage.label(label_map)
+
+            #Detect clusters of lipid/calcium so we can apply threshold
+            clusters = []
+            for label_id in range(1, num_features + 1):
+                cluster_coords = np.argwhere(labeled_array == label_id)
+                clusters.append(cluster_coords)
+
+            print('Detected {} clusters for label {}'.format(len(clusters), label))
+
+            conf_vals_list = []
+            entropy_vals_list = []
+            count_cluster = 0
+            for cluster in clusters:
+                
+                #We compute the confidence only on those big chunks predicted
+                if len(cluster) > threshold:
+                    count_cluster += 1
+
+                    for i in range(len(cluster)):
+
+                        conf_vals_list.append(self.prob_img[label][cluster[:,0], cluster [:,1]][i])
+                        entropy_vals_list.append(entropy[cluster[:,0], cluster[:,1]][i])
+
+            print('Computed entropy and confidence for only {} of them'.format(count_cluster))
+            #If all chunks are small, no conf vals are found, so if the list is empty, we assume the region as TN
+            if conf_vals_list == []:
+                return 'TN (previous FP)', np.nan, np.nan
+            
+            conf_vals = np.mean(conf_vals_list)
+            entropy_vals = np.mean(entropy_vals_list)
+
+            return cm_type, conf_vals, entropy_vals
 
         #We do the same as in FP
         else:
             cm_type = 'TP'
-            prob_label_img = self.prob_img[label][self.pred == label]
-            conf = np.mean(prob_label_img)
+            label_map = (self.pred == label).astype(int)
+            labeled_array, num_features = ndimage.label(label_map)
 
-        return cm_type, conf
+            #Detect clusters of lipid/calcium so we can apply threshold
+            clusters = []
+            for label_id in range(1, num_features + 1):
+                cluster_coords = np.argwhere(labeled_array == label_id)
+                clusters.append(cluster_coords)
 
+            print('Detected {} clusters for label {}'.format(len(clusters), label))
+
+            conf_vals_list = []
+            entropy_vals_list = []
+            count_cluster = 0
+            for cluster in clusters:
+                
+                #We compute the confidence only on those big chunks predicted
+                if len(cluster) > threshold:
+                    count_cluster += 1
+                    for i in range(len(cluster)):
+
+                        conf_vals_list.append(self.prob_img[label][cluster[:,0], cluster [:,1]][i])
+                        entropy_vals_list.append(entropy[cluster[:,0], cluster[:,1]][i])
+                        
+
+            print('Computed entropy and confidence for only {} of them'.format(count_cluster))
+            #If all chunks are small, no conf vals are found, so if the list is empty, we assume the region as FN
+            if conf_vals_list == []:
+                return 'FN (previous TP)', np.nan, np.nan
+            
+            conf_vals = np.mean(conf_vals_list)
+            entropy_vals = np.mean(entropy_vals_list)
+            
+            return cm_type, conf_vals, entropy_vals
 
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--preds_path', type=str, default='Z:/grodriguez/CardiacOCT/preds_second_split/model_pseudo3d_1_preds')
+    parser.add_argument('--preds_path', type=str, default='Z:/grodriguez/CardiacOCT/preds_second_split/model_pseudo3d_3_preds')
     parser.add_argument('--orig_path', type=str, default='Z:/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task604_CardiacOCT/labelsTs')
     parser.add_argument('--data_info', type=str, default='Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
-    parser.add_argument('--excel_name', type=str, default='ece_conf_pseudo3d_1')
-    parser.add_argument('--path_curves', type=str, default='Z:/grodriguez/CardiacOCT/info-files/uncertainty/Pseudo 3D 1')
+    parser.add_argument('--excel_name', type=str, default='ece_conf_pseudo3d_v3_no_thresh')
+    parser.add_argument('--path_curves', type=str, default='Z:/grodriguez/CardiacOCT/info-files/uncertainty/2D')
     args, _ = parser.parse_known_args(argv)
 
     annots = pd.read_excel(args.data_info)
 
     orig_list = os.listdir(args.orig_path)
 
-    error_pd = pd.DataFrame(columns=['pullback', 'frame', 'type lipid', 'type calcium', 'conf lipid', 'conf_calcium'])
+    error_pd = pd.DataFrame(columns=['pullback', 'frame', 'type lipid', 'type calcium', 'conf lipid', 'conf calcium', 'entropy lipid', 'entropy calcium'])
 
     #This is to compute the total ECE in the test set + total reliability curve
     total_orig = []
@@ -182,11 +251,12 @@ def main(argv):
         get_ece_conf = ECE_Conf(orig_seg, pred_seg, prob_img, 10)
         
         #Get confidences for lipid and calcium
-        cm_type_lipid, conf_lipid = get_ece_conf.get_confidence(4)
-        cm_type_cal, conf_cal = get_ece_conf.get_confidence(5)
+        cm_type_lipid, conf_lipid, entropy_lipid = get_ece_conf.get_confidence(4, 0)
+        cm_type_cal, conf_cal, entropy_cal = get_ece_conf.get_confidence(5, 0)
 
         print('Lipid: {}. Calcium: {}'.format(cm_type_lipid, cm_type_cal))
-        print('Conf lipid: {}. Conf calcium: {} \n'.format(conf_lipid, conf_cal))
+        print('Conf lipid: {}. Conf calcium: {}'.format(conf_lipid, conf_cal))
+        print('Entropy lipid: {}. Entropy calcium: {} \n'.format(entropy_lipid, entropy_cal))
 
         # Obtain format of pullback name (it's different than in the dataset counting)
         filename = nifti_file.split('_')[0]
@@ -208,7 +278,8 @@ def main(argv):
         error_list.append(cm_type_cal)
         error_list.append(conf_lipid)
         error_list.append(conf_cal)
-
+        error_list.append(entropy_lipid)
+        error_list.append(entropy_cal)
         error_pd = error_pd.append(pd.Series(error_list, index=error_pd.columns[:len(error_list)]), ignore_index=True)
 
     #Calculate ECE

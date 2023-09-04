@@ -148,30 +148,33 @@ class PDF_report:
         return final
 
 
-    def get_models_overview(self, raw_img: np.array, pred_seg_name: str) -> matplotlib.figure.Figure:
+    def get_models_overview(self, raw_img: np.array, seg_name: str) -> matplotlib.figure.Figure:
         """Obtain the report to see all the segmentations of every model for every frame
 
         Args:
             raw_img (np.array): raw DICOM frame
-            pred_seg_name (str): name of the file containing the predicted segmentation
+            seg_name (str): name of the file containing the segmentation
 
         Returns:
             matplotlib.figure.Figure: figure with subplots containing the segmentations and raw image
-        """                   
+        """
 
         dict_preds = {}
+
+        orig_seg = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(self.path_origs, seg_name)))[0]
+        final_orig_seg = create_image_png(orig_seg)
 
         #Iterate through every prediction folder
         for pred_folder in os.listdir(self.path_preds):
 
-            pred_seg_data = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(self.path_preds, pred_folder, pred_seg_name)))[0]
+            pred_seg_data = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(self.path_preds, pred_folder, seg_name)))[0]
             final_pred_seg = create_image_png(pred_seg_data)
 
             #Get specific substring for the plot title
             sub_pred_folder = pred_folder.split('_')
-            dict_preds['_'.join(sub_pred_folder[:3])] = final_pred_seg
+            dict_preds['_'.join(sub_pred_folder[:4])] = final_pred_seg
 
-        fig, axes = plt.subplots(2, 2, figsize=(50,50), constrained_layout = True)
+        fig, axes = plt.subplots(2, 3, figsize=(50,50), constrained_layout = True)
 
         axes = axes.flatten()
 
@@ -181,41 +184,46 @@ class PDF_report:
         axes[0].imshow(raw_img)
         axes[0].get_xaxis().set_visible(False)
         axes[0].get_yaxis().set_visible(False)
-        
-        axes[1].set_title(dict_preds[0][0], fontsize=75)
-        axes[1].imshow(dict_preds[0][1])
+
+        axes[1].set_title('Raw segmentation', fontsize=75)
+        axes[1].imshow(final_orig_seg)
         axes[1].get_xaxis().set_visible(False)
         axes[1].get_yaxis().set_visible(False)
         
-        axes[2].set_title(dict_preds[1][0], fontsize=75)
-        axes[2].imshow(dict_preds[1][1])
+        axes[3].set_title('Pseudo 3D k=1', fontsize=75)
+        axes[3].imshow(dict_preds[0][1])
+        axes[3].get_xaxis().set_visible(False)
+        axes[3].get_yaxis().set_visible(False)
+        
+        axes[4].set_title('Pseudo 3D k=2', fontsize=75)
+        axes[4].imshow(dict_preds[1][1])
+        axes[4].get_xaxis().set_visible(False)
+        axes[4].get_yaxis().set_visible(False)
+
+        axes[5].set_title('Pseudo 3D k=3', fontsize=75)
+        axes[5].imshow(dict_preds[2][1])
+        axes[5].get_xaxis().set_visible(False)
+        axes[5].get_yaxis().set_visible(False)
+
+        axes[2].set_title('2D', fontsize=75)
+        axes[2].imshow(dict_preds[3][1])
         axes[2].get_xaxis().set_visible(False)
         axes[2].get_yaxis().set_visible(False)
 
-        axes[3].set_title(dict_preds[2][0], fontsize=75)
-        axes[3].imshow(dict_preds[2][1])
-        axes[3].get_xaxis().set_visible(False)
-        axes[3].get_yaxis().set_visible(False)
-
-        # axes[4].set_title(dict_preds[3][0], fontsize=75)
-        # axes[4].imshow(dict_preds[3][1])
-        # axes[4].get_xaxis().set_visible(False)
-        # axes[4].get_yaxis().set_visible(False)
-
         return fig
 
-    def get_model_summary(self, raw_img: np.array, pred_seg_name: np.array) -> matplotlib.figure.Figure:
+    def get_model_summary(self, raw_img: np.array, seg_name: str) -> matplotlib.figure.Figure:
         """Obtain standard model report (with measurements and table)
 
         Args:
             raw_img (np.array): Raw DICOM frame
-            pred_seg_name (str): name of the file containing the predicted segmentation
+            seg_name (str): name of the file containing the segmentation
 
         Returns:
             matplotlib.figure.Figure: figure containing the raw frame, manual and predicted segmentations, measurements and table with information
         """        
 
-        pred_seg = sitk.ReadImage(os.path.join(self.path_preds, pred_seg_name))
+        pred_seg = sitk.ReadImage(os.path.join(self.path_preds, seg_name))
         pred_seg_data = sitk.GetArrayFromImage(pred_seg)[0]
 
         #Perform or don't perform morphological closing
@@ -223,7 +231,7 @@ class PDF_report:
             pred_seg_data = self.morph_operation(pred_seg_data)
 
         #Reading orig seg
-        seg_to_plot = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(self.path_origs, pred_seg_name)))[0]
+        seg_to_plot = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(self.path_origs, seg_name)))[0]
         
         #Lipid and calcium measurements (both preds and original seg)
         lipid_img_pred, _ , fct_pred, lipid_arc_pred, _ = create_annotations_lipid(pred_seg_data)
@@ -312,20 +320,18 @@ class PDF_report:
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--orig', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task603_CardiacOCT/labelsTs')
+    parser.add_argument('--orig', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/data-2d/nnUNet_raw_data/Task604_CardiacOCT/labelsTs')
     parser.add_argument('--preds', type=str, default='/mnt/netcache/diag/grodriguez/CardiacOCT/preds_second_split/model_rgb_2d_preds')
     parser.add_argument('--pdf_name', type=str)
     parser.add_argument('--morph_op', action='store_true')
     parser.add_argument('--overview', action='store_true')
     args, _ = parser.parse_known_args(argv)
-    
+
     raw_imgs_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/DICOM'
 
     annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
 
     test_set = annots[annots['Set'] == 'Testing']['Pullback'].tolist()
-
-    pdf = PdfPages('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/models_reports/{}.pdf'.format(args.pdf_name))
 
     if args.morph_op:
         print('Performing closing morphological operation')
@@ -333,16 +339,13 @@ def main(argv):
     else:
         print('No morphological operations being applied')
 
-    if args.overview: 
+    if args.overview:
         print('Getting overview of every training...')
 
     else:
         print('Getting report for model stored in ', args.preds)
 
     get_pdf = PDF_report(args.preds, args.orig, args.morph_op)
-
-    #Count for splitting the PDF (otherwise it's massive)
-    count = 0
 
     for file in test_set:
 
@@ -353,39 +356,33 @@ def main(argv):
 
         #Getting name, id, pullback and frames variables
         frames_with_annot = annots.loc[annots['Pullback'] == file]['Frames']
-        frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')] 
+        frames_list = [int(i)-1 for i in frames_with_annot.values[0].split(',')]
         n_pullback = annots.loc[annots['Pullback'] == file]['Nº pullback'].values[0]
-        
+
         patient_name = annots.loc[annots['Pullback'] == file]['Patient'].values[0]
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
 
+        pdf = PdfPages('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/models_reports/{}_{}.pdf'.format(file, args.pdf_name))
+
         for frame in frames_list:
 
-            count += 1
-
             #Get corresponding prediction for a given model (in args.preds)
-            pred_seg_name = '{}_{}_frame{}_{}.nii.gz'.format(patient_name.replace('-', ''), n_pullback, frame, "%03d" % id)
+            seg_name = '{}_{}_frame{}_{}.nii.gz'.format(patient_name.replace('-', ''), n_pullback, frame, "%03d" % id)
 
             #Get raw frame and seg
             raw_img_to_plot = image_data[frame,:,:,:]
 
             if args.overview:
-                fig = get_pdf.get_models_overview(raw_img_to_plot, pred_seg_name)
-                
+                fig = get_pdf.get_models_overview(raw_img_to_plot,seg_name)
+
             else:
-                fig = get_pdf.get_model_summary(raw_img_to_plot, pred_seg_name)
-            
+                fig = get_pdf.get_model_summary(raw_img_to_plot, seg_name)
+
             fig.suptitle('Pullback: {}. Frame {}'.format(patient_name, frame), fontsize=75) 
             pdf.savefig(fig)
             plt.close(fig)
 
-        #Limit the PDF size to 100 pages
-        if count >= 100:
-            pdf.close()
-            pdf = PdfPages('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/models_reports/{}_{}.pdf'.format(args.pdf_name, count))
-
-    
-    pdf.close()
+        pdf.close()
 
 if __name__ == '__main__':
     r = main(sys.argv)

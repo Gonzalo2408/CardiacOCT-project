@@ -60,7 +60,9 @@ class Get_Distributions:
 
         counts_per_frame = pd.DataFrame(columns = ['pullback', 'frame', 'background', 'lumen', 'guidewire', 'wall', 'lipid', 'calcium', 
                                     'media', 'catheter', 'sidebranch', 'rthrombus', 'wthrombus', 'dissection',
-                                    'rupture', 'lipid_arc', 'cap_thickness', 'calcium_depth', 'calcium_arc', 'calcium_thickness'])
+                                    'rupture', 'lipid size', 'calcium size', 'lipid_arc', 'cap_thickness', 'calcium_depth', 'calcium_arc', 'calcium_thickness'])
+        
+
 
 
         for file in os.listdir(self.data_path):
@@ -84,6 +86,20 @@ class Get_Distributions:
 
                 one_hot[[unique[i] for i in range(len(unique))]] = 1
 
+                #Get lipid size in current frame (nan if there is not)
+                if 4 in unique:
+                    lipid_size = (seg_map_data[0] == 4).sum()
+
+                else:
+                    lipid_size = np.nan
+
+                #Same for calcium
+                if 5 in unique:
+                    cal_size = (seg_map_data[0] == 5).sum()
+
+                else:
+                    cal_size = np.nan
+
                 #Post-processing results
                 _, _ , cap_thickness, lipid_arc, _ = create_annotations_lipid(seg_map_data[0], font = 'mine')
                 _, _ , calcium_depth, calcium_arc, calcium_thickness, _ = create_annotations_calcium(seg_map_data[0], font = 'mine')
@@ -92,6 +108,8 @@ class Get_Distributions:
                 one_hot_list = one_hot.tolist()
                 one_hot_list.insert(0, pullback_name)
                 one_hot_list.insert(1, n_frame)
+                one_hot_list.append(lipid_size)
+                one_hot_list.append(cal_size)
                 one_hot_list.append(lipid_arc)
                 one_hot_list.append(cap_thickness)
                 one_hot_list.append(calcium_depth)

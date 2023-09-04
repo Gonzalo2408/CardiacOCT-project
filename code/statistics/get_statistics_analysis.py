@@ -147,12 +147,12 @@ class Statistics:
         
         #Three colors to separate between different cases
         else:
-            ax.scatter(manual, automatic, c=col, cmap=ListedColormap(['black', 'green', 'blue']))
+            ax.scatter(automatic, manual, c=col, cmap=ListedColormap(['black', 'green', 'blue']))
     
         ax.axhline(thresh, color='r')
         ax.axvline(thresh, color='r')
-        ax.set_xlabel('Manual')
-        ax.set_ylabel('Automatic')
+        ax.set_xlabel('Automatic')
+        ax.set_ylabel('Manual')
         ax.set_title(title)
         fig.savefig(os.path.join(self.png_path, 'corr-plots', png_name+'.png'), bbox_inches='tight')
 
@@ -172,7 +172,7 @@ class Statistics:
         sm.graphics.mean_diff_plot(ai, manual, ax = axes)
         plt.xlabel('Mean {}'.format(region))
         plt.ylabel('{} difference (ai - manual)'.format(region))
-        plt.title('{} manual vs automatic'.format(region))
+        plt.title(region)
         plt.savefig(os.path.join(self.png_path, 'bland-altman', png_name+'.png'), bbox_inches='tight')
 
 
@@ -279,7 +279,7 @@ class Statistics:
             #Save scatter plots and bland altman for every region 
             print('Saving plots')
             self.scatter_data_save_png(manual, ai, types[measure_type], '{} {}'.format(measure_type, self.model_id), '{}_{}'.format(measure_type.lower(), self.model_id.replace(' ','_')))
-            self.save_bland_altman(manual, ai, measure_type, '{}_{}'.format(measure_type.lower(), self.model_id))
+            self.save_bland_altman(manual, ai, '{} {}'.format(measure_type, self.model_id), '{}_{}'.format(measure_type.lower(), self.model_id.replace(' ','_')))
 
             #Append all values into a list
             analysis_list = []
