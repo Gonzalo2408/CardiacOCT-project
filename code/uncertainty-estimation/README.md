@@ -24,8 +24,8 @@ The nnUNet allows to store the probability maps for each image. That is, for eac
 
 <!-- ![Figure 1. Example of probability map as overlay and corresponding image. It is worth noting that edges are always uncertain regions, but other tiny blue regions can be seen as well](/assets/prob_map.png) -->
 
-<div style="clear: both;">
-    <img src="/assets/prob_map.png" alt>
+<div style="display: flex; align-items: center;">
+    <img src="/assets/prob_map.png" alt style="margin-right: 10px;>
     <span style="font-style: normal;">
         <strong>Figure 1.</strong> Example of probability map as overlay and corresponding image. It is worth noting that edges are always uncertain regions, but other tiny blue regions can be seen as well
     </span>
