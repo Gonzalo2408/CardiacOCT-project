@@ -31,4 +31,4 @@ The nnUNet allows to store the probability maps for each image. That is, for eac
     </figcaption>
 </figure>
 
-<br>The result on this aspect can be found [here](/info-files/uncertainty/).
+<br>The result on this aspect can be found [here](/info_files/uncertainty/).

@@ -296,7 +296,7 @@ def main(argv):
     # Get reliability curve
     get_ece_conf.reliability_diagram(x, y, ece, args.path_curves, args.excel_name)
 
-    error_pd.to_excel('Z:/grodriguez/CardiacOCT/info-files/uncertainty/{}.xlsx'.format(args.excel_name))
+    error_pd.to_excel('Z:/grodriguez/CardiacOCT/info_files/uncertainty/{}.xlsx'.format(args.excel_name))
 
 
 if __name__ == '__main__':

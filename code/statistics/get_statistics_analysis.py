@@ -304,7 +304,7 @@ class Statistics:
 
             print('\n')
 
-        analysis_region.to_excel('Z:/grodriguez/CardiacOCT/info-files/statistics/second_split/{}.xlsx'.format(self.output_filename))
+        analysis_region.to_excel('Z:/grodriguez/CardiacOCT/info_files/statistics/second_split/{}.xlsx'.format(self.output_filename))
         print('Done! You can find the saved images in ', self.png_path)
 
 

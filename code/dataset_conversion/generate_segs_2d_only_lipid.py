@@ -16,7 +16,7 @@ def main(argv):
     parser.add_argument('--do_only_lipid', type=bool, default=False)
     args, _ = parser.parse_known_args(argv)
 
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final.xlsx')
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info_files/train_test_split_final.xlsx')
 
     for filename in os.listdir(args.data):
 

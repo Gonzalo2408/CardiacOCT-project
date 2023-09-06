@@ -19,7 +19,7 @@ def main(argv):
 
     parent_path = args.data
 
-    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
+    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info_files/train_test_split_final_v2.xlsx')
 
     files = os.listdir(parent_path)
 

@@ -342,7 +342,7 @@ def main(argv):
 
     raw_imgs_path = '/mnt/netcache/diag/grodriguez/CardiacOCT/data-original/DICOM'
 
-    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
+    annots = pd.read_excel('/mnt/netcache/diag/grodriguez/CardiacOCT/info_files/train_test_split_final_v2.xlsx')
 
     test_set = annots[annots['Set'] == 'Testing']['Pullback'].tolist()
 
@@ -375,7 +375,7 @@ def main(argv):
         patient_name = annots.loc[annots['Pullback'] == file]['Patient'].values[0]
         id = int(annots.loc[annots['Patient'] == patient_name]['ID'].values[0])
 
-        pdf = PdfPages('/mnt/netcache/diag/grodriguez/CardiacOCT/info-files/models_reports/{}_{}.pdf'.format(file, args.pdf_name))
+        pdf = PdfPages('/mnt/netcache/diag/grodriguez/CardiacOCT/info_files/models_reports/{}_{}.pdf'.format(file, args.pdf_name))
 
         for frame in frames_list:
 

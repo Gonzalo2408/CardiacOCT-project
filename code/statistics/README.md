@@ -1,6 +1,6 @@
 ## Statistical analysis
 
-The statistical analyis on lipid (arc and FCT) and calcium (arc, thickness and depth) is performed with the aim to compare manual and automated measurements on these regions. The functions that perfom this analysis are in the class stored in **get_statistical_analysis.py**, which is compiled with the Shell file in this folder. Before running this analysis, you should have built an Excel file containing the measurements for both manual and automated segmentations. In this case, the file I'm using is called measures_V2, which you cand find [here](/info-files/statistics/). The Shell file contains the following arguments:
+The statistical analyis on lipid (arc and FCT) and calcium (arc, thickness and depth) is performed with the aim to compare manual and automated measurements on these regions. The functions that perfom this analysis are in the class stored in **get_statistical_analysis.py**, which is compiled with the Shell file in this folder. Before running this analysis, you should have built an Excel file containing the measurements for both manual and automated segmentations. In this case, the file I'm using is called measures_V2, which you cand find [here](/info_files/statistics/). The Shell file contains the following arguments:
 
 - model_id: it should be the exact model name that you are in your measures Excel file for naming all the columns. So, for example, if your column name is "FCT/Lipid arc pseudo 3D 1", the model_id should be "pseudo 3D 1".
 

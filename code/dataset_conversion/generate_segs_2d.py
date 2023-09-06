@@ -9,7 +9,7 @@ from utils.conversion_utils import create_circular_mask, resize_image, check_uni
 
 def main(argv):
 
-    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info-files/train_test_split_final_v2.xlsx')
+    annots = pd.read_excel('Z:/grodriguez/CardiacOCT/info_files/train_test_split_final_v2.xlsx')
     data = 'Z:/grodriguez/CardiacOCT/data-original/SEGMENTATIONS'
     task = 'Task603_CardiacOCT'
 

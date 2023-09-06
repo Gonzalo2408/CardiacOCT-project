@@ -475,7 +475,7 @@ def main(argv):
     parser.add_argument('--preds_folder', type=str, default='Z:/grodriguez/CardiacOCT/preds_second_split')
     parser.add_argument('--data_info', type=str)
     parser.add_argument('--model_id')
-    parser.add_argument('--output_folder', type=str, default='Z:/grodriguez/CardiacOCT/info-files/metrics/second_split')
+    parser.add_argument('--output_folder', type=str, default='Z:/grodriguez/CardiacOCT/info_files/metrics/second_split')
     args, _ = parser.parse_known_args(argv)
 
     args = parser.parse_args()

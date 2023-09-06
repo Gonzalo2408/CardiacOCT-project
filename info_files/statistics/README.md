@@ -4,7 +4,7 @@ There are two files in this folder: the measures file, which contains all the me
 
 ### Measures file
 
-This file is manually created using the measurments obtained in the [counts](/info-files/counts) file. The automated measurements were obtained from the annotator and copied in this file as well. 
+This file is manually created using the measurments obtained in the [counts](/info_files/counts) file. The automated measurements were obtained from the annotator and copied in this file as well. 
 
 ### Measures analysis file
 
