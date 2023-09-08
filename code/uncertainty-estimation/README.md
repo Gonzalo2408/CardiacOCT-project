@@ -4,7 +4,7 @@ Usually, neural networks are too overconfident in their results, meaning that th
 
 ### Optimal lipid and calcium threshold
 
-The lipid and calcium thresholds are determined using the notebook in **get_lipid_cal_thresh.ipyn**. Here, the ROC is first computed using the train predictions on the k = 3 model. Then, an optimal value of 1700 and 100 pixels is found for lipid and calcium regions, respectively. Finally, the threshold is applied to the test set predictions and the sensitivity and specificity are again computed.
+The lipid and calcium thresholds are determined using the notebook in **get_lipid_cal_thresh.ipynb**. Here, the ROC is first computed using the train predictions on the k = 3 model. Then, an optimal value of 1700 and 100 pixels is found for lipid and calcium regions, respectively. Finally, the threshold is applied to the test set predictions and the sensitivity and specificity are again computed.
 
 ### Feature maps
 
