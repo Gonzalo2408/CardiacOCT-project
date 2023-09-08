@@ -13,3 +13,8 @@ All the code that calculates the class weights and distributions for the differe
  - output_filename: the path to the Excel file you want to generate (you should specify also the name of the Excel file in the path, without the extension).
 
  - data-info: the path to the Excel file containing all the important data for each pullback (like frames with annots, ID, etc). It basically is the train_test_split_v2 file.
+
+
+ ## Lipid and calcium size thresholds
+
+ The notebook **get_lipid_thresh.py** obtains the ROC curves thanks to which an optimal threshold for detected lipid and calcium size is found. These sizes are obtained with the distributions file as well, and stored in an Excel file. In this notebook, by using this Excel, we obtain the optimal threshold by analyzing the sizes in the train results on the pseudo 3D with k = 3 model.
