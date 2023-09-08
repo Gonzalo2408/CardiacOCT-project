@@ -15,7 +15,7 @@ In this folder, a summary of a model prediction is generated as pdf. An overview
     </figcaption>
 </figure>
 
-Apart from this, the option to obtain an comparative of every model is also possible. Instead, each page in the PDF will contain the raw OCT frame, the manual segmentation, and the prediction by every model. An example on this can be seen below.
+<br> Apart from this, the option to obtain an comparative of every model is also possible. Instead, each page in the PDF will contain the raw OCT frame, the manual segmentation, and the prediction by every model. An example on this can be seen below.
 
 
 <figure>
