@@ -17,4 +17,4 @@ All the code that calculates the class weights and distributions for the differe
 
  ## Lipid and calcium size thresholds
 
- The notebook **get_lipid_thresh.py** obtains the ROC curves thanks to which an optimal threshold for detected lipid and calcium size is found. These sizes are obtained with the distributions file as well, and stored in an Excel file. In this notebook, by using this Excel, we obtain the optimal threshold by analyzing the sizes in the train results on the pseudo 3D with k = 3 model.
+ The notebook **get_lipid_thresh.py** obtains the ROC curves thanks to which an optimal threshold for detected lipid and calcium size is found. These sizes are obtained with the distributions file as well, and stored in an Excel file. In this notebook, by using this Excel, we obtain the optimal threshold by analyzing the sizes in the train results on the pseudo 3D with k = 3 model. An optimal value of 1700 and 100 pixels is found for lipid and calcium regions, respectively. Finally, the threshold is applied to the test set predictions and the sensitivity and specificity are again computed.

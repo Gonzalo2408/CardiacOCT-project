@@ -2,10 +2,6 @@
 
 Usually, neural networks are too overconfident in their results, meaning that the probability to belong to a label that the model asigns to each pixel does not always relate to the true accuracy of that label. That is why we are building some uncertainty metrics in order to see how well calibrated is our model and give more insight to clinicians. 
 
-### Optimal lipid and calcium threshold
-
-The lipid and calcium thresholds are determined using the notebook in **get_lipid_cal_thresh.ipynb**. Here, the ROC is first computed using the train predictions on the k = 3 model. Then, an optimal value of 1700 and 100 pixels is found for lipid and calcium regions, respectively. Finally, the threshold is applied to the test set predictions and the sensitivity and specificity are again computed.
-
 ### Feature maps
 
 For XAI, the feature maps were retrieved from a couple of frames and for the 2D and k = 3 models. This was done my modifying the base nnU-Net forward function so the tensor after the convolutional layers are saved as .pt files. The features are retrieved from the 8 layers in the encoder, and for each layer, 5 features corresponding to the 5 folds are obtained.
